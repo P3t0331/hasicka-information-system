@@ -8,6 +8,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState(''); // New success state
   const [loading, setLoading] = useState(false);
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function AuthPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setSuccessMsg(''); // Clear success on new submit
 
     if (!isLogin) {
       // Validate Phone
@@ -58,7 +60,18 @@ export default function AuthPage() {
            address,
            roles: ['Hasič']
         });
-        navigate('/');
+        
+        // Success!
+        setSuccessMsg("Registrace úspěšná! Váš účet nyní čeká na schválení administrátorem. Můžete se přihlásit po schválení.");
+        setIsLogin(true); // Switch back to login form
+        
+        // Clear form fields
+        setEmail('');
+        setPassword('');
+        setFirstName('');
+        setLastName('');
+        setPhone('');
+        setAddress('');
       }
     } catch (err) {
       console.error("Auth Error:", err);
@@ -96,6 +109,7 @@ export default function AuthPage() {
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
+        {successMsg && <div className="alert alert-success" style={{background: '#e8f5e9', color: '#2e7d32', border: '1px solid #c8e6c9'}}>{successMsg}</div>}
 
         <h2 className="mb-2" style={{ textAlign: 'center' }}>{isLogin ? 'Přihlášení' : 'Registrace'}</h2>
         
@@ -152,6 +166,7 @@ export default function AuthPage() {
             onClick={() => {
               setIsLogin(!isLogin);
               setError('');
+              setSuccessMsg('');
             }}
           >
             {isLogin ? 'Zaregistrujte se' : 'Přihlaste se'}

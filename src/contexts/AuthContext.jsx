@@ -79,7 +79,12 @@ export function AuthProvider({ children }) {
         setUserData(docSnap.data());
       }
       
-      return { user };
+      // STRICT LOGOUT: New users are not approved, so we must sign them out immediately
+      await signOut(auth);
+      setCurrentUser(null);
+      setUserData(null);
+      
+      return { user, success: true };
     } finally {
       isSigningUp.current = false;
     }
