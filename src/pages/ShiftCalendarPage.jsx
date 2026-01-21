@@ -521,7 +521,7 @@ export default function ShiftCalendarPage() {
 
 // Single Row Component
 function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift }) {
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  // Removed isMobile check to force desktop layout everywhere
   
   // Check if shift is empty (no users assigned)
   const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
@@ -532,29 +532,29 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
       display: 'flex', 
       alignItems: 'stretch',
       background: day.isToday ? '#FFFDE7' : (day.isWeekend ? '#f9f9f9' : 'white'),
-      margin: isMobile ? '0.25rem' : '0.5rem',
-      borderRadius: isMobile ? '6px' : '8px',
+      margin: '0.5rem',
+      borderRadius: '8px',
       border: day.isToday ? '2px solid #FFC107' : (day.isWeekend ? '1px solid #FFCC80' : '1px solid #e0e0e0'),
       boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
     }}>
       {/* Date Column */}
       <div style={{ 
-        width: isMobile ? '50px' : '80px', 
-        minWidth: isMobile ? '50px' : '80px',
-        padding: isMobile ? '0.4rem' : '0.75rem',
+        width: '80px', 
+        minWidth: '80px',
+        padding: '0.75rem',
         borderRight: '1px solid #eee',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        alignItems: isMobile ? 'center' : 'flex-start',
+        alignItems: 'flex-start',
         background: day.isToday ? '#FFC107' : (day.isWeekend ? '#FFF3E0' : 'transparent'),
         color: day.isToday ? '#000' : (day.isWeekend ? '#E65100' : 'inherit'),
-        borderRadius: isMobile ? '5px 0 0 5px' : '7px 0 0 7px',
+        borderRadius: '7px 0 0 7px',
         position: 'relative'
       }}>
-        <div style={{ fontWeight: 700, fontSize: isMobile ? '1rem' : '1.1rem' }}>{day.date}.</div>
-        <div style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', textTransform: 'capitalize', opacity: 0.8 }}>
-          {isMobile ? day.dayName.slice(0, 2) : day.dayName}
+        <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{day.date}.</div>
+        <div style={{ fontSize: '0.75rem', textTransform: 'capitalize', opacity: 0.8 }}>
+          {day.dayName}
         </div>
         
         {canRemove && (
@@ -563,15 +563,15 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
                 title="Odebrat prázdnou službu"
                 style={{
                     position: 'absolute',
-                    top: isMobile ? '2px' : '4px',
-                    right: isMobile ? '2px' : '4px',
-                    width: isMobile ? '18px' : '22px',
-                    height: isMobile ? '18px' : '22px',
+                    top: '4px',
+                    right: '4px',
+                    width: '22px',
+                    height: '22px',
                     border: 'none',
                     background: 'rgba(255, 235, 238, 0.9)', // Light red background
                     color: '#c62828',
                     borderRadius: '50%',
-                    fontSize: isMobile ? '1.1rem' : '1.3rem',
+                    fontSize: '1.3rem',
                     lineHeight: 0,
                     cursor: 'pointer',
                     display: 'flex',
@@ -594,8 +594,8 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         flex: 1, 
         display: 'flex', 
         flexWrap: 'wrap',
-        gap: isMobile ? '0.25rem' : '0.5rem',
-        padding: isMobile ? '0.25rem' : '0.5rem'
+        gap: '0.5rem',
+        padding: '0.5rem'
       }}>
         {SLOT_TYPES.map(slotKey => {
           const assignee = sectionData[slotKey];
@@ -608,7 +608,7 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
               assignee={assignee}
               isSelf={isSelf}
               onClick={() => onSlotClick(day.date, section, slotKey)}
-              compact={isMobile}
+              // compact={isMobile} // Removed to keep desktop size
             />
           );
         })}
