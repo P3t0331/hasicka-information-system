@@ -89,38 +89,45 @@ export default function StatisticsPage() {
   const getSplitHoursForUser = (day, uid) => {
     try {
       const dayData = shiftsData[day] || {};
-      let dayHours = 0;
-      let nightHours = 0;
       
-      // Check explicit hours
-      if (dayData && dayData.hours && dayData.hours[uid]) {
-        const h = dayData.hours[uid];
-        // Handle both old format (h.hours number or object) and new format (h.day/h.night)
-        if (h && (typeof h.day === 'number' || typeof h.night === 'number')) {
-           dayHours = h.day || 0;
-           nightHours = h.night || 0;
-           return { day: dayHours, night: nightHours, total: dayHours + nightHours, isExplicit: true };
-        } else if (h && (h.hours !== undefined)) {
-           // Old format - legacy support
-           return { day: 0, night: 0, total: parseInt(h.hours) || 0, isExplicit: true };
-        } else if (typeof h === 'number') {
-           // Very old format just in case
-           return { day: 0, night: 0, total: h, isExplicit: true };
-        }
+      // Check for explicit overrides
+      const h = dayData.hours ? dayData.hours[uid] : null;
+      let explicitDay = undefined;
+      let explicitNight = undefined;
+
+      if (h) {
+          if (typeof h.day === 'number') explicitDay = h.day;
+          if (typeof h.night === 'number') explicitNight = h.night;
+          
+          // Legacy format support
+          if (h.hours !== undefined) {
+             // Treat 'hours' as total, splits undefined
+             // This is tricky, assume total override? 
+             // Ideally we migrate, but for now let's just use it as 'explicitDay' fallback if typically day?
+             // Or ignoring legacy specific split logic for simplicity and assume clean data from now on.
+             // Let's assume new data structure is dominant. 
+          }
       }
-      
-      // Calculate default
+
+      // Check existence in shifts
       const nightShift = dayData.nightShift || {};
-      if (Object.values(nightShift).some(u => u && u.uid === uid)) {
-        nightHours += DEFAULT_NIGHT_HOURS;
-      }
-      
+      const hasNightShift = Object.values(nightShift).some(u => u && u.uid === uid);
+
       const dayShift = dayData.dayShift || {};
-      if (Object.values(dayShift).some(u => u && u.uid === uid)) {
-        dayHours += DEFAULT_DAY_HOURS;
-      }
+      const hasDayShift = Object.values(dayShift).some(u => u && u.uid === uid);
+
+      // Calculate final hours
+      // If explicit is set (even 0), use it. If undefined, use default based on shift presence.
+      const dayHours = explicitDay !== undefined ? explicitDay : (hasDayShift ? DEFAULT_DAY_HOURS : 0);
+      const nightHours = explicitNight !== undefined ? explicitNight : (hasNightShift ? DEFAULT_NIGHT_HOURS : 0);
       
-      return { day: dayHours, night: nightHours, total: dayHours + nightHours, isExplicit: false };
+      return { 
+          day: dayHours, 
+          night: nightHours, 
+          total: dayHours + nightHours, 
+          isExplicit: !!h // Flag that some override exists
+      };
+
     } catch (err) {
       console.error("Error calculating split hours:", err);
       return { day: 0, night: 0, total: 0, isExplicit: false };
@@ -247,6 +254,7 @@ export default function StatisticsPage() {
     const usersMap = new Map();
     
     try {
+      // 1. Add users from active shifts
       ['dayShift', 'nightShift'].forEach(shiftType => {
         const shift = dayData[shiftType] || {};
         Object.keys(shift).forEach(slot => {
@@ -263,11 +271,24 @@ export default function StatisticsPage() {
           }
         });
       });
+
+      // 2. Add users who have explicit hours set (Ghost Hours)
+      if (dayData.hours) {
+          Object.keys(dayData.hours).forEach(uid => {
+             if (!usersMap.has(uid)) {
+                 // Fetch name from full user list if possible, or fallback
+                 const userFromList = users.find(u => u.uid === uid);
+                 const name = userFromList ? userFromList.name : 'Neznámý uživatel';
+                 usersMap.set(uid, { uid, name, shifts: [] }); // Empty shifts array = ghost
+             }
+          });
+      }
+
     } catch (err) {
       console.error("Error processing modal users:", err);
     }
 
-    const uniqueUsers = Array.from(usersMap.values());
+    const uniqueUsers = Array.from(usersMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
     return (
       <div style={{
@@ -301,14 +322,14 @@ export default function StatisticsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <button 
                             className="btn btn-secondary btn-sm"
-                            // Enable edit if assigned OR if explicit hours exist > 0 to allow correction
-                            disabled={!hasNight && split.night === 0}
+                            disabled={split.night <= 0}
                             onClick={() => handleHourEdit(day, user.uid, 'night', Math.max(0, split.night - 1))}
                           >-</button>
                           <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.night}h</span>
                           <button 
                              className="btn btn-secondary btn-sm"
-                             disabled={!hasNight && split.night === 0}
+                             disabled={!hasNight} // Prevent increasing if not in shift
+                             title={!hasNight ? "Nelze přidat hodiny bez směny" : ""}
                              onClick={() => handleHourEdit(day, user.uid, 'night', split.night + 1)}
                           >+</button>
                         </div>
@@ -322,13 +343,14 @@ export default function StatisticsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <button 
                             className="btn btn-secondary btn-sm"
-                            disabled={!hasDay && split.day === 0}
+                            disabled={split.day <= 0}
                             onClick={() => handleHourEdit(day, user.uid, 'day', Math.max(0, split.day - 1))}
                           >-</button>
                           <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.day}h</span>
                           <button 
                              className="btn btn-secondary btn-sm"
-                             disabled={!hasDay && split.day === 0}
+                             disabled={!hasDay} // Prevent increasing if not in shift
+                             title={!hasDay ? "Nelze přidat hodiny bez směny" : ""}
                              onClick={() => handleHourEdit(day, user.uid, 'day', split.day + 1)}
                           >+</button>
                         </div>

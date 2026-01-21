@@ -85,6 +85,7 @@ export default function ShiftCalendarPage() {
       result.push({
         date: i,
         dayName: DAYS_CZ[d.getDay()],
+        dayOfWeek: d.getDay(), // 0 = Sunday
         isWeekend: d.getDay() === 0 || d.getDay() === 6,
         isToday: new Date().toDateString() === d.toDateString()
       });
@@ -97,7 +98,7 @@ export default function ShiftCalendarPage() {
   const handleMonthChange = (offset) => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
     setCurrentDate(newDate);
-    setDayShiftsExpanded(false);
+    setNewDayShiftDate('');
   };
 
   const isQualifiedFor = (slotType) => {
@@ -122,11 +123,51 @@ export default function ShiftCalendarPage() {
     let newData = { ...dayData };
     if (!newData[section]) newData[section] = {};
 
+    // Helper to clean up explicit hours when changing shift status
+    const cleanupHours = (targetUid) => {
+      // Ensure hours map exists
+      if (!newData.hours) newData.hours = {};
+
+      const checkPresence = (shiftType) => {
+          const slots = newData[shiftType] || {};
+          return Object.values(slots).some(u => u && u.uid === targetUid);
+      };
+
+      // Determine valid presence in the FUTURE state
+      // (Since we already updated the slots for 'section' in newData)
+      const inDay = checkPresence('dayShift');
+      const inNight = checkPresence('nightShift');
+
+      // We wipe the 'day' override if:
+      // 1. We are explicitly modifying the Day shift (Removal/Add resets to default)
+      // 2. OR The user is simply not in the Day shift anymore (Ghost cleanup)
+      const wipeDay = (section === 'dayShift') || !inDay;
+      
+      // We wipe the 'night' override if:
+      // 1. We are explicitly modifying the Night shift
+      // 2. OR The user is not in the Night shift
+      const wipeNight = (section === 'nightShift') || !inNight;
+
+      if (wipeDay && wipeNight) {
+         // User removed from everything or explicit reset of everything -> Delete entry
+         newData.hours[targetUid] = deleteField();
+      } else {
+         // Partial reset (e.g. keeping Night override but clearing Day)
+         const patch = {};
+         // Important: Firestore merge deeply. We must explicitely DELETE keys we don't want.
+         if (wipeDay) patch.day = deleteField();
+         if (wipeNight) patch.night = deleteField();
+         
+         newData.hours[targetUid] = patch;
+      }
+    };
+
     // Case 1: Clicking on own slot -> remove self
     if (currentAssignee && currentAssignee.uid === currentUser.uid) {
       const confirmed = await showConfirm('Zrušit službu', 'Opravdu chcete zrušit svou službu?');
       if (!confirmed) return;
       newData[section] = { ...newData[section], [slotKey]: deleteField() };
+      cleanupHours(currentUser.uid);
     }
     // Case 2: Slot is taken by someone else
     else if (currentAssignee) {
@@ -146,6 +187,8 @@ export default function ShiftCalendarPage() {
           if (!confirmed) return;
           newData[section][freeHasicSlot] = { ...currentAssignee, qualified: true };
           newData[section][slotKey] = userCompact;
+          // Clean up hours for the user TAKING the spot (reset to default)
+          cleanupHours(currentUser.uid);
         } else {
           showToast('error', 'Nelze převzít místo - všechny pozice Hasič jsou obsazené.');
           return;
@@ -154,6 +197,7 @@ export default function ShiftCalendarPage() {
         const confirmed = await showConfirm('Odebrat uživatele', `Chcete odebrat uživatele ${currentAssignee.name}?`);
         if (!confirmed) return;
         newData[section] = { ...newData[section], [slotKey]: deleteField() };
+        cleanupHours(currentAssignee.uid);
       } else {
         showToast('error', 'Toto místo je již obsazeno.');
         return;
@@ -185,6 +229,8 @@ export default function ShiftCalendarPage() {
       }
 
       newData[section][slotKey] = userCompact;
+      // Reset hours to default for the new entry
+      cleanupHours(currentUser.uid);
     }
 
     try {
@@ -202,6 +248,37 @@ export default function ShiftCalendarPage() {
     const dayData = shiftsData[day.date];
     return dayData && (dayData.dayShiftEnabled || (dayData.dayShift && Object.keys(dayData.dayShift).length > 0));
   });
+
+  // Remove an empty day shift
+  const handleRemoveDayShift = async (date) => {
+    // Double check it's empty
+    const dayData = shiftsData[date] || {};
+    const currentShift = dayData.dayShift || {};
+    if (Object.keys(currentShift).length > 0) {
+      showToast('error', 'Nelze odebrat denní službu, která má přiřazené lidi.');
+      return;
+    }
+
+    const confirmed = await showConfirm('Odebrat denní službu', `Opravdu chcete zrušit denní službu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`);
+    if (!confirmed) return;
+
+    try {
+      const docRef = doc(db, 'shifts', currentDocId);
+      // Remove the dayShiftEnabled flag and the dayShift object
+      await setDoc(docRef, { 
+        days: { 
+          [date]: { 
+            dayShiftEnabled: deleteField(),
+            dayShift: deleteField() 
+          } 
+        } 
+      }, { merge: true });
+      showToast('success', 'Denní služba odebrána.');
+    } catch (err) {
+      console.error("Error removing day shift:", err);
+      showToast('error', 'Chyba při odebírání služby.');
+    }
+  };
 
   // Add a new day shift for a specific date
   const handleAddDayShift = async () => {
@@ -341,14 +418,24 @@ export default function ShiftCalendarPage() {
             </div>
           ) : (
             enabledDayShifts.map(day => (
-              <ShiftRow 
-                key={`day-${day.date}`}
-                day={day}
-                sectionData={shiftsData[day.date]?.dayShift || {}}
-                section="dayShift"
-                onSlotClick={handleSlotClick}
-                currentUser={currentUser}
-              />
+              <React.Fragment key={`day-${day.date}`}>
+                <ShiftRow 
+                  day={day}
+                  sectionData={shiftsData[day.date]?.dayShift || {}}
+                  section="dayShift"
+                  onSlotClick={handleSlotClick}
+                  currentUser={currentUser}
+                  onRemoveDayShift={handleRemoveDayShift}
+                />
+                {day.dayOfWeek === 0 && (
+                   <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
+                     <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
+                     <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                       Konec týdne
+                     </span>
+                   </div>
+                )}
+              </React.Fragment>
             ))
           )}
           
@@ -407,15 +494,24 @@ export default function ShiftCalendarPage() {
         </div>
         
         <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-          {days.map(day => (
-            <ShiftRow 
-              key={`night-${day.date}`}
-              day={day}
-              sectionData={shiftsData[day.date]?.nightShift || {}}
-              section="nightShift"
-              onSlotClick={handleSlotClick}
-              currentUser={currentUser}
-            />
+          {days.map((day, index) => (
+            <React.Fragment key={`night-${day.date}`}>
+              <ShiftRow 
+                day={day}
+                sectionData={shiftsData[day.date]?.nightShift || {}}
+                section="nightShift"
+                onSlotClick={handleSlotClick}
+                currentUser={currentUser}
+              />
+              {day.dayOfWeek === 0 && index !== days.length - 1 && (
+                   <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
+                     <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
+                     <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                       Konec týdne
+                     </span>
+                   </div>
+              )}
+            </React.Fragment>
           ))}
         </div>
       </section>
@@ -424,17 +520,21 @@ export default function ShiftCalendarPage() {
 }
 
 // Single Row Component
-function ShiftRow({ day, sectionData, section, onSlotClick, currentUser }) {
+function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
+  // Check if shift is empty (no users assigned)
+  const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
+  const canRemove = section === 'dayShift' && onRemoveDayShift && isEmpty;
 
   return (
     <div style={{ 
       display: 'flex', 
       alignItems: 'stretch',
-      background: day.isToday ? '#FFFDE7' : (day.isWeekend ? '#FAFAFA' : 'white'),
+      background: day.isToday ? '#FFFDE7' : (day.isWeekend ? '#f9f9f9' : 'white'),
       margin: isMobile ? '0.25rem' : '0.5rem',
       borderRadius: isMobile ? '6px' : '8px',
-      border: day.isToday ? '2px solid #FFC107' : '1px solid #e0e0e0',
+      border: day.isToday ? '2px solid #FFC107' : (day.isWeekend ? '1px solid #FFCC80' : '1px solid #e0e0e0'),
       boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
     }}>
       {/* Date Column */}
@@ -447,14 +547,46 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser }) {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: isMobile ? 'center' : 'flex-start',
-        background: day.isToday ? '#FFC107' : 'transparent',
-        color: day.isToday ? '#000' : 'inherit',
-        borderRadius: isMobile ? '5px 0 0 5px' : '7px 0 0 7px'
+        background: day.isToday ? '#FFC107' : (day.isWeekend ? '#FFF3E0' : 'transparent'),
+        color: day.isToday ? '#000' : (day.isWeekend ? '#E65100' : 'inherit'),
+        borderRadius: isMobile ? '5px 0 0 5px' : '7px 0 0 7px',
+        position: 'relative'
       }}>
         <div style={{ fontWeight: 700, fontSize: isMobile ? '1rem' : '1.1rem' }}>{day.date}.</div>
         <div style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', textTransform: 'capitalize', opacity: 0.8 }}>
           {isMobile ? day.dayName.slice(0, 2) : day.dayName}
         </div>
+        
+        {canRemove && (
+            <button
+                onClick={(e) => { e.stopPropagation(); onRemoveDayShift(day.date); }}
+                title="Odebrat prázdnou službu"
+                style={{
+                    position: 'absolute',
+                    top: isMobile ? '2px' : '4px',
+                    right: isMobile ? '2px' : '4px',
+                    width: isMobile ? '18px' : '22px',
+                    height: isMobile ? '18px' : '22px',
+                    border: 'none',
+                    background: 'rgba(255, 235, 238, 0.9)', // Light red background
+                    color: '#c62828',
+                    borderRadius: '50%',
+                    fontSize: isMobile ? '1.1rem' : '1.3rem',
+                    lineHeight: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 0 2px 0', // Slight optical adjustment for 'x'
+                    zIndex: 2,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#ffcdd2'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 235, 238, 0.9)'; e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+                ×
+            </button>
+        )}
       </div>
       
       {/* Slots */}

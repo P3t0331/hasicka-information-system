@@ -5,6 +5,7 @@ import AuthPage from './pages/AuthPage';
 import ProfilePage from './pages/ProfilePage';
 import ShiftCalendarPage from './pages/ShiftCalendarPage';
 import StatisticsPage from './pages/StatisticsPage';
+import AdminPage from './pages/AdminPage';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -25,6 +26,7 @@ function App() {
               <Route path="/" element={<ProfilePage />} />
               <Route path="/shifts" element={<ShiftCalendarPage />} />
               <Route path="/statistiky" element={<StatisticsPage />} />
+              <Route path="/admin" element={<AdminPage />} />
             </Route>
 
             {/* Catch all redirect */}

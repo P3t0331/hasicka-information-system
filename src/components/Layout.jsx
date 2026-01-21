@@ -3,13 +3,17 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Layout() {
-  const { logout } = useAuth();
+  const { logout, userData } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   // Helper to check active link
   const isActive = (path) => location.pathname === path;
+
+  // Check admin access
+  const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
+  const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
 
   // Close menu when route changes
   React.useEffect(() => {
@@ -53,6 +57,11 @@ export default function Layout() {
             <Link to="/statistiky" className={`nav-link ${isActive('/statistiky') ? 'active' : ''}`}>
               Statistiky
             </Link>
+            {isAdminOrVJ && (
+              <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>
+                Administrace
+              </Link>
+            )}
             <button className="nav-btn" onClick={handleLogout}>
               Odhlásit
             </button>

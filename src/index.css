@@ -310,6 +310,18 @@ h4 {
   margin-bottom: 1rem;
 }
 
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 2rem;
+}
+
+.mb-5 {
+  margin-bottom: 3rem;
+}
+
 /* Responsive Utilities */
 .d-none {
   display: none !important;
@@ -373,6 +385,110 @@ h4 {
 
   .desktop-only {
     display: block;
+  }
+}
+
+/* Responsive Table Pattern */
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+@media (min-width: 901px) {
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 1rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .responsive-table th {
+    background: #f8f9fa;
+    color: #555;
+    font-weight: 600;
+    border-bottom: 2px solid #eee;
+  }
+
+  .responsive-table td {
+    border-bottom: 1px solid #eee;
+  }
+}
+
+@media (max-width: 900px) {
+
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table thead {
+    display: none;
+    /* Hide headers on mobile */
+  }
+
+  .responsive-table tr {
+    margin-bottom: 1.5rem;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  .responsive-table td {
+    padding: 1rem;
+    text-align: right;
+    /* Content aligns right */
+    position: relative;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 50px;
+  }
+
+  /* Label is redundant for Actions, hide it to save space and allow full-width button */
+  .responsive-table td:last-child::before {
+    display: none;
+  }
+
+  .responsive-table td:last-child {
+    border-bottom: none;
+    background: #fbfbfb;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  /* Make action button full width on mobile for better touch target */
+  .responsive-table td:last-child>button {
+    width: 100% !important;
+    display: block;
+  }
+
+  /* Pseudo-element for labels */
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #888;
+    margin-right: 1rem;
+    text-align: left;
+  }
+
+  /* Specific override for cells that need column direction on mobile (like pill lists) */
+  .responsive-table td.mobile-col {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .responsive-table td.mobile-col::before {
+    margin-bottom: 0.25rem;
   }
 }
 
@@ -445,4 +561,35 @@ h4 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Utility Animations & Interactions */
+.animation-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hover-row:hover {
+  background: #f1f8e9 !important;
+  /* Very light green hint */
+}
+
+/* Button Hover Effects */
+.hover-bg-red-50:hover {
+  background: #FFEBEE !important;
+}
+
+.hover-bg-green-50:hover {
+  background: #E8F5E9 !important;
 }
