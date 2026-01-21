@@ -27,7 +27,19 @@ export default function AuthPage() {
       // Czech phone regex: Optional +420, then 9 digits, allowing spaces
       const phoneRegex = /^(\+420)? ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/;
       if (!phoneRegex.test(phone)) {
-        setError('Neplatný formát telefonního čísla. Použijte např. 777 123 456 nebo +420 777 123 456');
+         setError('Neplatný formát telefonního čísla. Použijte např. 777 123 456 nebo +420 777 123 456');
+         return;
+      }
+
+      // Validate Password Policy
+      const passwordErrors = [];
+      if (password.length < 8) passwordErrors.push("minimálně 8 znaků");
+      if (!/[A-Z]/.test(password)) passwordErrors.push("velké písmeno");
+      if (!/[a-z]/.test(password)) passwordErrors.push("malé písmeno");
+      if (!/[0-9]/.test(password)) passwordErrors.push("číslici");
+
+      if (passwordErrors.length > 0) {
+        setError("Heslo musí obsahovat: " + passwordErrors.join(", ") + ".");
         return;
       }
     }
@@ -62,7 +74,7 @@ export default function AuthPage() {
       } else if (err.code === 'auth/invalid-email') {
         msg = 'Neplatný formát emailu.';
       } else if (err.code === 'auth/weak-password') {
-        msg = 'Heslo je příliš slabé (min. 6 znaků).';
+        msg = 'Heslo je příliš slabé (Firebase: min. 6 znaků).';
       } else if (err.message && err.message.includes('Firestore')) {
         msg = err.message; // Show our custom Firestore error
       } else if (err.code === 'auth/invalid-credential') {

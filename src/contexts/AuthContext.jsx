@@ -19,37 +19,70 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Flag to prevent auto-logout during registration/reclamation
+  const isSigningUp = React.useRef(false);
+
   async function signup(email, password, profileData) {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    const user = result.user;
+    isSigningUp.current = true;
+    let user;
     
     try {
-      // Create user document
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: email,
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        roles: profileData.roles || ["Hasič"], // Default roles array
-        phone: profileData.phone,
-        address: profileData.address,
-        approved: false, // Explicitly false
-        createdAt: new Date().toISOString()
-      });
-    } catch (dbError) {
-      console.error("Error writing to Firestore:", dbError);
-      // Optional: Delete the auth user if database creation fails to maintain consistency
-      // await deleteUser(user); 
-      throw new Error("Chyba při vytváření profilu: " + dbError.message);
+      try {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        user = result.user;
+      } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+          // Attempt Account Reclamation for rejected/deleted profiles
+          try {
+            const credential = await signInWithEmailAndPassword(auth, email, password);
+            user = credential.user;
+            
+            // Verify profile truly doesn't exist
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+              // Account exists and has profile -> Real conflict
+              throw error; 
+            }
+            // If we are here, Auth exists but Profile is missing -> PROCEED to overwrite/recreate
+          } catch (loginError) {
+             // If login fails (wrong password) or profile exists, throw original error
+             throw error;
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      // Create/Overwrite user document
+      try {
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: email,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          roles: profileData.roles || ["Hasič"],
+          phone: profileData.phone,
+          address: profileData.address,
+          approved: false,
+          createdAt: new Date().toISOString()
+        });
+      } catch (dbError) {
+        console.error("Error writing to Firestore:", dbError);
+        throw new Error("Chyba při vytváření profilu: " + dbError.message);
+      }
+      
+      // Fetch the new user data to update state immediately
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        setUserData(docSnap.data());
+      }
+      
+      return { user };
+    } finally {
+      isSigningUp.current = false;
     }
-    
-    // Fetch the new user data to update state immediately if needed
-    const docSnap = await getDoc(doc(db, "users", user.uid));
-    if (docSnap.exists()) {
-      setUserData(docSnap.data());
-    }
-    
-    return result;
   }
 
   function login(email, password) {
@@ -63,6 +96,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      
+      // Skip profile check if we are in the middle of a registration flow
+      if (isSigningUp.current) {
+        return; 
+      }
+
       if (user) {
         // Fetch extra user data (role, approval)
         try {
@@ -83,7 +122,11 @@ export function AuthProvider({ children }) {
             
             setUserData(data);
           } else {
-            console.error("No user profile found!");
+            console.error("No user profile found! Logging out...");
+            await signOut(auth);
+            setCurrentUser(null);
+            setUserData(null);
+            alert("Váš uživatelský profil nebyl nalezen (mohl být smazán nebo zamítnut).\nByli jste odhlášeni.");
           }
         } catch (error) {
           console.error("Error fetching user data:", error);

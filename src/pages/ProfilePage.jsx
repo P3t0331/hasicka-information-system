@@ -39,7 +39,17 @@ export default function ProfilePage() {
         const data = docSnap.data().days || {};
         let total = 0;
         
-        Object.values(data).forEach(dayData => {
+        Object.entries(data).forEach(([dayStr, dayData]) => {
+          // Check date - exclude future
+          const [year, month] = currentDocId.split('-').map(Number);
+          const shiftDate = new Date(year, month - 1, Number(dayStr));
+          shiftDate.setHours(0, 0, 0, 0);
+          
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          if (shiftDate > today) return;
+
           // Check explicit hours first
           if (dayData.hours && dayData.hours[currentUser.uid]) {
             const h = dayData.hours[currentUser.uid];
@@ -91,7 +101,7 @@ export default function ProfilePage() {
   async function fetchAdminData() {
     setLoading(true);
     try {
-      // Fetch Pending
+      // Fetch Pending (approved == false)
       const qPending = query(collection(db, "users"), where("approved", "==", false));
       const querySnapshotPending = await getDocs(qPending);
       const startPending = [];
@@ -100,8 +110,9 @@ export default function ProfilePage() {
       });
       setPendingUsers(startPending);
 
-      // Fetch All Users (for role editing)
-      const qAll = query(collection(db, "users"));
+      // Fetch All Confirmed Users (approved == true)
+      // "Správa uživatelů a rolí should not contain not yet confirmed users"
+      const qAll = query(collection(db, "users"), where("approved", "==", true));
       const querySnapshotAll = await getDocs(qAll);
       const startAll = [];
       querySnapshotAll.forEach((doc) => {
@@ -313,7 +324,27 @@ export default function ProfilePage() {
                         <strong>{user.firstName} {user.lastName}</strong> ({user.email})<br/>
                         <span style={{ fontSize: '0.8rem', color: '#666' }}>{(user.roles || [user.role]).join(', ')}</span>
                       </div>
-                      <button className="btn btn-primary" onClick={() => approveUser(user.uid)}>Schválit</button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                            className="btn btn-sm btn-secondary" 
+                            style={{ color: '#d32f2f', borderColor: '#d32f2f' }}
+                            onClick={async () => {
+                                if (confirm(`Opravdu chcete ZAMÍTNOUT a SMAZAT žádost uživatele ${user.firstName} ${user.lastName}?`)) {
+                                    try {
+                                        const { deleteDoc, doc } = await import('firebase/firestore');
+                                        await deleteDoc(doc(db, "users", user.uid));
+                                        fetchAdminData();
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert("Chyba při mazání.");
+                                    }
+                                }
+                            }}
+                        >
+                            Zamítnout
+                        </button>
+                        <button className="btn btn-primary" onClick={() => approveUser(user.uid)}>Schválit</button>
+                      </div>
                     </div>
                   ))}
                 </div>

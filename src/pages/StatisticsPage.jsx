@@ -149,23 +149,46 @@ export default function StatisticsPage() {
     return parts.join(' | ') || '-';
   };
 
-  // Calculate totals
+  // Check if date is in future (relative to today)
+  const isDateInFuture = (day) => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const checkDate = new Date(year, month, day);
+    checkDate.setHours(0,0,0,0);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return checkDate > today;
+  };
+
+  // Calculate totals - ONLY PAST/TODAY
   const getTotalHoursForUser = (uid) => {
-    return days.reduce((sum, day) => sum + getHoursForUser(day.date, uid), 0);
+    return days.reduce((sum, day) => {
+      if (isDateInFuture(day.date)) return sum;
+      return sum + getHoursForUser(day.date, uid);
+    }, 0);
   };
   
   const getSplitTotalHoursForUser = (uid) => {
     return days.reduce((acc, day) => {
+      if (isDateInFuture(day.date)) return acc;
       const split = getSplitHoursForUser(day.date, uid);
       return { day: acc.day + split.day, night: acc.night + split.night, total: acc.total + split.total };
     }, { day: 0, night: 0, total: 0 });
   };
 
   const getTotalHoursForDay = (day) => {
+    // For single day, we just show what it is (even if future, for planning view)
+    // But if we want accurate 'Stats' strictly, maybe we should return 0?
+    // User req: "Statistics should only contain days before..." 
+    // Usually table rows are "Data", totals are "Statistics". 
+    // I entered this thinking I'd filter aggregated totals but keep row data visible.
+    // If I filter this, the column "Hodiny" would be 0 for future days? 
+    // Let's keep this as raw day total for now, but ensure Grand Total sums rely on user totals which ARE filtered.
     return users.reduce((sum, user) => sum + getHoursForUser(day, user.uid), 0);
   };
 
   const getGrandTotal = () => {
+    // Sums up user totals (which are already filtered)
     return users.reduce((sum, user) => sum + getTotalHoursForUser(user.uid), 0);
   };
   
@@ -351,16 +374,16 @@ export default function StatisticsPage() {
           <div style={{ opacity: 0.9 }}>Celkem hodin</div>
         </div>
         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #1976D2, #0D47A1)', color: 'white' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.length}</div>
-          <div style={{ opacity: 0.9 }}>Aktivních členů</div>
+          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.filter(u => getTotalHoursForUser(u.uid) > 0).length}</div>
+          <div style={{ opacity: 0.9 }}>Aktivních členů (s hodinami)</div>
         </div>
         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #388E3C, #1B5E20)', color: 'white' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.length > 0 ? Math.round(getGrandTotal() / users.length) : 0}</div>
+          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.filter(u => getTotalHoursForUser(u.uid) > 0).length > 0 ? Math.round(getGrandTotal() / users.filter(u => getTotalHoursForUser(u.uid) > 0).length) : 0}</div>
           <div style={{ opacity: 0.9 }}>Průměr na člena</div>
         </div>
         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #F57C00, #E65100)', color: 'white' }}>
           <div style={{ fontSize: '2rem', fontWeight: 700 }}>{days.filter(d => getTotalHoursForDay(d.date) > 0).length}</div>
-          <div style={{ opacity: 0.9 }}>Dnů se službou</div>
+          <div style={{ opacity: 0.9 }}>Dnů se službou (uplynulé)</div>
         </div>
       </div>
 
@@ -368,9 +391,12 @@ export default function StatisticsPage() {
       <div className="grid-cols-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
         {/* Per-person breakdown (moved from bottom) */}
         <div className="card" style={{ padding: '1rem' }}>
-          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>👤 Hodiny podle člena</h4>
+          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>👤 Hodiny podle člena (jen odsloužené)</h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
-            {users.sort((a, b) => getTotalHoursForUser(b.uid) - getTotalHoursForUser(a.uid)).map(user => {
+            {users
+              .filter(user => getTotalHoursForUser(user.uid) > 0)
+              .sort((a, b) => getTotalHoursForUser(b.uid) - getTotalHoursForUser(a.uid))
+              .map(user => {
               const split = getSplitTotalHoursForUser(user.uid);
               const isMe = user.uid === currentUser?.uid;
               return (
@@ -407,6 +433,7 @@ export default function StatisticsPage() {
           <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>🥇 Nejvíce odslouženo</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {users
+              .filter(user => getTotalHoursForUser(user.uid) > 0)
               .sort((a, b) => getTotalHoursForUser(b.uid) - getTotalHoursForUser(a.uid))
               .slice(0, 5)
               .map((user, i) => {
@@ -442,23 +469,25 @@ export default function StatisticsPage() {
           </thead>
           <tbody>
             {days.map(day => {
-              const totalHours = getTotalHoursForDay(day.date);
-              const desc = getShiftDescription(day.date);
-              const hasShift = desc !== '-';
+              const inFuture = isDateInFuture(day.date);
+              const totalHours = !inFuture ? getTotalHoursForDay(day.date) : 0;
+              const desc = !inFuture ? getShiftDescription(day.date) : '';
+              const hasShift = desc !== '-' && desc !== '';
               
               return (
                 <tr 
                   key={day.date} 
                   style={{ 
                     background: day.isWeekend ? '#FFF3E0' : (hasShift ? '#E8F5E9' : 'white'),
-                    borderBottom: '1px solid #eee'
+                    borderBottom: '1px solid #eee',
+                    opacity: inFuture ? 0.5 : 1
                   }}
                 >
                   <td style={{ padding: '0.5rem', fontWeight: 600 }}>
                     {day.date}. {day.dayName}
                   </td>
-                  <td style={{ padding: '0.5rem', color: hasShift ? '#333' : '#999' }}>
-                    {desc}
+                  <td style={{ padding: '0.5rem', color: hasShift ? '#333' : '#999', fontStyle: inFuture ? 'italic' : 'normal' }}>
+                    {inFuture ? 'Budoucí datum' : desc}
                   </td>
                   <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 600, color: totalHours > 0 ? '#1B5E20' : '#999' }}>
                     {totalHours > 0 ? `${totalHours}h` : '-'}
