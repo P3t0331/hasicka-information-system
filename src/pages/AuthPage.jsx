@@ -75,8 +75,8 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="page-layout flex-center" style={{ background: 'var(--secondary-black)' }}>
-      <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
+    <div className="page-layout flex-center" style={{ background: 'var(--secondary-black)', minHeight: '100vh' }}>
+      <div className="card" style={{ maxWidth: '400px', width: '90%', margin: '1rem' }}>
         <div className="flex-center mb-2" style={{ flexDirection: 'column' }}>
            <h1 style={{ color: 'var(--primary-red)', fontSize: '3rem', marginBottom: '0.25rem', letterSpacing: '2px' }}>HASIČKA</h1>
            <p style={{ color: '#888', fontWeight: 500, letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.8rem' }}>Informační Systém</p>
