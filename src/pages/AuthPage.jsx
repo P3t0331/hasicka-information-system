@@ -75,8 +75,9 @@ export default function AuthPage() {
         msg = 'Neplatný formát emailu.';
       } else if (err.code === 'auth/weak-password') {
         msg = 'Heslo je příliš slabé (Firebase: min. 6 znaků).';
-      } else if (err.message && err.message.includes('Firestore')) {
-        msg = err.message; // Show our custom Firestore error
+      } else if (!err.code && err.message) {
+        // Custom app errors (no Firebase code)
+        msg = err.message; 
       } else if (err.code === 'auth/invalid-credential') {
         msg = 'Neplatné přihlašovací údaje.';
       }

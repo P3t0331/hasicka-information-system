@@ -85,8 +85,33 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function login(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
+  async function login(email, password) {
+    // 1. Sign in with Firebase (checks password)
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    const user = result.user;
+
+    // 2. Check Firestore Profile IMMEDIATELY
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      await signOut(auth);
+      throw new Error("Uživatel nenalezen (profil neexistuje).");
+    }
+
+    const data = docSnap.data();
+    
+    if (data.disabled) {
+      await signOut(auth);
+      throw new Error("Váš účet byl deaktivován.");
+    }
+
+    if (data.approved === false) {
+      await signOut(auth);
+      throw new Error("Účet není schválen. Vyčkejte na potvrzení administrátorem.");
+    }
+
+    return result;
   }
 
   function logout() {
@@ -95,43 +120,69 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
-      // Skip profile check if we are in the middle of a registration flow
-      if (isSigningUp.current) {
-        return; 
+      // isSigningUp logic handled locally or ignored for now as we want strict checks always
+      if (isSigningUp.current && user) {
+        // Special case: Registration flow.
+        // We know we just created it and approved=false, but we might want to allow 
+        // the flow to finish nicely?
+        // Actually, if we want "Do not login him", then even after registration 
+        // we should probably NOT set currentUser? 
+        // But usually registration succeeds and we redirect. 
+        // Let's keep the user object for registration flow stability, 
+        // OR better: handle the registration success without relying on auth state change to login.
+        
+        // However, standard Firebase flow triggers this. 
+        // If we want strict "No login until approved", then after signup we should probably 
+        // sign out immediately? 
+        // But the user just registered. The requirement is "not yet confirmed users".
+        // New registrations are "not yet confirmed".
+        // So they should arguably NOT be logged in. 
+        setCurrentUser(user); 
+        setLoading(false);
+        return;
       }
 
       if (user) {
-        // Fetch extra user data (role, approval)
+        // setLoading(true); // REMOVED: Preventing app unmount on login to keep Error state
+        // We handle loading states locally in components if needed, or rely on userData being null briefly.
+        // For unapproved users, this is better because we don't want to flash the UI.
+        
         try {
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
+          
           if (docSnap.exists()) {
             const data = docSnap.data();
-            
-            // SECURITY CHECK: Disabled users cannot login
-            if (data.disabled === true) {
-              await signOut(auth);
-              setCurrentUser(null);
-              setUserData(null);
-              alert("Byli jste odhlášeni.\nVáš účet byl deaktivován správcem systému.");
-              setLoading(false);
-              return;
+            const isUnapproved = data.approved === false;
+            const isDisabled = data.disabled === true;
+
+            if (isUnapproved || isDisabled) {
+               // DO NOT LOG IN
+               console.log("User unapproved/disabled - denying login.");
+               await signOut(auth);
+               setCurrentUser(null);
+               setUserData(null);
+               // We don't use alert() here. 
+               // The Login page handles explicit login errors.
+               // If this is a page refresh, the user just gets logged out silently 
+               // (or redirected to login by PrivateRoute).
+            } else {
+               // VALID LOGIN
+               setUserData(data);
+               setCurrentUser(user); // ONLY SET HERE AFTER VERIFICATION
             }
-            
-            setUserData(data);
           } else {
-            console.error("No user profile found! Logging out...");
+            console.error("No user profile found!");
             await signOut(auth);
             setCurrentUser(null);
             setUserData(null);
-            alert("Váš uživatelský profil nebyl nalezen (mohl být smazán nebo zamítnut).\nByli jste odhlášeni.");
           }
         } catch (error) {
-          console.error("Error fetching user data:", error);
+          console.error("Error verifying user:", error);
+          setCurrentUser(null);
         }
       } else {
+        setCurrentUser(null);
         setUserData(null);
       }
       setLoading(false);
