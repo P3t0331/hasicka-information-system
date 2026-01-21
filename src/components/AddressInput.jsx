@@ -15,19 +15,39 @@ export default function AddressInput({ value, onChange, required }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [wrapperRef]);
 
+  const debounceTimer = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
+
   const handleInputChange = (e) => {
     const newVal = e.target.value;
     onChange(newVal);
+    
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
     if (newVal.length > 2) {
-      fetchSuggestions(newVal);
+      debounceTimer.current = setTimeout(() => {
+        fetchSuggestions(newVal);
+      }, 500); // Wait 500ms after typing stops
     } else {
       setSuggestions([]);
+      setShowSuggestions(false);
     }
   };
 
   const fetchSuggestions = async (query) => {
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=cz&addressdetails=1&limit=5`);
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=cz&addressdetails=1&limit=5`, {
+        headers: {
+          'Accept-Language': 'cs' // Prefer Czech results
+        }
+      });
       const data = await response.json();
       setSuggestions(data);
       setShowSuggestions(true);
