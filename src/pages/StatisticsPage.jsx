@@ -381,79 +381,89 @@ export default function StatisticsPage() {
   const maxUserHours = Math.max(...users.map(u => getTotalHoursForUser(u.uid)), 1);
 
   return (
-    <div className="container mt-4" style={{ maxWidth: '1200px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button className="btn btn-secondary" onClick={() => handleMonthChange(-1)}>← Předchozí</button>
-        <h2 style={{ margin: 0, textTransform: 'uppercase' }}>📊 Statistiky - {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
-        <button className="btn btn-secondary" onClick={() => handleMonthChange(1)}>Další →</button>
-      </div>
-
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #D32F2F, #B71C1C)', color: 'white' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{getGrandTotal()}</div>
-          <div style={{ opacity: 0.9 }}>Celkem hodin</div>
-        </div>
-        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #1976D2, #0D47A1)', color: 'white' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.filter(u => getTotalHoursForUser(u.uid) > 0).length}</div>
-          <div style={{ opacity: 0.9 }}>Aktivních členů (s hodinami)</div>
-        </div>
-        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #388E3C, #1B5E20)', color: 'white' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.filter(u => getTotalHoursForUser(u.uid) > 0).length > 0 ? Math.round(getGrandTotal() / users.filter(u => getTotalHoursForUser(u.uid) > 0).length) : 0}</div>
-          <div style={{ opacity: 0.9 }}>Průměr na člena</div>
-        </div>
-        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #F57C00, #E65100)', color: 'white' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>{days.filter(d => getTotalHoursForDay(d.date) > 0).length}</div>
-          <div style={{ opacity: 0.9 }}>Dnů se službou (uplynulé)</div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid-cols-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-        {/* Per-person breakdown (moved from bottom) */}
-        <div className="card" style={{ padding: '1rem' }}>
-          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>👤 Hodiny podle člena (jen odsloužené)</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
-            {users
-              .filter(user => getTotalHoursForUser(user.uid) > 0)
-              .sort((a, b) => getTotalHoursForUser(b.uid) - getTotalHoursForUser(a.uid))
-              .map(user => {
-              const split = getSplitTotalHoursForUser(user.uid);
-              const isMe = user.uid === currentUser?.uid;
-              return (
-                <div 
-                  key={user.uid}
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    background: isMe ? 'linear-gradient(135deg, #C8E6C9, #A5D6A7)' : '#f5f5f5',
-                    border: isMe ? '2px solid #4CAF50' : '1px solid #e0e0e0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.25rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <span style={{ fontWeight: isMe ? 700 : 500 }}>{isMe && '⭐ '}{user.name}</span>
-                     <span style={{ fontWeight: 700, color: split.total > 0 ? '#1B5E20' : '#999', fontSize: '1.1rem' }}>{split.total}h</span>
-                  </div>
-                  {(split.day > 0 || split.night > 0) && (
-                     <div style={{ fontSize: '0.75rem', color: '#666', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        {split.day > 0 && <span>☀️ {split.day}h</span>}
-                        {split.night > 0 && <span>🌙 {split.night}h</span>}
-                     </div>
-                  )}
-                </div>
-              );
-            })}
+    <div className="container mt-4" style={{ maxWidth: '1200px', paddingBottom: '3rem' }}>
+      
+      {/* 1. Month Navigation Header */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #2c3e50, #455a64)', 
+        borderRadius: '12px', 
+        padding: '1.5rem', 
+        color: 'white',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        marginBottom: '2rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <button 
+          className="btn" 
+          onClick={() => handleMonthChange(-1)}
+          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
+        >
+          ← Předchozí
+        </button>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ margin: 0, textTransform: 'uppercase', fontSize: '1.5rem', letterSpacing: '1px' }}>
+            {MONTHS_CZ[currentDate.getMonth()]} <span style={{ opacity: 0.7 }}>{currentDate.getFullYear()}</span>
+          </h2>
+          <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Přehled služeb a hodin
           </div>
         </div>
+        <button 
+          className="btn" 
+          onClick={() => handleMonthChange(1)}
+          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
+        >
+          Další →
+        </button>
+      </div>
+
+      {/* 2. KPI Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <StatCard 
+          icon="⏱️"
+          value={getGrandTotal().toString()}
+          label="Celkem hodin"
+          sublabel="Tento měsíc"
+          color="#D32F2F"
+          bg="rgba(211, 47, 47, 0.08)"
+        />
+        <StatCard 
+          icon="👥"
+          value={users.filter(u => getTotalHoursForUser(u.uid) > 0).length.toString()}
+          label="Aktivních členů"
+          sublabel="S odpracovanými hodinami"
+          color="#1976D2"
+          bg="rgba(25, 118, 210, 0.08)"
+        />
+        <StatCard 
+          icon="📊"
+          value={(users.filter(u => getTotalHoursForUser(u.uid) > 0).length > 0 ? Math.round(getGrandTotal() / users.filter(u => getTotalHoursForUser(u.uid) > 0).length) : 0).toString()}
+          label="Průměr na člena"
+          sublabel="Průměrný počet hodin"
+          color="#388E3C"
+          bg="rgba(56, 142, 60, 0.08)"
+        />
+        <StatCard 
+          icon="📅"
+          value={days.filter(d => getTotalHoursForDay(d.date) > 0).length.toString()}
+          label="Odsloužených dnů"
+          sublabel="Dny s alespoň 1 službou"
+          color="#F57C00"
+          bg="rgba(245, 124, 0, 0.08)"
+        />
+      </div>
+
+      {/* 3. Detailed Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         
-        {/* Leaderboard */}
-        <div className="card" style={{ padding: '1rem' }}>
-          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>🥇 Nejvíce odslouženo</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {/* LEADERBOARD */}
+        <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'fit-content' }}>
+          <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>🏆 Top 5 Hasičů</h3>
+          </div>
+          <div style={{ padding: '0.5rem 1rem' }}>
             {users
               .filter(user => getTotalHoursForUser(user.uid) > 0)
               .sort((a, b) => getTotalHoursForUser(b.uid) - getTotalHoursForUser(a.uid))
@@ -463,13 +473,89 @@ export default function StatisticsPage() {
                 const pct = (hours / (maxUserHours || 1)) * 100;
                 const medals = ['🥇', '🥈', '🥉', '4.', '5.'];
                 return (
-                  <div key={user.uid} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: '24px', textAlign: 'center' }}>{medals[i]}</span>
-                    <span style={{ flex: 1, fontWeight: 500 }}>{user.name}</span>
-                    <div style={{ width: '100px', height: '8px', background: '#eee', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: '#D32F2F', transition: 'width 0.3s' }} />
+                  <div key={user.uid} style={{ 
+                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0', 
+                    borderBottom: i < 4 ? '1px dashed #eee' : 'none' 
+                  }}>
+                    <div style={{ 
+                      width: '36px', height: '36px', 
+                      borderRadius: '50%', background: i < 3 ? '#FFF8E1' : '#f5f5f5', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '1.2rem', fontWeight: 700,
+                      color: i < 3 ? '#FFC107' : '#999'
+                    }}>
+                      {i < 3 ? medals[i] : i + 1}
                     </div>
-                    <span style={{ fontWeight: 700, minWidth: '40px', textAlign: 'right' }}>{hours}h</span>
+                    
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>{user.name}</div>
+                      <div style={{ width: '100%', height: '6px', background: '#f0f0f0', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: i === 0 ? '#D32F2F' : (i === 1 ? '#F57C00' : '#1976D2'), borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>{hours}h</div>
+                  </div>
+                );
+              })}
+              {users.every(u => getTotalHoursForUser(u.uid) === 0) && (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
+              )}
+          </div>
+        </div>
+
+        {/* MEMBER LIST */}
+        <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+           <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>👥 Přehled členů</h3>
+          </div>
+          <div style={{ 
+            padding: '1rem', 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+            gap: '1rem',
+            maxHeight: '500px',
+            overflowY: 'auto'
+          }}>
+            {users
+              .filter(user => getTotalHoursForUser(user.uid) > 0)
+              .sort((a, b) => getTotalHoursForUser(b.uid) - getTotalHoursForUser(a.uid))
+              .map(user => {
+                const split = getSplitTotalHoursForUser(user.uid);
+                const isMe = user.uid === currentUser?.uid;
+                const hours = getTotalHoursForUser(user.uid);
+                
+                return (
+                  <div key={user.uid} style={{ 
+                    padding: '1rem', borderRadius: '10px', 
+                    border: isMe ? '2px solid #81C784' : '1px solid #e0e0e0',
+                    background: isMe ? '#F1F8E9' : 'white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontWeight: 600, color: '#333' }}>{isMe && '⭐ '}{user.name}</span>
+                      <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#333' }}>{hours}h</span>
+                    </div>
+                    
+                    {/* Tiny breakdown */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {split.day > 0 && (
+                        <span style={{ 
+                          fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', 
+                          background: '#FFF3E0', color: '#E65100', fontWeight: 600 
+                        }}>
+                          ☀️ {split.day}
+                        </span>
+                      )}
+                      {split.night > 0 && (
+                        <span style={{ 
+                          fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', 
+                          background: '#E8EAF6', color: '#3949AB', fontWeight: 600 
+                        }}>
+                          🌙 {split.night}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -477,90 +563,117 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      {/* Full Table */}
-      <div className="card" style={{ padding: '1rem', overflowX: 'auto' }}>
-        <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>📋 Detailní přehled</h4>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-          <thead>
-            <tr style={{ background: '#D32F2F', color: 'white' }}>
-              <th style={{ padding: '0.5rem', textAlign: 'left', position: 'sticky', left: 0, background: '#D32F2F' }}>Den</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left' }}>Popis směny</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center' }}>Hodiny</th>
-              {isAdmin && <th style={{ padding: '0.5rem', textAlign: 'center', width: '50px' }}>Akce</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {days.map(day => {
-              const inFuture = isDateInFuture(day.date);
-              const totalHours = !inFuture ? getTotalHoursForDay(day.date) : 0;
-              const desc = !inFuture ? getShiftDescription(day.date) : '';
-              const hasShift = desc !== '-' && desc !== '';
-              
-              return (
-                <tr 
-                  key={day.date} 
-                  style={{ 
-                    background: day.isWeekend ? '#FFF3E0' : (hasShift ? '#E8F5E9' : 'white'),
-                    borderBottom: '1px solid #eee',
-                    opacity: inFuture ? 0.5 : 1
-                  }}
-                >
-                  <td style={{ padding: '0.5rem', fontWeight: 600 }}>
-                    {day.date}. {day.dayName}
-                  </td>
-                  <td style={{ padding: '0.5rem', color: hasShift ? '#333' : '#999', fontStyle: inFuture ? 'italic' : 'normal' }}>
-                    {inFuture ? 'Budoucí datum' : desc}
-                  </td>
-                  <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 600, color: totalHours > 0 ? '#1B5E20' : '#999' }}>
-                    {totalHours > 0 ? `${totalHours}h` : '-'}
-                  </td>
-                  {isAdmin && (
-                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                      {hasShift && (
-                        <button 
-                          onClick={() => setEditingCell(day.date)}
-                          style={{
-                            background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', opacity: 0.6
-                          }}
-                          title="Upravit hodiny"
-                        >
-                          ✏️
-                        </button>
+      {/* 4. Full Data Table */}
+      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+        <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>📅 Denní záznamy</h3>
+            <span style={{ fontSize: '0.85rem', color: '#777' }}>Detailní rozpis hodin</span>
+        </div>
+        
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <thead style={{ background: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
+              <tr>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#555', fontWeight: 600 }}>Datum</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#555', fontWeight: 600 }}>Složení směny</th>
+                <th style={{ padding: '1rem', textAlign: 'center', color: '#555', fontWeight: 600 }}>Celkem hodin</th>
+                {isAdmin && <th style={{ padding: '1rem', textAlign: 'center', color: '#555', fontWeight: 600 }}>Akce</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {days.map(day => {
+                const inFuture = isDateInFuture(day.date);
+                const totalHours = !inFuture ? getTotalHoursForDay(day.date) : 0;
+                const desc = !inFuture ? getShiftDescription(day.date) : '';
+                const hasShift = desc !== '-' && desc !== '';
+                
+                return (
+                  <tr 
+                    key={day.date} 
+                    style={{ 
+                      background: day.isWeekend ? '#fafafa' : 'white',
+                      borderBottom: '1px solid #eee'
+                    }}
+                  >
+                    <td style={{ padding: '0.75rem 1rem', fontWeight: 500, opacity: inFuture ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                      <span style={{ display: 'inline-block', width: '25px', textAlign: 'center', marginRight: '4px', fontWeight: 700, color: day.isWeekend ? '#e53935' : '#333' }}>
+                        {day.date}.
+                      </span> 
+                      <span style={{ textTransform: 'capitalize', color: '#777' }}>{day.dayName}</span>
+                    </td>
+                    <td style={{ padding: '0.75rem 1rem' }}>
+                      {inFuture ? (
+                        <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic' }}>Budoucí datum</span>
+                      ) : (
+                        desc !== '-' ? <span style={{ color: '#333' }}>{desc}</span> : <span style={{ color: '#ccc' }}>-</span>
                       )}
                     </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr style={{ background: '#263238', color: 'white', fontWeight: 700 }}>
-              <td colSpan={2} style={{ padding: '0.75rem' }}>
-                CELKEM za {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </td>
-              <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{ fontSize: '1.1rem' }}>{getGrandTotal()}h</span>
-                  <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 400 }}>
-                    (☀️ {getGrandSplitTotal().day}h + 🌙 {getGrandSplitTotal().night}h)
-                  </span>
-                </div>
-              </td>
-              {isAdmin && <td></td>}
-            </tr>
-          </tfoot>
-        </table>
+                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                      {totalHours > 0 ? (
+                        <span style={{ fontWeight: 700, color: '#2E7D32', background: '#E8F5E9', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                          {totalHours}h
+                        </span>
+                      ) : '-'}
+                    </td>
+                    {isAdmin && (
+                      <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                        {hasShift && (
+                          <button 
+                            onClick={() => setEditingCell(day.date)}
+                            style={{
+                              background: 'white', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px', fontSize: '0.9rem'
+                            }}
+                            title="Upravit hodiny"
+                          >
+                            ✏️
+                          </button>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr style={{ background: '#37474F', color: 'white' }}>
+                <td style={{ padding: '1rem', fontWeight: 700 }} colSpan={2}>
+                  MĚSÍČNÍ SOUČET
+                </td>
+                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{getGrandTotal()}h</div>
+                    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                      (☀️ {getGrandSplitTotal().day} + 🌙 {getGrandSplitTotal().night})
+                    </div>
+                </td>
+                {isAdmin && <td></td>}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
 
-
-
-      {/* Edit Modal */}
       {editingCell && (
-        <EditHoursModal 
-          day={editingCell} 
-          onClose={() => setEditingCell(null)} 
-        />
+        <EditHoursModal day={editingCell} onClose={() => setEditingCell(null)} />
       )}
+    </div>
+  );
+}
+
+// Helper Card
+function StatCard({ icon, value, label, sublabel, color, bg }) {
+  return (
+    <div className="card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+      <div style={{ 
+        width: '60px', height: '60px', borderRadius: '50%', background: bg, color: color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem'
+      }}>
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontSize: '2rem', fontWeight: 800, color: '#333', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555', marginTop: '4px' }}>{label}</div>
+        <div style={{ fontSize: '0.75rem', color: '#999' }}>{sublabel}</div>
+      </div>
     </div>
   );
 }

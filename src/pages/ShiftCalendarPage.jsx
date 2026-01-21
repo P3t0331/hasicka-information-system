@@ -520,9 +520,18 @@ export default function ShiftCalendarPage() {
 }
 
 // Single Row Component
+// Slot Icons Mapping
+const SLOT_ICONS = {
+  'velitel': '⭐',
+  'strojnik': '🚒',
+  'hasic-1': '🧯',
+  'hasic-2': '🧯',
+  'hasic-3': '🧯',
+  'hasic-4': '🧯'
+};
+
+// Single Row Component
 function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift }) {
-  // Removed isMobile check to force desktop layout everywhere
-  
   // Check if shift is empty (no users assigned)
   const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
   const canRemove = section === 'dayShift' && onRemoveDayShift && isEmpty;
@@ -531,30 +540,35 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
     <div style={{ 
       display: 'flex', 
       alignItems: 'stretch',
-      background: day.isToday ? '#FFFDE7' : (day.isWeekend ? '#f9f9f9' : 'white'),
-      margin: '0.5rem',
+      background: 'white',
+      margin: '0.35rem 0.25rem', // Reduced margin
       borderRadius: '8px',
-      border: day.isToday ? '2px solid #FFC107' : (day.isWeekend ? '1px solid #FFCC80' : '1px solid #e0e0e0'),
-      boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-    }}>
+      border: day.isToday ? '2px solid #FFD54F' : '1px solid #e0e0e0',
+      boxShadow: day.isToday ? '0 4px 12px rgba(255, 193, 7, 0.15)' : '0 1px 3px rgba(0,0,0,0.05)', // Reduced shadow
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      overflow: 'hidden',
+      position: 'relative'
+    }}
+    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.06)'; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = day.isToday ? '0 4px 12px rgba(255, 193, 7, 0.15)' : '0 1px 3px rgba(0,0,0,0.05)'; }}
+    >
       {/* Date Column */}
       <div style={{ 
-        width: '80px', 
-        minWidth: '80px',
-        padding: '0.75rem',
-        borderRight: '1px solid #eee',
+        width: '75px', // Slightly narrower
+        minWidth: '75px',
+        padding: '0.25rem', // Much smaller padding
+        borderRight: '1px solid #f0f0f0',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        alignItems: 'flex-start',
-        background: day.isToday ? '#FFC107' : (day.isWeekend ? '#FFF3E0' : 'transparent'),
-        color: day.isToday ? '#000' : (day.isWeekend ? '#E65100' : 'inherit'),
-        borderRadius: '7px 0 0 7px',
+        alignItems: 'center',
+        background: day.isToday ? 'linear-gradient(135deg, #FFF8E1, #FFECB3)' : (day.isWeekend ? '#fafafa' : 'white'),
+        color: day.isToday ? '#FF6F00' : (day.isWeekend ? '#757575' : '#333'),
         position: 'relative'
       }}>
-        <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{day.date}.</div>
-        <div style={{ fontSize: '0.75rem', textTransform: 'capitalize', opacity: 0.8 }}>
-          {day.dayName}
+        <div style={{ fontWeight: 800, fontSize: '1.2rem', lineHeight: 1 }}>{day.date}.</div>
+        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '2px', opacity: 0.8 }}>
+          {day.dayName.slice(0, 3)}
         </div>
         
         {canRemove && (
@@ -563,26 +577,25 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
                 title="Odebrat prázdnou službu"
                 style={{
                     position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    width: '22px',
-                    height: '22px',
+                    top: '2px', // Compact pos
+                    right: '2px',
+                    width: '18px', // Smaller button
+                    height: '18px',
                     border: 'none',
-                    background: 'rgba(255, 235, 238, 0.9)', // Light red background
-                    color: '#c62828',
+                    background: 'rgba(239, 83, 80, 0.1)',
+                    color: '#e53935',
                     borderRadius: '50%',
-                    fontSize: '1.3rem',
+                    fontSize: '1rem',
                     lineHeight: 0,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '0 0 2px 0', // Slight optical adjustment for 'x'
-                    zIndex: 2,
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                    padding: '0 0 1px 0',
+                    transition: 'all 0.2s'
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#ffcdd2'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 235, 238, 0.9)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#e53935'; e.currentTarget.style.color = 'white'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 83, 80, 0.1)'; e.currentTarget.style.color = '#e53935'; }}
             >
                 ×
             </button>
@@ -594,8 +607,9 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         flex: 1, 
         display: 'flex', 
         flexWrap: 'wrap',
-        gap: '0.5rem',
-        padding: '0.5rem'
+        gap: '0.35rem', // Tighter gap
+        padding: '0.35rem', // Tighter padding
+        alignItems: 'center'
       }}>
         {SLOT_TYPES.map(slotKey => {
           const assignee = sectionData[slotKey];
@@ -604,11 +618,11 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
           return (
             <SlotChip 
               key={slotKey}
+              slotKey={slotKey}
               label={SLOT_LABELS[slotKey]}
               assignee={assignee}
               isSelf={isSelf}
               onClick={() => onSlotClick(day.date, section, slotKey)}
-              // compact={isMobile} // Removed to keep desktop size
             />
           );
         })}
@@ -616,66 +630,106 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
     </div>
   );
 }
-// Slot Chip Component
-function SlotChip({ label, assignee, isSelf, onClick, compact = false }) {
-  let bgColor = '#f5f5f5';
-  let textColor = '#666';
-  let borderColor = '#e0e0e0';
-  
-  const isUnqualified = assignee && assignee.qualified === false;
 
-  if (isSelf) {
-    if (isUnqualified) {
-      bgColor = '#FFF3E0';
-      textColor = '#E65100';
-      borderColor = '#FFB74D';
+// Slot Chip Component - Redesigned
+function SlotChip({ slotKey, label, assignee, isSelf, onClick }) {
+  // Determine styles based on state
+  const isUnqualified = assignee && assignee.qualified === false;
+  const isOccupied = !!assignee;
+  
+  let bg = 'white';
+  let border = '1px dashed #ddd';
+  let color = '#999';
+  let shadow = 'none';
+
+  if (isOccupied) {
+    border = '1px solid transparent';
+    shadow = '0 1px 2px rgba(0,0,0,0.05)'; // Reduced shadow
+    if (isSelf) {
+      bg = isUnqualified ? '#FFF3E0' : '#E8F5E9';
+      border = isUnqualified ? '1px solid #FFE0B2' : '1px solid #C8E6C9';
+      color = isUnqualified ? '#EF6C00' : '#2E7D32';
     } else {
-      bgColor = '#C8E6C9';
-      textColor = '#1B5E20';
-      borderColor = '#81C784';
-    }
-  } else if (assignee) {
-    if (isUnqualified) {
-      bgColor = '#FFF8E1';
-      textColor = '#F57C00';
-      borderColor = '#FFCC80';
-    } else {
-      bgColor = '#FFCDD2';
-      textColor = '#B71C1C';
-      borderColor = '#EF9A9A';
+      bg = isUnqualified ? '#FFF8E1' : 'linear-gradient(to bottom, #f5f5f5, #eeeeee)';
+      border = isUnqualified ? '1px solid #FFCC80' : '1px solid #e0e0e0';
+      color = isUnqualified ? '#F57C00' : '#424242';
     }
   }
+
+  // Icon logic
+  const icon = SLOT_ICONS[slotKey] || '👤';
 
   return (
     <div 
       onClick={onClick}
       style={{
-        background: bgColor,
-        border: `1px solid ${borderColor}`,
-        borderRadius: compact ? '4px' : '6px',
-        padding: compact ? '0.2rem 0.35rem' : '0.4rem 0.6rem',
-        fontSize: compact ? '0.7rem' : '0.8rem',
+        background: bg,
+        border: border,
+        borderRadius: '6px', // Slightly smaller radius
+        padding: '0.3rem 0.5rem', // COMPACT PADDING
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: compact ? '0.15rem' : '0.25rem',
-        transition: 'transform 0.1s, box-shadow 0.1s',
-        minWidth: compact ? '70px' : '100px'
+        gap: '0.4rem', // Tighter gap
+        transition: 'all 0.2s ease',
+        minWidth: '110px', // Smaller min width
+        maxWidth: '160px',
+        flex: '1 1 auto',
+        boxShadow: shadow,
+        position: 'relative',
+        opacity: isOccupied ? 1 : 0.8
       }}
-      onMouseEnter={(e) => { if (!compact) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)'; }}}
-      onMouseLeave={(e) => { if (!compact) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}}
+      onMouseEnter={(e) => { 
+        e.currentTarget.style.transform = 'translateY(-1px)'; 
+        e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)'; 
+        if (!isOccupied) e.currentTarget.style.borderColor = '#bbb';
+      }}
+      onMouseLeave={(e) => { 
+        e.currentTarget.style.transform = 'translateY(0)'; 
+        e.currentTarget.style.boxShadow = shadow;
+        if (!isOccupied) e.currentTarget.style.borderColor = '#ddd';
+      }}
     >
-      <span style={{ fontSize: compact ? '0.7rem' : '0.9rem' }}>{label.split(' ')[0]}</span>
-      <span style={{ 
-        fontWeight: 600, 
-        color: textColor, 
-        overflow: 'hidden', 
-        textOverflow: 'ellipsis', 
-        whiteSpace: 'nowrap',
-        maxWidth: compact ? '45px' : 'none'
+      {/* Icon Circle */}
+      <div style={{
+        width: '26px', height: '26px', // Smaller Icon
+        borderRadius: '50%',
+        background: isOccupied ? 'white' : '#f5f5f5',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '0.9rem', // Smaller Emoji
+        boxShadow: isOccupied ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+        flexShrink: 0
       }}>
-        {assignee ? (compact ? assignee.name.split(' ')[0] : assignee.name) : (compact ? '-' : <span style={{ color: '#999', fontStyle: 'italic' }}>Volno</span>)}
-      </span>
+        {isOccupied && assignee.name ? (
+            <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#555' }}>
+                {icon}
+            </span>
+        ) : (
+            <span style={{ opacity: 0.5 }}>{icon}</span>
+        )}
+      </div>
+
+      {/* Text Info */}
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', lineHeight: 1.1 }}>
+        <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: '#888', fontWeight: 600, letterSpacing: '0.5px' }}>
+            {SLOT_LABELS[slotKey]}
+        </span>
+        <span style={{ 
+          fontSize: '0.85rem', // Smaller name
+          fontWeight: isOccupied ? 700 : 500, 
+          color: color, 
+          whiteSpace: 'nowrap', 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis' 
+        }}>
+          {isOccupied ? assignee.name : 'Volno'}
+        </span>
+      </div>
+      
+      {/* Add Indicator for empty */}
+      {!isOccupied && (
+          <div style={{ fontSize: '0.9rem', color: '#ccc', fontWeight: 300 }}>+</div>
+      )}
     </div>
   );
 }
