@@ -300,11 +300,11 @@ export default function ProfilePage() {
                      fontWeight: 600, border: '1px solid #ffe0b2',
                      display: 'flex', alignItems: 'center', gap: '0.5rem'
                    }}>
-                     Verified • {cert}
+                     {cert}
                    </span>
                  ))
                ) : (
-                 <p style={{ color: '#888', fontStyle: 'italic' }}>Žádné speciální kvalifikace.</p>
+                 <p style={{ color: '#888', fontStyle: 'italic' }}>Žádné kvalifikace.</p>
                )}
              </div>
            </div>

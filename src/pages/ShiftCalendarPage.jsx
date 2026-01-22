@@ -7,13 +7,16 @@ const DAYS_CZ = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pát
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
 
 // Slot types configuration
-const SLOT_TYPES = ['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3'];
+// Slot types configuration
+const SLOT_TYPES = ['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3', 'hasic4', 'hasic5'];
 const SLOT_LABELS = {
   velitel: '⭐ Velitel',
   strojnik: '🚒 Strojník',
   hasic1: '🧑‍🚒 Hasič 1',
   hasic2: '🧑‍🚒 Hasič 2',
   hasic3: '🧑‍🚒 Hasič 3',
+  hasic4: '🧑‍🚒 Hasič 4',
+  hasic5: '🧑‍🚒 Hasič 5',
 };
 
 export default function ShiftCalendarPage() {
@@ -527,7 +530,12 @@ const SLOT_ICONS = {
   'hasic-1': '🧯',
   'hasic-2': '🧯',
   'hasic-3': '🧯',
-  'hasic-4': '🧯'
+  'hasic-4': '🧯',
+  'hasic1': '🧯',
+  'hasic2': '🧯',
+  'hasic3': '🧯',
+  'hasic4': '🧯',
+  'hasic5': '🧯',
 };
 
 // Single Row Component
@@ -535,6 +543,26 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
   // Check if shift is empty (no users assigned)
   const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
   const canRemove = section === 'dayShift' && onRemoveDayShift && isEmpty;
+
+  // Dynamic Slot Visibility Logic
+  const visibleSlots = SLOT_TYPES.filter(type => {
+      // Always show core slots
+      if (['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3'].includes(type)) return true;
+      
+      // Check occupancy of previous slots for dynamic ones
+      const h1Off = !!sectionData['hasic1'];
+      const h2Off = !!sectionData['hasic2'];
+      const h3Off = !!sectionData['hasic3'];
+      const h4Off = !!sectionData['hasic4'];
+
+      // Show Hasič 4 if 1, 2, AND 3 are full (or if 4 is already taken)
+      if (type === 'hasic4') return (h1Off && h2Off && h3Off) || h4Off;
+
+      // Show Hasič 5 if 4 is full (or if 5 is already taken)
+      if (type === 'hasic5') return h4Off || !!sectionData['hasic5'];
+
+      return false;
+  });
 
   return (
     <div style={{ 
@@ -611,7 +639,7 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         padding: '0.35rem', // Tighter padding
         alignItems: 'center'
       }}>
-        {SLOT_TYPES.map(slotKey => {
+        {visibleSlots.map(slotKey => {
           const assignee = sectionData[slotKey];
           const isSelf = assignee?.uid === currentUser?.uid;
           
