@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, setDoc, onSnapshot, deleteField, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, deleteField, updateDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
 
 const DAYS_CZ = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -28,6 +29,7 @@ const SLOT_LABELS = {
 
 export default function ShiftCalendarPage() {
   const { currentUser, userData } = useAuth();
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [shiftsData, setShiftsData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,12 @@ export default function ShiftCalendarPage() {
   const [absencesData, setAbsencesData] = useState([]); // Array of { id, uid, userName, startDate, endDate, reason }
   const [absenceModal, setAbsenceModal] = useState(null); // { mode: 'add'|'edit', absence?: object }
   const [absencePanelOpen, setAbsencePanelOpen] = useState(true);
+
+  // Trainings state
+  const [trainingsData, setTrainingsData] = useState([]);
+
+  // Events state
+  const [eventsData, setEventsData] = useState([]);
 
   const DAY_SHIFTS_PREVIEW_COUNT = 3;
 
@@ -116,6 +124,38 @@ export default function ShiftCalendarPage() {
       }
     });
 
+    return unsubscribe;
+  }, [currentDate]);
+
+  // Subscribe to trainings
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'trainings'), (snapshot) => {
+      const allTrainings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const monthPrefix = `${year}-${month}`;
+
+      // Filter trainings for current month
+      const currentMonthTrainings = allTrainings.filter(t => t.date && t.date.startsWith(monthPrefix));
+      setTrainingsData(currentMonthTrainings);
+    });
+    return unsubscribe;
+  }, [currentDate]);
+
+  // Subscribe to events
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'events'), (snapshot) => {
+      const allEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const monthPrefix = `${year}-${month}`;
+
+      // Filter events for current month
+      const currentMonthEvents = allEvents.filter(e => e.date && e.date.startsWith(monthPrefix));
+      setEventsData(currentMonthEvents);
+    });
     return unsubscribe;
   }, [currentDate]);
 
@@ -771,6 +811,8 @@ export default function ShiftCalendarPage() {
                   onSlotClick={handleSlotClick}
                   currentUser={currentUser}
                   onRemoveDayShift={handleRemoveDayShift}
+                  trainings={trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date)}
+                  events={eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date)}
                 />
                 {day.dayOfWeek === 0 && (
                   <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
@@ -847,6 +889,8 @@ export default function ShiftCalendarPage() {
                 section="nightShift"
                 onSlotClick={handleSlotClick}
                 currentUser={currentUser}
+                trainings={trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date)}
+                events={eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date)}
               />
               {day.dayOfWeek === 0 && index !== days.length - 1 && (
                 <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
@@ -881,7 +925,8 @@ const SLOT_ICONS = {
 };
 
 // Single Row Component
-function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift }) {
+function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift, trainings, events }) {
+  const navigate = useNavigate();
   // Check if shift is empty (no users assigned)
   const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
   const canRemove = section === 'dayShift' && onRemoveDayShift && isEmpty;
@@ -940,6 +985,81 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '2px', opacity: 0.8 }}>
           {day.dayName.slice(0, 3)}
         </div>
+
+        {/* Training Indicator */}
+        {trainings && trainings.length > 0 && (
+          <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', width: '100%' }}>
+            {trainings.map(t => (
+              <div
+                key={t.id}
+                title={`Školení: ${t.title}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/skoleni');
+                }}
+                style={{
+                  fontSize: '0.7rem',
+                  cursor: 'pointer',
+                  background: '#E3F2FD',
+                  color: '#1565C0',
+                  border: '1px solid #90CAF9',
+                  borderRadius: '4px',
+                  padding: '1px 4px',
+                  maxWidth: '90%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  textAlign: 'center',
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  transition: 'background 0.2s',
+                  marginBottom: '1px'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#BBDEFB'}
+                onMouseLeave={e => e.currentTarget.style.background = '#E3F2FD'}
+              >
+                📚 Školení
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Events Indicator */}
+        {events && events.length > 0 && (
+          <div style={{ marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', width: '100%' }}>
+            {events.map(e => (
+              <div
+                key={e.id}
+                title={`Akce: ${e.title}`}
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  navigate('/akce');
+                }}
+                style={{
+                  fontSize: '0.7rem',
+                  cursor: 'pointer',
+                  background: '#FBE9E7', // Light Orange
+                  color: '#D84315',      // Deep Orange
+                  border: '1px solid #FFAB91',
+                  borderRadius: '4px',
+                  padding: '1px 4px',
+                  maxWidth: '90%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  textAlign: 'center',
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={ev => ev.currentTarget.style.background = '#FFCCBC'}
+                onMouseLeave={ev => ev.currentTarget.style.background = '#FBE9E7'}
+              >
+                🚩 Akce
+              </div>
+            ))}
+          </div>
+        )}
 
         {canRemove && (
           <button

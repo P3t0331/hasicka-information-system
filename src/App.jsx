@@ -6,6 +6,8 @@ import ProfilePage from './pages/ProfilePage';
 import ShiftCalendarPage from './pages/ShiftCalendarPage';
 import StatisticsPage from './pages/StatisticsPage';
 import AdminPage from './pages/AdminPage';
+import TrainingsPage from './pages/TrainingsPage';
+import EventsPage from './pages/EventsPage';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -16,7 +18,7 @@ function App() {
         <div className="app-container">
           <Routes>
             <Route path="/login" element={<AuthPage />} />
-            
+
             {/* Protected Routes */}
             <Route element={
               <PrivateRoute>
@@ -25,6 +27,8 @@ function App() {
             }>
               <Route path="/" element={<ProfilePage />} />
               <Route path="/shifts" element={<ShiftCalendarPage />} />
+              <Route path="/skoleni" element={<TrainingsPage />} />
+              <Route path="/akce" element={<EventsPage />} />
               <Route path="/statistiky" element={<StatisticsPage />} />
               <Route path="/admin" element={<AdminPage />} />
             </Route>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Layout() {
@@ -25,7 +25,7 @@ export default function Layout() {
       await logout();
       navigate('/login');
     } catch (error) {
-       console.error("Failed to log out", error);
+      console.error("Failed to log out", error);
     }
   }
 
@@ -38,8 +38,8 @@ export default function Layout() {
               <span>HASIČKA</span>
             </Link>
             {/* Mobile Hamburger */}
-            <button 
-              className="btn btn-secondary mobile-only" 
+            <button
+              className="btn btn-secondary mobile-only"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               style={{ padding: '0.4rem 0.8rem', minHeight: 'auto' }}
             >
@@ -54,9 +54,15 @@ export default function Layout() {
             <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>
               Služby
             </Link>
-            <Link to="/statistiky" className={`nav-link ${isActive('/statistiky') ? 'active' : ''}`}>
+            <NavLink to="/skoleni" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              Školení
+            </NavLink>
+            <NavLink to="/akce" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              Akce
+            </NavLink>
+            <NavLink to="/statistiky" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               Statistiky
-            </Link>
+            </NavLink>
             {isAdminOrVJ && (
               <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>
                 Administrace
@@ -68,14 +74,14 @@ export default function Layout() {
           </div>
         </div>
       </nav>
-      
+
       <div className="main-content" style={{ flex: 1 }}>
         <Outlet />
       </div>
-      
+
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div 
+        <div
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90, background: 'rgba(0,0,0,0.3)' }}
           onClick={() => setIsMenuOpen(false)}
           className="mobile-only"
