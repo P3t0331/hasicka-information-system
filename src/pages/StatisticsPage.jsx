@@ -30,7 +30,7 @@ export default function StatisticsPage() {
   useEffect(() => {
     setLoading(true);
     const docRef = doc(db, 'shifts', currentDocId);
-    
+
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setShiftsData(docSnap.data().days || {});
@@ -89,24 +89,24 @@ export default function StatisticsPage() {
   const getSplitHoursForUser = (day, uid) => {
     try {
       const dayData = shiftsData[day] || {};
-      
+
       // Check for explicit overrides
       const h = dayData.hours ? dayData.hours[uid] : null;
       let explicitDay = undefined;
       let explicitNight = undefined;
 
       if (h) {
-          if (typeof h.day === 'number') explicitDay = h.day;
-          if (typeof h.night === 'number') explicitNight = h.night;
-          
-          // Legacy format support
-          if (h.hours !== undefined) {
-             // Treat 'hours' as total, splits undefined
-             // This is tricky, assume total override? 
-             // Ideally we migrate, but for now let's just use it as 'explicitDay' fallback if typically day?
-             // Or ignoring legacy specific split logic for simplicity and assume clean data from now on.
-             // Let's assume new data structure is dominant. 
-          }
+        if (typeof h.day === 'number') explicitDay = h.day;
+        if (typeof h.night === 'number') explicitNight = h.night;
+
+        // Legacy format support
+        if (h.hours !== undefined) {
+          // Treat 'hours' as total, splits undefined
+          // This is tricky, assume total override? 
+          // Ideally we migrate, but for now let's just use it as 'explicitDay' fallback if typically day?
+          // Or ignoring legacy specific split logic for simplicity and assume clean data from now on.
+          // Let's assume new data structure is dominant. 
+        }
       }
 
       // Check existence in shifts
@@ -120,12 +120,12 @@ export default function StatisticsPage() {
       // If explicit is set (even 0), use it. If undefined, use default based on shift presence.
       const dayHours = explicitDay !== undefined ? explicitDay : (hasDayShift ? DEFAULT_DAY_HOURS : 0);
       const nightHours = explicitNight !== undefined ? explicitNight : (hasNightShift ? DEFAULT_NIGHT_HOURS : 0);
-      
-      return { 
-          day: dayHours, 
-          night: nightHours, 
-          total: dayHours + nightHours, 
-          isExplicit: !!h // Flag that some override exists
+
+      return {
+        day: dayHours,
+        night: nightHours,
+        total: dayHours + nightHours,
+        isExplicit: !!h // Flag that some override exists
       };
 
     } catch (err) {
@@ -143,7 +143,7 @@ export default function StatisticsPage() {
   const getShiftDescription = (day) => {
     const dayData = shiftsData[day] || {};
     const parts = [];
-    
+
     if (dayData.nightShift && Object.keys(dayData.nightShift).length > 0) {
       const crew = Object.values(dayData.nightShift).map(u => u?.name?.split(' ')[0]).filter(Boolean).join(', ');
       if (crew) parts.push(`Noční: ${crew}`);
@@ -152,7 +152,7 @@ export default function StatisticsPage() {
       const crew = Object.values(dayData.dayShift).map(u => u?.name?.split(' ')[0]).filter(Boolean).join(', ');
       if (crew) parts.push(`Denní: ${crew}`);
     }
-    
+
     return parts.join(' | ') || '-';
   };
 
@@ -161,9 +161,9 @@ export default function StatisticsPage() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const checkDate = new Date(year, month, day);
-    checkDate.setHours(0,0,0,0);
+    checkDate.setHours(0, 0, 0, 0);
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     return checkDate > today;
   };
 
@@ -174,7 +174,7 @@ export default function StatisticsPage() {
       return sum + getHoursForUser(day.date, uid);
     }, 0);
   };
-  
+
   const getSplitTotalHoursForUser = (uid) => {
     return days.reduce((acc, day) => {
       if (isDateInFuture(day.date)) return acc;
@@ -198,7 +198,7 @@ export default function StatisticsPage() {
     // Sums up user totals (which are already filtered)
     return users.reduce((sum, user) => sum + getTotalHoursForUser(user.uid), 0);
   };
-  
+
   const getGrandSplitTotal = () => {
     return users.reduce((acc, user) => {
       const split = getSplitTotalHoursForUser(user.uid);
@@ -210,25 +210,25 @@ export default function StatisticsPage() {
   const handleHourEdit = async (day, uid, type, value) => {
     try {
       const current = getSplitHoursForUser(day, uid);
-      
+
       const update = {
         day: current.day,
         night: current.night
       };
-      
+
       if (type === 'day') {
         update.day = parseInt(value) || 0;
       } else if (type === 'night') {
         update.night = parseInt(value) || 0;
       }
-      
+
       // If passing just number (legacy call), assume direct total (should not happen with new modal)
       if (typeof type === 'number') {
-         // Fallback legacy behavior
-         update.day = 0;
-         update.night = 0;
-         // Actually better to not support this or treat as total override if possible.
-         // But for now, let's stick to split logic.
+        // Fallback legacy behavior
+        update.day = 0;
+        update.night = 0;
+        // Actually better to not support this or treat as total override if possible.
+        // But for now, let's stick to split logic.
       }
 
       const docRef = doc(db, 'shifts', currentDocId);
@@ -249,10 +249,10 @@ export default function StatisticsPage() {
   // Edit Modal Component
   const EditHoursModal = ({ day, onClose }) => {
     const dayData = shiftsData[day] || {};
-    
+
     // Get unique users and their shifts
     const usersMap = new Map();
-    
+
     try {
       // 1. Add users from active shifts
       ['dayShift', 'nightShift'].forEach(shiftType => {
@@ -274,14 +274,14 @@ export default function StatisticsPage() {
 
       // 2. Add users who have explicit hours set (Ghost Hours)
       if (dayData.hours) {
-          Object.keys(dayData.hours).forEach(uid => {
-             if (!usersMap.has(uid)) {
-                 // Fetch name from full user list if possible, or fallback
-                 const userFromList = users.find(u => u.uid === uid);
-                 const name = userFromList ? userFromList.name : 'Neznámý uživatel';
-                 usersMap.set(uid, { uid, name, shifts: [] }); // Empty shifts array = ghost
-             }
-          });
+        Object.keys(dayData.hours).forEach(uid => {
+          if (!usersMap.has(uid)) {
+            // Fetch name from full user list if possible, or fallback
+            const userFromList = users.find(u => u.uid === uid);
+            const name = userFromList ? userFromList.name : 'Neznámý uživatel';
+            usersMap.set(uid, { uid, name, shifts: [] }); // Empty shifts array = ghost
+          }
+        });
       }
 
     } catch (err) {
@@ -299,7 +299,7 @@ export default function StatisticsPage() {
           background: 'white', padding: '1.5rem', borderRadius: '8px', width: '90%', maxWidth: '600px'
         }} onClick={e => e.stopPropagation()}>
           <h3 style={{ margin: '0 0 1rem 0' }}>Upravit hodiny - {day}. {MONTHS_CZ[currentDate.getMonth()]}</h3>
-          
+
           {uniqueUsers.length === 0 ? (
             <p>Žádné směny v tento den.</p>
           ) : (
@@ -312,7 +312,7 @@ export default function StatisticsPage() {
                 return (
                   <div key={user.uid} style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '6px' }}>
                     <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.1rem' }}>{user.name}</div>
-                    
+
                     <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                       {/* Night Control */}
                       <div style={{ flex: 1, minWidth: '140px', opacity: hasNight ? 1 : 0.6 }}>
@@ -320,38 +320,38 @@ export default function StatisticsPage() {
                           🌙 Noční sm. {(!hasNight && split.night === 0) && '(neobsazeno)'}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <button 
+                          <button
                             className="btn btn-secondary btn-sm"
                             disabled={split.night <= 0}
                             onClick={() => handleHourEdit(day, user.uid, 'night', Math.max(0, split.night - 1))}
                           >-</button>
                           <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.night}h</span>
-                          <button 
-                             className="btn btn-secondary btn-sm"
-                             disabled={!hasNight} // Prevent increasing if not in shift
-                             title={!hasNight ? "Nelze přidat hodiny bez směny" : ""}
-                             onClick={() => handleHourEdit(day, user.uid, 'night', split.night + 1)}
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={!hasNight} // Prevent increasing if not in shift
+                            title={!hasNight ? "Nelze přidat hodiny bez směny" : ""}
+                            onClick={() => handleHourEdit(day, user.uid, 'night', split.night + 1)}
                           >+</button>
                         </div>
                       </div>
 
                       {/* Day Control */}
                       <div style={{ flex: 1, minWidth: '140px', opacity: hasDay ? 1 : 0.6 }}>
-                         <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           ☀️ Denní sm. {(!hasDay && split.day === 0) && '(neobsazeno)'}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <button 
+                          <button
                             className="btn btn-secondary btn-sm"
                             disabled={split.day <= 0}
                             onClick={() => handleHourEdit(day, user.uid, 'day', Math.max(0, split.day - 1))}
                           >-</button>
                           <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.day}h</span>
-                          <button 
-                             className="btn btn-secondary btn-sm"
-                             disabled={!hasDay} // Prevent increasing if not in shift
-                             title={!hasDay ? "Nelze přidat hodiny bez směny" : ""}
-                             onClick={() => handleHourEdit(day, user.uid, 'day', split.day + 1)}
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={!hasDay} // Prevent increasing if not in shift
+                            title={!hasDay ? "Nelze přidat hodiny bez směny" : ""}
+                            onClick={() => handleHourEdit(day, user.uid, 'day', split.day + 1)}
                           >+</button>
                         </div>
                       </div>
@@ -361,7 +361,7 @@ export default function StatisticsPage() {
               })}
             </div>
           )}
-          
+
           <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
             <button className="btn btn-primary" onClick={onClose}>Hotovo</button>
           </div>
@@ -382,46 +382,54 @@ export default function StatisticsPage() {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '1200px', paddingBottom: '3rem' }}>
-      
+
       {/* 1. Month Navigation Header */}
-      <div style={{ 
-        background: 'linear-gradient(135deg, #2c3e50, #455a64)', 
-        borderRadius: '12px', 
-        padding: '1.5rem', 
+      <div style={{
+        background: 'linear-gradient(135deg, #37474F, #263238)',
+        borderRadius: '10px',
+        padding: '0.75rem 1rem',
         color: 'white',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        marginBottom: '2rem',
+        marginBottom: '1.5rem',
         display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        flexWrap: 'wrap',
+        gap: '0.5rem'
       }}>
-        <button 
-          className="btn" 
+        <button
+          className="btn"
           onClick={() => handleMonthChange(-1)}
-          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            color: 'white',
+            border: '1px solid rgba(255,255,255,0.2)',
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.85rem'
+          }}
         >
-          ← Předchozí
+          ←
         </button>
-        <div style={{ textAlign: 'center' }}>
-          <h2 style={{ margin: 0, textTransform: 'uppercase', fontSize: '1.5rem', letterSpacing: '1px' }}>
-            {MONTHS_CZ[currentDate.getMonth()]} <span style={{ opacity: 0.7 }}>{currentDate.getFullYear()}</span>
-          </h2>
-          <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Přehled služeb a hodin
-          </div>
-        </div>
-        <button 
-          className="btn" 
+        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+          {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </h2>
+        <button
+          className="btn"
           onClick={() => handleMonthChange(1)}
-          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            color: 'white',
+            border: '1px solid rgba(255,255,255,0.2)',
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.85rem'
+          }}
         >
-          Další →
+          →
         </button>
       </div>
 
       {/* 2. KPI Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        <StatCard 
+        <StatCard
           icon="⏱️"
           value={getGrandTotal().toString()}
           label="Celkem hodin"
@@ -429,7 +437,7 @@ export default function StatisticsPage() {
           color="#D32F2F"
           bg="rgba(211, 47, 47, 0.08)"
         />
-        <StatCard 
+        <StatCard
           icon="👥"
           value={users.filter(u => getTotalHoursForUser(u.uid) > 0).length.toString()}
           label="Aktivních členů"
@@ -437,7 +445,7 @@ export default function StatisticsPage() {
           color="#1976D2"
           bg="rgba(25, 118, 210, 0.08)"
         />
-        <StatCard 
+        <StatCard
           icon="📊"
           value={(users.filter(u => getTotalHoursForUser(u.uid) > 0).length > 0 ? Math.round(getGrandTotal() / users.filter(u => getTotalHoursForUser(u.uid) > 0).length) : 0).toString()}
           label="Průměr na člena"
@@ -445,7 +453,7 @@ export default function StatisticsPage() {
           color="#388E3C"
           bg="rgba(56, 142, 60, 0.08)"
         />
-        <StatCard 
+        <StatCard
           icon="📅"
           value={days.filter(d => getTotalHoursForDay(d.date) > 0).length.toString()}
           label="Odsloužených dnů"
@@ -457,7 +465,7 @@ export default function StatisticsPage() {
 
       {/* 3. Detailed Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
-        
+
         {/* LEADERBOARD */}
         <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'fit-content' }}>
           <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
@@ -473,46 +481,46 @@ export default function StatisticsPage() {
                 const pct = (hours / (maxUserHours || 1)) * 100;
                 const medals = ['🥇', '🥈', '🥉', '4.', '5.'];
                 return (
-                  <div key={user.uid} style={{ 
-                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0', 
-                    borderBottom: i < 4 ? '1px dashed #eee' : 'none' 
+                  <div key={user.uid} style={{
+                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0',
+                    borderBottom: i < 4 ? '1px dashed #eee' : 'none'
                   }}>
-                    <div style={{ 
-                      width: '36px', height: '36px', 
-                      borderRadius: '50%', background: i < 3 ? '#FFF8E1' : '#f5f5f5', 
+                    <div style={{
+                      width: '36px', height: '36px',
+                      borderRadius: '50%', background: i < 3 ? '#FFF8E1' : '#f5f5f5',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '1.2rem', fontWeight: 700,
                       color: i < 3 ? '#FFC107' : '#999'
                     }}>
                       {i < 3 ? medals[i] : i + 1}
                     </div>
-                    
+
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>{user.name}</div>
                       <div style={{ width: '100%', height: '6px', background: '#f0f0f0', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{ width: `${pct}%`, height: '100%', background: i === 0 ? '#D32F2F' : (i === 1 ? '#F57C00' : '#1976D2'), borderRadius: '3px' }} />
                       </div>
                     </div>
-                    
+
                     <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>{hours}h</div>
                   </div>
                 );
               })}
-              {users.every(u => getTotalHoursForUser(u.uid) === 0) && (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
-              )}
+            {users.every(u => getTotalHoursForUser(u.uid) === 0) && (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
+            )}
           </div>
         </div>
 
         {/* MEMBER LIST */}
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-           <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
+          <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>👥 Přehled členů</h3>
           </div>
-          <div style={{ 
-            padding: '1rem', 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+          <div style={{
+            padding: '1rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
             gap: '1rem',
             maxHeight: '500px',
             overflowY: 'auto'
@@ -524,10 +532,10 @@ export default function StatisticsPage() {
                 const split = getSplitTotalHoursForUser(user.uid);
                 const isMe = user.uid === currentUser?.uid;
                 const hours = getTotalHoursForUser(user.uid);
-                
+
                 return (
-                  <div key={user.uid} style={{ 
-                    padding: '1rem', borderRadius: '10px', 
+                  <div key={user.uid} style={{
+                    padding: '1rem', borderRadius: '10px',
                     border: isMe ? '2px solid #81C784' : '1px solid #e0e0e0',
                     background: isMe ? '#F1F8E9' : 'white',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
@@ -536,21 +544,21 @@ export default function StatisticsPage() {
                       <span style={{ fontWeight: 600, color: '#333' }}>{isMe && '⭐ '}{user.name}</span>
                       <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#333' }}>{hours}h</span>
                     </div>
-                    
+
                     {/* Tiny breakdown */}
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       {split.day > 0 && (
-                        <span style={{ 
-                          fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', 
-                          background: '#FFF3E0', color: '#E65100', fontWeight: 600 
+                        <span style={{
+                          fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
+                          background: '#FFF3E0', color: '#E65100', fontWeight: 600
                         }}>
                           ☀️ {split.day}
                         </span>
                       )}
                       {split.night > 0 && (
-                        <span style={{ 
-                          fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', 
-                          background: '#E8EAF6', color: '#3949AB', fontWeight: 600 
+                        <span style={{
+                          fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
+                          background: '#E8EAF6', color: '#3949AB', fontWeight: 600
                         }}>
                           🌙 {split.night}
                         </span>
@@ -566,10 +574,10 @@ export default function StatisticsPage() {
       {/* 4. Full Data Table */}
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>📅 Denní záznamy</h3>
-            <span style={{ fontSize: '0.85rem', color: '#777' }}>Detailní rozpis hodin</span>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>📅 Denní záznamy</h3>
+          <span style={{ fontSize: '0.85rem', color: '#777' }}>Detailní rozpis hodin</span>
         </div>
-        
+
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
             <thead style={{ background: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
@@ -586,11 +594,11 @@ export default function StatisticsPage() {
                 const totalHours = !inFuture ? getTotalHoursForDay(day.date) : 0;
                 const desc = !inFuture ? getShiftDescription(day.date) : '';
                 const hasShift = desc !== '-' && desc !== '';
-                
+
                 return (
-                  <tr 
-                    key={day.date} 
-                    style={{ 
+                  <tr
+                    key={day.date}
+                    style={{
                       background: day.isWeekend ? '#fafafa' : 'white',
                       borderBottom: '1px solid #eee'
                     }}
@@ -598,7 +606,7 @@ export default function StatisticsPage() {
                     <td style={{ padding: '0.75rem 1rem', fontWeight: 500, opacity: inFuture ? 0.5 : 1, whiteSpace: 'nowrap' }}>
                       <span style={{ display: 'inline-block', width: '25px', textAlign: 'center', marginRight: '4px', fontWeight: 700, color: day.isWeekend ? '#e53935' : '#333' }}>
                         {day.date}.
-                      </span> 
+                      </span>
                       <span style={{ textTransform: 'capitalize', color: '#777' }}>{day.dayName}</span>
                     </td>
                     <td style={{ padding: '0.75rem 1rem' }}>
@@ -618,7 +626,7 @@ export default function StatisticsPage() {
                     {isAdmin && (
                       <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                         {hasShift && (
-                          <button 
+                          <button
                             onClick={() => setEditingCell(day.date)}
                             style={{
                               background: 'white', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px', fontSize: '0.9rem'
@@ -640,10 +648,10 @@ export default function StatisticsPage() {
                   MĚSÍČNÍ SOUČET
                 </td>
                 <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{getGrandTotal()}h</div>
-                    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                      (☀️ {getGrandSplitTotal().day} + 🌙 {getGrandSplitTotal().night})
-                    </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{getGrandTotal()}h</div>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                    (☀️ {getGrandSplitTotal().day} + 🌙 {getGrandSplitTotal().night})
+                  </div>
                 </td>
                 {isAdmin && <td></td>}
               </tr>
@@ -663,7 +671,7 @@ export default function StatisticsPage() {
 function StatCard({ icon, value, label, sublabel, color, bg }) {
   return (
     <div className="card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-      <div style={{ 
+      <div style={{
         width: '60px', height: '60px', borderRadius: '50%', background: bg, color: color,
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem'
       }}>

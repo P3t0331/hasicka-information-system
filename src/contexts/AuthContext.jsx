@@ -1,12 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
 
 const AuthContext = React.createContext();
 
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   async function signup(email, password, profileData) {
     isSigningUp.current = true;
     let user;
-    
+
     try {
       try {
         const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -36,25 +36,25 @@ export function AuthProvider({ children }) {
           try {
             const credential = await signInWithEmailAndPassword(auth, email, password);
             user = credential.user;
-            
+
             // Verify profile truly doesn't exist
             const docRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(docRef);
-            
+
             if (docSnap.exists()) {
               // Account exists and has profile -> Real conflict
-              throw error; 
+              throw error;
             }
             // If we are here, Auth exists but Profile is missing -> PROCEED to overwrite/recreate
           } catch (loginError) {
-             // If login fails (wrong password) or profile exists, throw original error
-             throw error;
+            // If login fails (wrong password) or profile exists, throw original error
+            throw error;
           }
         } else {
           throw error;
         }
       }
-      
+
       // Create/Overwrite user document
       try {
         await setDoc(doc(db, "users", user.uid), {
@@ -72,18 +72,18 @@ export function AuthProvider({ children }) {
         console.error("Error writing to Firestore:", dbError);
         throw new Error("Chyba při vytváření profilu: " + dbError.message);
       }
-      
+
       // Fetch the new user data to update state immediately
       const docSnap = await getDoc(doc(db, "users", user.uid));
       if (docSnap.exists()) {
         setUserData(docSnap.data());
       }
-      
+
       // STRICT LOGOUT: New users are not approved, so we must sign them out immediately
       await signOut(auth);
       setCurrentUser(null);
       setUserData(null);
-      
+
       return { user, success: true };
     } finally {
       isSigningUp.current = false;
@@ -105,7 +105,7 @@ export function AuthProvider({ children }) {
     }
 
     const data = docSnap.data();
-    
+
     if (data.disabled) {
       await signOut(auth);
       throw new Error("Váš účet byl deaktivován.");
@@ -124,76 +124,83 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // isSigningUp logic handled locally or ignored for now as we want strict checks always
+    let unsubscribeUserDoc = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      // Clean up previous user doc listener
+      if (unsubscribeUserDoc) {
+        unsubscribeUserDoc();
+        unsubscribeUserDoc = null;
+      }
+
       if (isSigningUp.current && user) {
-        // Special case: Registration flow.
-        // We know we just created it and approved=false, but we might want to allow 
-        // the flow to finish nicely?
-        // Actually, if we want "Do not login him", then even after registration 
-        // we should probably NOT set currentUser? 
-        // But usually registration succeeds and we redirect. 
-        // Let's keep the user object for registration flow stability, 
-        // OR better: handle the registration success without relying on auth state change to login.
-        
-        // However, standard Firebase flow triggers this. 
-        // If we want strict "No login until approved", then after signup we should probably 
-        // sign out immediately? 
-        // But the user just registered. The requirement is "not yet confirmed users".
-        // New registrations are "not yet confirmed".
-        // So they should arguably NOT be logged in. 
-        setCurrentUser(user); 
+        setCurrentUser(user);
         setLoading(false);
         return;
       }
 
       if (user) {
-        // setLoading(true); // REMOVED: Preventing app unmount on login to keep Error state
-        // We handle loading states locally in components if needed, or rely on userData being null briefly.
-        // For unapproved users, this is better because we don't want to flash the UI.
-        
         try {
           const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const isUnapproved = data.approved === false;
-            const isDisabled = data.disabled === true;
 
-            if (isUnapproved || isDisabled) {
-               // DO NOT LOG IN
-               console.log("User unapproved/disabled - denying login.");
-               await signOut(auth);
-               setCurrentUser(null);
-               setUserData(null);
-               // We don't use alert() here. 
-               // The Login page handles explicit login errors.
-               // If this is a page refresh, the user just gets logged out silently 
-               // (or redirected to login by PrivateRoute).
-            } else {
-               // VALID LOGIN
-               setUserData(data);
-               setCurrentUser(user); // ONLY SET HERE AFTER VERIFICATION
-            }
-          } else {
+          // Initial check for approval/disabled status
+          const docSnap = await getDoc(docRef);
+
+          if (!docSnap.exists()) {
             console.error("No user profile found!");
             await signOut(auth);
             setCurrentUser(null);
             setUserData(null);
+            setLoading(false);
+            return;
           }
+
+          const initialData = docSnap.data();
+          if (initialData.approved === false || initialData.disabled === true) {
+            console.log("User unapproved/disabled - denying login.");
+            await signOut(auth);
+            setCurrentUser(null);
+            setUserData(null);
+            setLoading(false);
+            return;
+          }
+
+          // Valid user - set up real-time listener for profile updates
+          setCurrentUser(user);
+          setUserData(initialData);
+          setLoading(false);
+
+          // Subscribe to real-time updates for user profile
+          unsubscribeUserDoc = onSnapshot(docRef, (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.data();
+              // Check if user got disabled
+              if (data.disabled === true) {
+                signOut(auth);
+                return;
+              }
+              setUserData(data);
+            }
+          });
+
         } catch (error) {
           console.error("Error verifying user:", error);
           setCurrentUser(null);
+          setLoading(false);
         }
       } else {
         setCurrentUser(null);
         setUserData(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeUserDoc) {
+        unsubscribeUserDoc();
+      }
+    };
   }, []);
 
   const value = {

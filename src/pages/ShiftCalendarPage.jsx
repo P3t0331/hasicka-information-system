@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, setDoc, onSnapshot, deleteField } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, deleteField, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 const DAYS_CZ = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+
+// Format ISO date (YYYY-MM-DD) to Czech format (D.M.)
+const formatDateCZ = (isoDate) => {
+  if (!isoDate) return '';
+  const [year, month, day] = isoDate.split('-');
+  return `${parseInt(day)}.${parseInt(month)}.`;
+};
 
 // Slot types configuration
 // Slot types configuration
@@ -24,26 +31,31 @@ export default function ShiftCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [shiftsData, setShiftsData] = useState({});
   const [loading, setLoading] = useState(true);
-  
+
   // For adding new day shifts
   const [newDayShiftDate, setNewDayShiftDate] = useState('');
-  
+
   // Toast notification state
   const [toast, setToast] = useState(null); // { type: 'error'|'warning'|'success'|'info', message: string }
-  
+
   // Modal state for confirmations
   const [modal, setModal] = useState(null); // { title, message, onConfirm, onCancel }
-  
+
   // Vehicle assignment modal
   const [vehicleModal, setVehicleModal] = useState(null); // { day, section, vehicleId, currentAssignees }
 
+  // Absence state
+  const [absencesData, setAbsencesData] = useState([]); // Array of { id, uid, userName, startDate, endDate, reason }
+  const [absenceModal, setAbsenceModal] = useState(null); // { mode: 'add'|'edit', absence?: object }
+  const [absencePanelOpen, setAbsencePanelOpen] = useState(true);
+
   const DAY_SHIFTS_PREVIEW_COUNT = 3;
-  
+
   const showToast = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
   };
-  
+
   const showConfirm = (title, message) => {
     return new Promise((resolve) => {
       setModal({
@@ -65,7 +77,7 @@ export default function ShiftCalendarPage() {
   useEffect(() => {
     setLoading(true);
     const docRef = doc(db, 'shifts', currentDocId);
-    
+
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setShiftsData(docSnap.data().days || {});
@@ -77,6 +89,35 @@ export default function ShiftCalendarPage() {
 
     return unsubscribe;
   }, [currentDocId]);
+
+  // Subscribe to ALL absences (global collection) and filter for current month view
+  useEffect(() => {
+    const absenceDocRef = doc(db, 'absences', 'global');
+
+    const unsubscribe = onSnapshot(absenceDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const allAbsences = docSnap.data().items || [];
+
+        // Filter absences that overlap with current month
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const monthStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const monthEnd = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        // An absence overlaps if: startDate <= monthEnd AND endDate >= monthStart
+        const relevantAbsences = allAbsences.filter(a =>
+          a.startDate <= monthEnd && a.endDate >= monthStart
+        );
+
+        setAbsencesData(relevantAbsences);
+      } else {
+        setAbsencesData([]);
+      }
+    });
+
+    return unsubscribe;
+  }, [currentDate]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -132,8 +173,8 @@ export default function ShiftCalendarPage() {
       if (!newData.hours) newData.hours = {};
 
       const checkPresence = (shiftType) => {
-          const slots = newData[shiftType] || {};
-          return Object.values(slots).some(u => u && u.uid === targetUid);
+        const slots = newData[shiftType] || {};
+        return Object.values(slots).some(u => u && u.uid === targetUid);
       };
 
       // Determine valid presence in the FUTURE state
@@ -145,23 +186,23 @@ export default function ShiftCalendarPage() {
       // 1. We are explicitly modifying the Day shift (Removal/Add resets to default)
       // 2. OR The user is simply not in the Day shift anymore (Ghost cleanup)
       const wipeDay = (section === 'dayShift') || !inDay;
-      
+
       // We wipe the 'night' override if:
       // 1. We are explicitly modifying the Night shift
       // 2. OR The user is not in the Night shift
       const wipeNight = (section === 'nightShift') || !inNight;
 
       if (wipeDay && wipeNight) {
-         // User removed from everything or explicit reset of everything -> Delete entry
-         newData.hours[targetUid] = deleteField();
+        // User removed from everything or explicit reset of everything -> Delete entry
+        newData.hours[targetUid] = deleteField();
       } else {
-         // Partial reset (e.g. keeping Night override but clearing Day)
-         const patch = {};
-         // Important: Firestore merge deeply. We must explicitely DELETE keys we don't want.
-         if (wipeDay) patch.day = deleteField();
-         if (wipeNight) patch.night = deleteField();
-         
-         newData.hours[targetUid] = patch;
+        // Partial reset (e.g. keeping Night override but clearing Day)
+        const patch = {};
+        // Important: Firestore merge deeply. We must explicitely DELETE keys we don't want.
+        if (wipeDay) patch.day = deleteField();
+        if (wipeNight) patch.night = deleteField();
+
+        newData.hours[targetUid] = patch;
       }
     };
 
@@ -184,7 +225,7 @@ export default function ShiftCalendarPage() {
 
         if (freeHasicSlot) {
           const confirmed = await showConfirm(
-            'Převzít místo', 
+            'Převzít místo',
             `Převzít pozici Velitele od ${currentAssignee.name}? Bude přesunut na Hasiče.`
           );
           if (!confirmed) return;
@@ -268,13 +309,13 @@ export default function ShiftCalendarPage() {
     try {
       const docRef = doc(db, 'shifts', currentDocId);
       // Remove the dayShiftEnabled flag and the dayShift object
-      await setDoc(docRef, { 
-        days: { 
-          [date]: { 
+      await setDoc(docRef, {
+        days: {
+          [date]: {
             dayShiftEnabled: deleteField(),
-            dayShift: deleteField() 
-          } 
-        } 
+            dayShift: deleteField()
+          }
+        }
       }, { merge: true });
       showToast('success', 'Denní služba odebrána.');
     } catch (err) {
@@ -289,7 +330,7 @@ export default function ShiftCalendarPage() {
       showToast('warning', 'Vyberte datum pro denní službu.');
       return;
     }
-    
+
     const dateNum = parseInt(newDayShiftDate);
     if (isNaN(dateNum) || dateNum < 1 || dateNum > days.length) {
       showToast('error', 'Neplatné datum.');
@@ -304,19 +345,68 @@ export default function ShiftCalendarPage() {
 
     try {
       const docRef = doc(db, 'shifts', currentDocId);
-      await setDoc(docRef, { 
-        days: { 
-          [dateNum]: { 
+      await setDoc(docRef, {
+        days: {
+          [dateNum]: {
             dayShiftEnabled: true,
-            dayShift: {} 
-          } 
-        } 
+            dayShift: {}
+          }
+        }
       }, { merge: true });
       showToast('success', `Denní služba pro ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} vytvořena.`);
       setNewDayShiftDate('');
     } catch (err) {
       console.error("Error adding day shift:", err);
       showToast('error', 'Chyba při vytváření denní služby.');
+    }
+  };
+
+  // Absence handlers
+  const handleAddAbsence = async (absenceData) => {
+    if (!userData || !userData.approved) return;
+
+    const newAbsence = {
+      id: `${currentUser.uid}-${Date.now()}`,
+      uid: currentUser.uid,
+      userName: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''}`,
+      startDate: absenceData.startDate, // Now ISO string like "2026-02-15"
+      endDate: absenceData.endDate,     // Now ISO string like "2026-03-05"
+      reason: absenceData.reason
+    };
+
+    try {
+      const absenceDocRef = doc(db, 'absences', 'global');
+      await setDoc(absenceDocRef, {
+        items: arrayUnion(newAbsence)
+      }, { merge: true });
+      showToast('success', 'Absence uložena.');
+      setAbsenceModal(null);
+    } catch (err) {
+      console.error("Error adding absence:", err);
+      showToast('error', 'Chyba při ukládání absence.');
+    }
+  };
+
+  const handleDeleteAbsence = async (absence) => {
+    // Only allow deleting own absences (or admin)
+    const isAdmin = userRoles.includes('Admin') || userRoles.includes('VJ');
+    if (absence.uid !== currentUser.uid && !isAdmin) {
+      showToast('error', 'Můžete mazat pouze své vlastní absence.');
+      return;
+    }
+
+    const confirmed = await showConfirm('Smazat absenci', `Opravdu chcete smazat absenci "${absence.reason}"?`);
+    if (!confirmed) return;
+
+    try {
+      const absenceDocRef = doc(db, 'absences', 'global');
+      await updateDoc(absenceDocRef, {
+        items: arrayRemove(absence)
+      });
+      showToast('success', 'Absence smazána.');
+    } catch (err) {
+      console.error("Error deleting absence:", err);
+      showToast('error', 'Chyba při mazání absence.');
     }
   };
 
@@ -330,7 +420,7 @@ export default function ShiftCalendarPage() {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '900px', position: 'relative' }}>
-      
+
       {/* Toast Notification */}
       {toast && (
         <div style={{
@@ -339,17 +429,16 @@ export default function ShiftCalendarPage() {
           right: '20px',
           padding: '1rem 1.5rem',
           borderRadius: '8px',
-          background: toast.type === 'error' ? '#FFEBEE' : 
-                      toast.type === 'warning' ? '#FFF8E1' :
-                      toast.type === 'success' ? '#E8F5E9' : '#E3F2FD',
+          background: toast.type === 'error' ? '#FFEBEE' :
+            toast.type === 'warning' ? '#FFF8E1' :
+              toast.type === 'success' ? '#E8F5E9' : '#E3F2FD',
           color: toast.type === 'error' ? '#B71C1C' :
-                 toast.type === 'warning' ? '#F57C00' :
-                 toast.type === 'success' ? '#1B5E20' : '#1565C0',
-          border: `1px solid ${
-            toast.type === 'error' ? '#EF9A9A' :
+            toast.type === 'warning' ? '#F57C00' :
+              toast.type === 'success' ? '#1B5E20' : '#1565C0',
+          border: `1px solid ${toast.type === 'error' ? '#EF9A9A' :
             toast.type === 'warning' ? '#FFCC80' :
-            toast.type === 'success' ? '#81C784' : '#64B5F6'
-          }`,
+              toast.type === 'success' ? '#81C784' : '#64B5F6'
+            }`,
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           zIndex: 1000,
           maxWidth: '350px',
@@ -391,29 +480,282 @@ export default function ShiftCalendarPage() {
       )}
 
       {/* Month Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button className="btn btn-secondary" onClick={() => handleMonthChange(-1)}>← Předchozí</button>
-        <h2 style={{ margin: 0, textTransform: 'uppercase' }}>{MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
-        <button className="btn btn-secondary" onClick={() => handleMonthChange(1)}>Další →</button>
+      <div style={{
+        background: 'linear-gradient(135deg, #37474F, #263238)',
+        borderRadius: '10px',
+        padding: '0.75rem 1rem',
+        color: 'white',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '0.5rem'
+      }}>
+        <button
+          className="btn"
+          onClick={() => handleMonthChange(-1)}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            color: 'white',
+            border: '1px solid rgba(255,255,255,0.2)',
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.85rem'
+          }}
+        >
+          ←
+        </button>
+        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+          {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </h2>
+        <button
+          className="btn"
+          onClick={() => handleMonthChange(1)}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            color: 'white',
+            border: '1px solid rgba(255,255,255,0.2)',
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.85rem'
+          }}
+        >
+          →
+        </button>
       </div>
+
+      {/* ABSENCE SUMMARY PANEL */}
+      <section style={{ marginBottom: '2rem' }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #7B1FA2, #512DA8)',
+            color: 'white',
+            padding: '0.75rem 1rem',
+            borderRadius: absencePanelOpen ? '12px 12px 0 0' : '12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(123, 31, 162, 0.3)'
+          }}
+          onClick={() => setAbsencePanelOpen(!absencePanelOpen)}
+        >
+          <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white' }}>
+            🚫 Absence
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {absencesData.length > 0 && (
+              <span style={{
+                background: 'rgba(255,255,255,0.2)',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '12px',
+                fontSize: '0.8rem'
+              }}>
+                {absencesData.length}
+              </span>
+            )}
+            <span style={{ fontSize: '0.8rem', transition: 'transform 0.2s' }}>
+              {absencePanelOpen ? '▲' : '▼'}
+            </span>
+          </div>
+        </div>
+
+        {absencePanelOpen && (
+          <div style={{
+            border: '1px solid #E1BEE7',
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px',
+            overflow: 'hidden',
+            background: 'white'
+          }}>
+            {absencesData.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#9575CD' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
+                Žádné absence v tomto měsíci
+              </div>
+            ) : (
+              <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {absencesData.map((absence, index) => {
+                  const canDelete = absence.uid === currentUser.uid || userRoles.includes('Admin') || userRoles.includes('VJ');
+                  const isMine = absence.uid === currentUser.uid;
+
+                  // Determine absence status
+                  const today = new Date();
+                  const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                  const isPast = absence.endDate < todayISO;
+                  const isFuture = absence.startDate > todayISO;
+                  const isActive = !isPast && !isFuture;
+
+                  // Style based on status
+                  let cardBg, cardBorder, cardOpacity, badgeBg, statusLabel;
+                  if (isPast) {
+                    cardBg = '#f5f5f5';
+                    cardBorder = '1px solid #e0e0e0';
+                    cardOpacity = 0.6;
+                    badgeBg = 'linear-gradient(135deg, #9E9E9E, #757575)';
+                    statusLabel = 'Proběhlo';
+                  } else if (isFuture) {
+                    cardBg = isMine ? '#E8EAF6' : '#FAFAFA';
+                    cardBorder = isMine ? '2px dashed #7986CB' : '2px dashed #BDBDBD';
+                    cardOpacity = 1;
+                    badgeBg = 'linear-gradient(135deg, #5C6BC0, #3949AB)';
+                    statusLabel = 'Naplánováno';
+                  } else {
+                    cardBg = isMine ? '#F3E5F5' : '#FAFAFA';
+                    cardBorder = isMine ? '1px solid #CE93D8' : '1px solid #eee';
+                    cardOpacity = 1;
+                    badgeBg = 'linear-gradient(135deg, #9C27B0, #7B1FA2)';
+                    statusLabel = null;
+                  }
+
+                  return (
+                    <div
+                      key={absence.id || index}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.6rem 0.75rem',
+                        background: cardBg,
+                        borderRadius: '8px',
+                        border: cardBorder,
+                        opacity: cardOpacity,
+                        transition: 'opacity 0.2s'
+                      }}
+                    >
+                      {/* Date badge */}
+                      <div style={{
+                        background: badgeBg,
+                        color: 'white',
+                        padding: '0.35rem 0.6rem',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        minWidth: '55px',
+                        textAlign: 'center'
+                      }}>
+                        {absence.startDate === absence.endDate
+                          ? formatDateCZ(absence.startDate)
+                          : `${formatDateCZ(absence.startDate)}-${formatDateCZ(absence.endDate)}`}
+                      </div>
+
+                      {/* Name & Reason */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.9rem', color: isPast ? '#888' : '#333' }}>
+                            {absence.userName}
+                          </span>
+                          {statusLabel && (
+                            <span style={{
+                              fontSize: '0.65rem',
+                              padding: '0.15rem 0.4rem',
+                              borderRadius: '4px',
+                              fontWeight: 600,
+                              textTransform: 'uppercase',
+                              background: isPast ? '#EEEEEE' : '#E8EAF6',
+                              color: isPast ? '#757575' : '#3949AB'
+                            }}>
+                              {statusLabel}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{
+                          fontSize: '0.8rem',
+                          color: isPast ? '#aaa' : '#666',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {absence.reason}
+                        </div>
+                      </div>
+
+                      {/* Delete button */}
+                      {canDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteAbsence(absence); }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#E53935',
+                            cursor: 'pointer',
+                            fontSize: '1.1rem',
+                            padding: '0.3rem',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.2s',
+                            flexShrink: 0
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FFEBEE'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add Absence Button */}
+            {userData?.approved && (
+              <div style={{
+                padding: '0.75rem',
+                borderTop: '1px solid #F3E5F5',
+                background: '#FAFAFA'
+              }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setAbsenceModal({ mode: 'add' })}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)',
+                    border: 'none',
+                    padding: '0.7rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: 600
+                  }}
+                >
+                  + Přidat mou absenci
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Add Absence Modal */}
+      {absenceModal && (
+        <AddAbsenceModal
+          currentDate={currentDate}
+          existingAbsences={absencesData.filter(a => a.uid === currentUser.uid)}
+          onSubmit={handleAddAbsence}
+          onClose={() => setAbsenceModal(null)}
+          showToast={showToast}
+        />
+      )}
 
       {/* DAY SHIFTS SECTION */}
       <section style={{ marginBottom: '2rem' }}>
-        <div style={{ 
-          background: 'linear-gradient(135deg, #FF9800, #F57C00)', 
-          color: 'white', 
-          padding: '0.75rem 1rem', 
+        <div style={{
+          background: 'linear-gradient(135deg, #FF9800, #F57C00)',
+          color: 'white',
+          padding: '0.75rem 1rem',
           borderRadius: '8px 8px 0 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>☀️ DENNÍ SLUŽBY (od 9:00)</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>☀️ DENNÍ SLUŽBY (od 9:00)</h3>
           <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
             {enabledDayShifts.length} služeb
           </span>
         </div>
-        
+
         <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
           {enabledDayShifts.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>
@@ -422,7 +764,7 @@ export default function ShiftCalendarPage() {
           ) : (
             enabledDayShifts.map(day => (
               <React.Fragment key={`day-${day.date}`}>
-                <ShiftRow 
+                <ShiftRow
                   day={day}
                   sectionData={shiftsData[day.date]?.dayShift || {}}
                   section="dayShift"
@@ -431,21 +773,21 @@ export default function ShiftCalendarPage() {
                   onRemoveDayShift={handleRemoveDayShift}
                 />
                 {day.dayOfWeek === 0 && (
-                   <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
-                     <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
-                     <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                       Konec týdne
-                     </span>
-                   </div>
+                  <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
+                    <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Konec týdne
+                    </span>
+                  </div>
                 )}
               </React.Fragment>
             ))
           )}
-          
+
           {/* Add Day Shift Form */}
-          <div style={{ 
-            padding: '1rem', 
-            background: '#FFF8E1', 
+          <div style={{
+            padding: '1rem',
+            background: '#FFF8E1',
             borderTop: '1px solid #eee',
             display: 'flex',
             gap: '0.75rem',
@@ -453,12 +795,12 @@ export default function ShiftCalendarPage() {
             flexWrap: 'wrap'
           }}>
             <label style={{ fontWeight: 500, color: '#F57C00' }}>Přidat denní službu:</label>
-            <select 
-              value={newDayShiftDate} 
+            <select
+              value={newDayShiftDate}
               onChange={(e) => setNewDayShiftDate(e.target.value)}
-              style={{ 
-                padding: '0.5rem', 
-                borderRadius: '6px', 
+              style={{
+                padding: '0.5rem',
+                borderRadius: '6px',
                 border: '1px solid #FFCC80',
                 minWidth: '180px'
               }}
@@ -470,8 +812,8 @@ export default function ShiftCalendarPage() {
                 </option>
               ))}
             </select>
-            <button 
-              className="btn btn-primary" 
+            <button
+              className="btn btn-primary"
               onClick={handleAddDayShift}
               style={{ padding: '0.5rem 1rem' }}
             >
@@ -483,23 +825,23 @@ export default function ShiftCalendarPage() {
 
       {/* NIGHT SHIFTS SECTION */}
       <section>
-        <div style={{ 
-          background: 'linear-gradient(135deg, #37474F, #263238)', 
-          color: 'white', 
-          padding: '0.75rem 1rem', 
+        <div style={{
+          background: 'linear-gradient(135deg, #37474F, #263238)',
+          color: 'white',
+          padding: '0.75rem 1rem',
           borderRadius: '8px 8px 0 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>🌙 NOČNÍ SLUŽBY (od 18:00)</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🌙 NOČNÍ SLUŽBY (od 18:00)</h3>
           <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{days.length} dnů</span>
         </div>
-        
+
         <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
           {days.map((day, index) => (
             <React.Fragment key={`night-${day.date}`}>
-              <ShiftRow 
+              <ShiftRow
                 day={day}
                 sectionData={shiftsData[day.date]?.nightShift || {}}
                 section="nightShift"
@@ -507,12 +849,12 @@ export default function ShiftCalendarPage() {
                 currentUser={currentUser}
               />
               {day.dayOfWeek === 0 && index !== days.length - 1 && (
-                   <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
-                     <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
-                     <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                       Konec týdne
-                     </span>
-                   </div>
+                <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
+                  <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Konec týdne
+                  </span>
+                </div>
               )}
             </React.Fragment>
           ))}
@@ -546,27 +888,27 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
 
   // Dynamic Slot Visibility Logic
   const visibleSlots = SLOT_TYPES.filter(type => {
-      // Always show core slots
-      if (['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3'].includes(type)) return true;
-      
-      // Check occupancy of previous slots for dynamic ones
-      const h1Off = !!sectionData['hasic1'];
-      const h2Off = !!sectionData['hasic2'];
-      const h3Off = !!sectionData['hasic3'];
-      const h4Off = !!sectionData['hasic4'];
+    // Always show core slots
+    if (['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3'].includes(type)) return true;
 
-      // Show Hasič 4 if 1, 2, AND 3 are full (or if 4 is already taken)
-      if (type === 'hasic4') return (h1Off && h2Off && h3Off) || h4Off;
+    // Check occupancy of previous slots for dynamic ones
+    const h1Off = !!sectionData['hasic1'];
+    const h2Off = !!sectionData['hasic2'];
+    const h3Off = !!sectionData['hasic3'];
+    const h4Off = !!sectionData['hasic4'];
 
-      // Show Hasič 5 if 4 is full (or if 5 is already taken)
-      if (type === 'hasic5') return h4Off || !!sectionData['hasic5'];
+    // Show Hasič 4 if 1, 2, AND 3 are full (or if 4 is already taken)
+    if (type === 'hasic4') return (h1Off && h2Off && h3Off) || h4Off;
 
-      return false;
+    // Show Hasič 5 if 4 is full (or if 5 is already taken)
+    if (type === 'hasic5') return h4Off || !!sectionData['hasic5'];
+
+    return false;
   });
 
   return (
-    <div style={{ 
-      display: 'flex', 
+    <div style={{
+      display: 'flex',
       alignItems: 'stretch',
       background: 'white',
       margin: '0.35rem 0.25rem', // Reduced margin
@@ -577,11 +919,11 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
       overflow: 'hidden',
       position: 'relative'
     }}
-    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.06)'; }}
-    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = day.isToday ? '0 4px 12px rgba(255, 193, 7, 0.15)' : '0 1px 3px rgba(0,0,0,0.05)'; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.06)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = day.isToday ? '0 4px 12px rgba(255, 193, 7, 0.15)' : '0 1px 3px rgba(0,0,0,0.05)'; }}
     >
       {/* Date Column */}
-      <div style={{ 
+      <div style={{
         width: '75px', // Slightly narrower
         minWidth: '75px',
         padding: '0.25rem', // Much smaller padding
@@ -598,42 +940,42 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '2px', opacity: 0.8 }}>
           {day.dayName.slice(0, 3)}
         </div>
-        
+
         {canRemove && (
-            <button
-                onClick={(e) => { e.stopPropagation(); onRemoveDayShift(day.date); }}
-                title="Odebrat prázdnou službu"
-                style={{
-                    position: 'absolute',
-                    top: '2px', // Compact pos
-                    right: '2px',
-                    width: '18px', // Smaller button
-                    height: '18px',
-                    border: 'none',
-                    background: 'rgba(239, 83, 80, 0.1)',
-                    color: '#e53935',
-                    borderRadius: '50%',
-                    fontSize: '1rem',
-                    lineHeight: 0,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0 0 1px 0',
-                    transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#e53935'; e.currentTarget.style.color = 'white'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 83, 80, 0.1)'; e.currentTarget.style.color = '#e53935'; }}
-            >
-                ×
-            </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemoveDayShift(day.date); }}
+            title="Odebrat prázdnou službu"
+            style={{
+              position: 'absolute',
+              top: '2px', // Compact pos
+              right: '2px',
+              width: '18px', // Smaller button
+              height: '18px',
+              border: 'none',
+              background: 'rgba(239, 83, 80, 0.1)',
+              color: '#e53935',
+              borderRadius: '50%',
+              fontSize: '1rem',
+              lineHeight: 0,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 0 1px 0',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#e53935'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 83, 80, 0.1)'; e.currentTarget.style.color = '#e53935'; }}
+          >
+            ×
+          </button>
         )}
       </div>
-      
+
       {/* Slots */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
+      <div style={{
+        flex: 1,
+        display: 'flex',
         flexWrap: 'wrap',
         gap: '0.35rem', // Tighter gap
         padding: '0.35rem', // Tighter padding
@@ -642,9 +984,9 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         {visibleSlots.map(slotKey => {
           const assignee = sectionData[slotKey];
           const isSelf = assignee?.uid === currentUser?.uid;
-          
+
           return (
-            <SlotChip 
+            <SlotChip
               key={slotKey}
               slotKey={slotKey}
               label={SLOT_LABELS[slotKey]}
@@ -664,7 +1006,7 @@ function SlotChip({ slotKey, label, assignee, isSelf, onClick }) {
   // Determine styles based on state
   const isUnqualified = assignee && assignee.qualified === false;
   const isOccupied = !!assignee;
-  
+
   let bg = 'white';
   let border = '1px dashed #ddd';
   let color = '#999';
@@ -688,7 +1030,7 @@ function SlotChip({ slotKey, label, assignee, isSelf, onClick }) {
   const icon = SLOT_ICONS[slotKey] || '👤';
 
   return (
-    <div 
+    <div
       onClick={onClick}
       style={{
         background: bg,
@@ -707,13 +1049,13 @@ function SlotChip({ slotKey, label, assignee, isSelf, onClick }) {
         position: 'relative',
         opacity: isOccupied ? 1 : 0.8
       }}
-      onMouseEnter={(e) => { 
-        e.currentTarget.style.transform = 'translateY(-1px)'; 
-        e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)'; 
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-1px)';
+        e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
         if (!isOccupied) e.currentTarget.style.borderColor = '#bbb';
       }}
-      onMouseLeave={(e) => { 
-        e.currentTarget.style.transform = 'translateY(0)'; 
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = shadow;
         if (!isOccupied) e.currentTarget.style.borderColor = '#ddd';
       }}
@@ -729,35 +1071,270 @@ function SlotChip({ slotKey, label, assignee, isSelf, onClick }) {
         flexShrink: 0
       }}>
         {isOccupied && assignee.name ? (
-            <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#555' }}>
-                {icon}
-            </span>
+          <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#555' }}>
+            {icon}
+          </span>
         ) : (
-            <span style={{ opacity: 0.5 }}>{icon}</span>
+          <span style={{ opacity: 0.5 }}>{icon}</span>
         )}
       </div>
 
       {/* Text Info */}
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', lineHeight: 1.1 }}>
         <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: '#888', fontWeight: 600, letterSpacing: '0.5px' }}>
-            {SLOT_LABELS[slotKey]}
+          {SLOT_LABELS[slotKey]}
         </span>
-        <span style={{ 
+        <span style={{
           fontSize: '0.85rem', // Smaller name
-          fontWeight: isOccupied ? 700 : 500, 
-          color: color, 
-          whiteSpace: 'nowrap', 
-          overflow: 'hidden', 
-          textOverflow: 'ellipsis' 
+          fontWeight: isOccupied ? 700 : 500,
+          color: color,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
         }}>
           {isOccupied ? assignee.name : 'Volno'}
         </span>
       </div>
-      
+
       {/* Add Indicator for empty */}
       {!isOccupied && (
-          <div style={{ fontSize: '0.9rem', color: '#ccc', fontWeight: 300 }}>+</div>
+        <div style={{ fontSize: '0.9rem', color: '#ccc', fontWeight: 300 }}>+</div>
       )}
+    </div>
+  );
+}
+
+// Add Absence Modal Component - Mobile Friendly with native date inputs
+function AddAbsenceModal({ currentDate, existingAbsences = [], onSubmit, onClose, showToast }) {
+  // Default to today's date in ISO format
+  const today = new Date();
+  const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const [startDate, setStartDate] = useState(todayISO);
+  const [endDate, setEndDate] = useState(todayISO);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState('');
+
+  // Check for overlap with existing absences (now using ISO strings)
+  const checkOverlap = (start, end) => {
+    for (const absence of existingAbsences) {
+      // Check if date ranges overlap (ISO strings compare correctly)
+      if (start <= absence.endDate && end >= absence.startDate) {
+        return absence;
+      }
+    }
+    return null;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!startDate || !endDate || !reason.trim()) {
+      setError('Vyplňte všechna pole.');
+      return;
+    }
+
+    if (endDate < startDate) {
+      setError('Datum "do" musí být po datu "od".');
+      return;
+    }
+
+    // Check for overlapping absence
+    const overlap = checkOverlap(startDate, endDate);
+    if (overlap) {
+      setError(`Již máte absenci v tomto období (${formatDateCZ(overlap.startDate)}-${formatDateCZ(overlap.endDate)}: ${overlap.reason})`);
+      return;
+    }
+
+    onSubmit({
+      startDate,
+      endDate,
+      reason: reason.trim()
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1001,
+        padding: '1rem'
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{
+        background: 'white',
+        borderRadius: '16px',
+        padding: '1.25rem',
+        width: '100%',
+        maxWidth: '400px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+        maxHeight: '90vh',
+        overflow: 'auto'
+      }}>
+        {/* Handle bar */}
+        <div style={{
+          width: '40px',
+          height: '4px',
+          background: '#ddd',
+          borderRadius: '2px',
+          margin: '0 auto 1rem'
+        }} />
+
+        <h3 style={{ marginTop: 0, marginBottom: '1.25rem', color: '#7B1FA2', textAlign: 'center' }}>
+          🚫 Přidat absenci
+        </h3>
+
+        <form onSubmit={handleSubmit}>
+          {/* Date Selection - Side by side with native date inputs */}
+          <div style={{
+            display: 'flex',
+            gap: '0.75rem',
+            marginBottom: '1rem'
+          }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
+                Od
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setError('');
+                  if (!endDate || e.target.value > endDate) {
+                    setEndDate(e.target.value);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '8px',
+                  border: '2px solid #E1BEE7',
+                  fontSize: '1rem',
+                  background: '#FAFAFA',
+                  boxSizing: 'border-box'
+                }}
+                required
+              />
+            </div>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              paddingBottom: '0.75rem',
+              color: '#999',
+              fontWeight: 500
+            }}>
+              →
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
+                Do
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => { setEndDate(e.target.value); setError(''); }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '8px',
+                  border: '2px solid #E1BEE7',
+                  fontSize: '1rem',
+                  background: '#FAFAFA',
+                  boxSizing: 'border-box'
+                }}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Reason Input */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
+              Důvod
+            </label>
+            <input
+              type="text"
+              value={reason}
+              onChange={(e) => { setReason(e.target.value); setError(''); }}
+              placeholder="např. Dovolená, Nemoc, Školení..."
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '8px',
+                border: '2px solid #E1BEE7',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+                background: '#FAFAFA'
+              }}
+              required
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              padding: '0.75rem',
+              background: '#FFEBEE',
+              border: '1px solid #FFCDD2',
+              borderRadius: '8px',
+              color: '#C62828',
+              fontSize: '0.85rem',
+              marginBottom: '1rem'
+            }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: '0.85rem',
+                borderRadius: '10px',
+                border: '2px solid #E1BEE7',
+                background: 'white',
+                color: '#7B1FA2',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Zrušit
+            </button>
+            <button
+              type="submit"
+              style={{
+                flex: 1,
+                padding: '0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(123, 31, 162, 0.3)'
+              }}
+            >
+              Uložit
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
