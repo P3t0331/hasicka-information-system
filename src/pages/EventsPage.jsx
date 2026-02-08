@@ -490,16 +490,20 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
                                         right: '8px',
                                         top: '50%',
                                         transform: 'translateY(-50%)',
-                                        background: 'transparent',
+                                        background: 'rgba(255,255,255,0.8)',
+                                        borderRadius: '50%',
+                                        width: '24px',
+                                        height: '24px',
                                         border: 'none',
-                                        color: '#999',
-                                        fontSize: '1.2rem',
+                                        color: '#333',
+                                        fontSize: '1rem',
+                                        fontWeight: 'bold',
                                         cursor: 'pointer',
-                                        padding: '4px',
-                                        lineHeight: 1,
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        zIndex: 10,
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                     }}
                                     title="Vymazat čas"
                                 >
@@ -533,16 +537,20 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
                                             right: '8px',
                                             top: '50%',
                                             transform: 'translateY(-50%)',
-                                            background: 'transparent',
+                                            background: 'rgba(255,255,255,0.8)',
+                                            borderRadius: '50%',
+                                            width: '24px',
+                                            height: '24px',
                                             border: 'none',
-                                            color: '#999',
-                                            fontSize: '1.2rem',
+                                            color: '#333',
+                                            fontSize: '1rem',
+                                            fontWeight: 'bold',
                                             cursor: 'pointer',
-                                            padding: '4px',
-                                            lineHeight: 1,
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center'
+                                            justifyContent: 'center',
+                                            zIndex: 10,
+                                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                         }}
                                         title="Vymazat čas"
                                     >
