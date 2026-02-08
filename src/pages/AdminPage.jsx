@@ -12,7 +12,7 @@ const CERTIFICATION_OPTIONS = [
   'OMP-64', // Obsluha motorových pil
   'Záchrana na vodě',
   'V-40',   // Velitelé družstev
-  'Kurz S-40' // Strojníci
+  'S-40' // Strojníci
 ];
 
 export default function AdminPage() {
