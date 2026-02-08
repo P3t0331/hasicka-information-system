@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
+import WeatherWarnings from '../components/dashboard/WeatherWarnings';
 
 export default function DashboardPage() {
     const { currentUser, userData } = useAuth();
@@ -325,6 +326,9 @@ export default function DashboardPage() {
                     <span style={{ color: '#E53935' }}>{userData?.firstName || 'Hasiči'}</span>!
                 </h1>
             </header>
+
+            {/* Weather Warnings */}
+            <WeatherWarnings />
 
             {/* Monthly Statistics Cards */}
             <section style={{ marginBottom: '2rem' }}>
