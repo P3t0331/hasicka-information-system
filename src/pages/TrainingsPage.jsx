@@ -473,7 +473,40 @@ function CreateTrainingModal({ onClose, currentUser, userData, showToast, initia
 
                     <div className="input-group">
                         <label className="input-label">Odjezd (volitelné)</label>
-                        <input className="input-field" type="time" value={departureTime} onChange={e => setDepartureTime(e.target.value)} />
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                className="input-field"
+                                type="time"
+                                value={departureTime}
+                                onChange={e => setDepartureTime(e.target.value)}
+                                style={{ paddingRight: departureTime ? '2rem' : undefined }}
+                            />
+                            {departureTime && (
+                                <button
+                                    type="button"
+                                    onClick={() => setDepartureTime('')}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '8px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: '#999',
+                                        fontSize: '1.2rem',
+                                        cursor: 'pointer',
+                                        padding: '4px',
+                                        lineHeight: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    title="Vymazat čas"
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="form-row">
@@ -483,7 +516,40 @@ function CreateTrainingModal({ onClose, currentUser, userData, showToast, initia
                         </div>
                         <div className="input-group">
                             <label className="input-label">Do (volitelné)</label>
-                            <input className="input-field" type="time" value={timeEnd} onChange={e => setTimeEnd(e.target.value)} />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    className="input-field"
+                                    type="time"
+                                    value={timeEnd}
+                                    onChange={e => setTimeEnd(e.target.value)}
+                                    style={{ paddingRight: timeEnd ? '2rem' : undefined }}
+                                />
+                                {timeEnd && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTimeEnd('')}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '8px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: '#999',
+                                            fontSize: '1.2rem',
+                                            cursor: 'pointer',
+                                            padding: '4px',
+                                            lineHeight: 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        title="Vymazat čas"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
