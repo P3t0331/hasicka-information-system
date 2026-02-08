@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
+import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
 
 const ROLE_OPTIONS = ['Hasič', 'Strojník', 'VD', 'Zástupce VJ', 'VJ', 'Admin'];
 const CERTIFICATION_OPTIONS = [
@@ -113,11 +114,33 @@ export default function AdminPage() {
     setConfirmModal({ message, onConfirm });
   }
 
+
+
   async function approveUser(uid) {
     try {
+      // 1. Get user data for email
+      const userToApprove = pendingUsers.find(u => u.uid === uid);
+
+      // 2. Approve in DB
       await updateDoc(doc(db, "users", uid), { approved: true });
+
+      // 3. Send Email
+      if (userToApprove && userToApprove.email) {
+        const emailResult = await sendApprovalEmail(
+          userToApprove.email,
+          `${userToApprove.firstName} ${userToApprove.lastName}`
+        );
+
+        if (emailResult.success) {
+          showNotification('success', 'Uživatel schválen a email odeslán.');
+        } else {
+          showNotification('warning', 'Uživatel schválen, ale email se nepodařilo odeslat.');
+        }
+      } else {
+        showNotification('success', 'Uživatel schválen (email nebyl nalezen).');
+      }
+
       fetchAdminData();
-      showNotification('success', 'Uživatel schválen.');
     } catch (error) {
       console.error("Error approving user:", error);
       showNotification('error', 'Chyba při schvalování.');
@@ -134,12 +157,52 @@ export default function AdminPage() {
       shouldDisable ? `Opravdu chcete DEAKTIVOVAT tohoto uživatele? Nebude se moci přihlásit.` : `Aktivovat uživatele?`,
       async () => {
         try {
+          // 1. Get user data for email
+          const userToUpdate = allUsers.find(u => u.uid === uid);
+
+          // 2. Update DB
           await updateDoc(doc(db, "users", uid), { disabled: shouldDisable });
           setAllUsers(prev => prev.map(u => u.uid === uid ? { ...u, disabled: shouldDisable } : u));
-          showNotification('success', shouldDisable ? 'Uživatel deaktivován.' : 'Uživatel aktivován.');
+
+          // 3. Send Email (ONLY if deactivating)
+          if (shouldDisable && userToUpdate && userToUpdate.email) {
+            const emailResult = await sendDeactivationEmail(
+              userToUpdate.email,
+              `${userToUpdate.firstName} ${userToUpdate.lastName}`
+            );
+            if (emailResult.success) {
+              showNotification('success', 'Uživatel deaktivován a email odeslán.');
+            } else {
+              showNotification('warning', 'Uživatel deaktivován, ale email se nepodařilo odeslat.');
+            }
+          } else {
+            showNotification('success', shouldDisable ? 'Uživatel deaktivován.' : 'Uživatel aktivován.');
+          }
+
         } catch (error) {
           console.error("Error updating user status:", error);
           showNotification('error', "Chyba při změně stavu.");
+        }
+      }
+    );
+  }
+
+  async function deleteUser(uid) {
+    if (uid === currentUser.uid) {
+      showNotification('error', "Nemůžete smazat vlastní účet.");
+      return;
+    }
+
+    requestConfirm(
+      "Opravdu chcete TRVALE SMAZAT tohoto uživatele? Tato akce je nevratná.",
+      async () => {
+        try {
+          await deleteDoc(doc(db, "users", uid));
+          setAllUsers(prev => prev.filter(u => u.uid !== uid));
+          showNotification('success', 'Uživatel trvale smazán.');
+        } catch (error) {
+          console.error("Error deleting user:", error);
+          showNotification('error', "Chyba při mazání uživatele.");
         }
       }
     );
@@ -545,20 +608,40 @@ export default function AdminPage() {
                     {/* COL 4: ACTIONS */}
                     <td data-label="Akce">
                       {!isAdmin && !isSelf && (
-                        <button
-                          onClick={() => deactivateUser(user.uid, !isDisabled)}
-                          style={{
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            padding: '0.7rem', borderRadius: '6px',
-                            color: isDisabled ? '#2e7d32' : '#c62828',
-                            background: isDisabled ? '#E8F5E9' : '#FFEBEE',
-                            fontWeight: 600, fontSize: '0.85rem',
-                            transition: 'background 0.2s'
-                          }}
-                          title={isDisabled ? "Aktivovat účet" : "Deaktivovat účet"}
-                        >
-                          {isDisabled ? 'AKTIVOVAT' : 'DEAKTIVOVAT'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => deactivateUser(user.uid, !isDisabled)}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              padding: '0.5rem 0.8rem', borderRadius: '6px',
+                              color: isDisabled ? '#2e7d32' : '#c62828',
+                              background: isDisabled ? '#E8F5E9' : '#FFEBEE',
+                              fontWeight: 600, fontSize: '0.8rem',
+                              transition: 'background 0.2s'
+                            }}
+                            title={isDisabled ? "Aktivovat účet" : "Deaktivovat účet"}
+                          >
+                            {isDisabled ? 'AKTIVOVAT' : 'DEAKTIVOVAT'}
+                          </button>
+
+                          {isDisabled && (
+                            <button
+                              onClick={() => deleteUser(user.uid)}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                padding: '0.5rem 0.8rem', borderRadius: '6px',
+                                color: '#fff',
+                                background: '#d32f2f',
+                                fontWeight: 600, fontSize: '0.8rem',
+                                transition: 'background 0.2s',
+                                boxShadow: '0 2px 4px rgba(211, 47, 47, 0.2)'
+                              }}
+                              title="Trvale smazat uživatele"
+                            >
+                              SMAZAT
+                            </button>
+                          )}
+                        </div>
                       )}
                       {(isAdmin || isSelf) && <span style={{ color: '#ccc', fontSize: '0.8rem' }}>---</span>}
                     </td>
