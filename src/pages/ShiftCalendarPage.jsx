@@ -59,6 +59,24 @@ export default function ShiftCalendarPage() {
 
   // Activity popup state (for Option B - indicator dots)
   const [activityPopup, setActivityPopup] = useState(null); // { day } - only stores the day, activities derived from live data
+  const [collapsedWeeks, setCollapsedWeeks] = useState({}); // { 'd-0': true, 'n-1': false }
+
+  const groupWeeks = (daysArray) => {
+    const weeks = [];
+    let currentWeek = [];
+    daysArray.forEach((day, index) => {
+      currentWeek.push(day);
+      if (day.dayOfWeek === 0 || index === daysArray.length - 1) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    });
+    return weeks;
+  };
+
+  const toggleWeek = (weekId) => {
+    setCollapsedWeeks(prev => ({ ...prev, [weekId]: !prev[weekId] }));
+  };
 
   const DAY_SHIFTS_PREVIEW_COUNT = 3;
 
@@ -800,48 +818,79 @@ export default function ShiftCalendarPage() {
         </div>
 
         <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-          {enabledDayShifts.length === 0 ? (
+          {enabledDayShifts.length > 0 && groupWeeks(enabledDayShifts).map((week, index) => {
+            const firstDay = week[0];
+            const lastDay = week[week.length - 1];
+            const weekId = `day-week-${index}`;
+            const isCollapsed = collapsedWeeks[weekId];
+            const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
+
+            return (
+              <div key={weekId} style={{ borderBottom: index < groupWeeks(enabledDayShifts).length - 1 ? '1px solid #eee' : 'none' }}>
+                <div
+                  onClick={() => toggleWeek(weekId)}
+                  style={{
+                    padding: '0.6rem 1rem',
+                    background: '#fafafa',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.85rem',
+                    color: '#555',
+                    fontWeight: 600,
+                    userSelect: 'none',
+                    borderBottom: !isCollapsed ? '1px dashed #eee' : 'none'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    📅 <span style={{ color: '#333' }}>{weekLabel}</span>
+                  </span>
+                  <span style={{
+                    transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s',
+                    color: '#888'
+                  }}>▼</span>
+                </div>
+
+                {!isCollapsed && week.map(day => {
+                  const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
+                  const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
+                  const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
+
+                  return (
+                    <React.Fragment key={`day-${day.date}`}>
+                      <ShiftRow
+                        day={day}
+                        sectionData={shiftsData[day.date]?.dayShift || {}}
+                        section="dayShift"
+                        onSlotClick={handleSlotClick}
+                        currentUser={currentUser}
+                        onRemoveDayShift={handleRemoveDayShift}
+                        trainings={dayTrainings}
+                        events={dayEvents}
+                      />
+                      {hasActivities && (
+                        <InlineActivities
+                          trainings={dayTrainings}
+                          events={dayEvents}
+                          currentUser={currentUser}
+                          userData={userData}
+                          showToast={showToast}
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            );
+          })}
+          {enabledDayShifts.length === 0 && (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>
               Zatím nebyly vytvořeny žádné denní služby.
             </div>
-          ) : (
-            enabledDayShifts.map(day => {
-              const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
-              const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
-              const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
-
-              return (
-                <React.Fragment key={`day-${day.date}`}>
-                  <ShiftRow
-                    day={day}
-                    sectionData={shiftsData[day.date]?.dayShift || {}}
-                    section="dayShift"
-                    onSlotClick={handleSlotClick}
-                    currentUser={currentUser}
-                    onRemoveDayShift={handleRemoveDayShift}
-                    trainings={dayTrainings}
-                    events={dayEvents}
-                  />
-                  {hasActivities && (
-                    <InlineActivities
-                      trainings={dayTrainings}
-                      events={dayEvents}
-                      currentUser={currentUser}
-                      userData={userData}
-                      showToast={showToast}
-                    />
-                  )}
-                  {day.dayOfWeek === 0 && (
-                    <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
-                      <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
-                      <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Konec týdne
-                      </span>
-                    </div>
-                  )}
-                </React.Fragment>
-              );
-            })
           )}
 
           {/* Add Day Shift Form */}
@@ -899,40 +948,72 @@ export default function ShiftCalendarPage() {
         </div>
 
         <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-          {days.map((day, index) => {
-            const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
-            const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
-            const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
+          {groupWeeks(days).map((week, index) => {
+            const firstDay = week[0];
+            const lastDay = week[week.length - 1];
+            const weekId = `night-week-${index}`;
+            const isCollapsed = collapsedWeeks[weekId];
+            const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 
             return (
-              <React.Fragment key={`night-${day.date}`}>
-                <ShiftRow
-                  day={day}
-                  sectionData={shiftsData[day.date]?.nightShift || {}}
-                  section="nightShift"
-                  onSlotClick={handleSlotClick}
-                  currentUser={currentUser}
-                  trainings={dayTrainings}
-                  events={dayEvents}
-                />
-                {hasActivities && (
-                  <InlineActivities
-                    trainings={dayTrainings}
-                    events={dayEvents}
-                    currentUser={currentUser}
-                    userData={userData}
-                    showToast={showToast}
-                  />
-                )}
-                {day.dayOfWeek === 0 && index !== days.length - 1 && (
-                  <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
-                    <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Konec týdne
-                    </span>
-                  </div>
-                )}
-              </React.Fragment>
+              <div key={weekId} style={{ borderBottom: index < groupWeeks(days).length - 1 ? '1px solid #eee' : 'none' }}>
+                <div
+                  onClick={() => toggleWeek(weekId)}
+                  style={{
+                    padding: '0.6rem 1rem',
+                    background: '#fafafa',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.85rem',
+                    color: '#555',
+                    fontWeight: 600,
+                    userSelect: 'none',
+                    borderBottom: !isCollapsed ? '1px dashed #eee' : 'none'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    🌙 <span style={{ color: '#333' }}>{weekLabel}</span>
+                  </span>
+                  <span style={{
+                    transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s',
+                    color: '#888'
+                  }}>▼</span>
+                </div>
+
+                {!isCollapsed && week.map((day, dIndex) => {
+                  const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
+                  const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
+                  const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
+
+                  return (
+                    <React.Fragment key={`night-${day.date}`}>
+                      <ShiftRow
+                        day={day}
+                        sectionData={shiftsData[day.date]?.nightShift || {}}
+                        section="nightShift"
+                        onSlotClick={handleSlotClick}
+                        currentUser={currentUser}
+                        trainings={dayTrainings}
+                        events={dayEvents}
+                      />
+                      {hasActivities && (
+                        <InlineActivities
+                          trainings={dayTrainings}
+                          events={dayEvents}
+                          currentUser={currentUser}
+                          userData={userData}
+                          showToast={showToast}
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
             );
           })}
         </div>
