@@ -155,6 +155,19 @@ h4 {
   background: #fff;
 }
 
+/* Responsive Form Row */
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-row>* {
+  flex: 1;
+  min-width: 140px;
+  /* Stack on very small screens */
+}
+
 /* Cards & Layout */
 .card {
   background: var(--glass-bg);

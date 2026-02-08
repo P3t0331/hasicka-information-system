@@ -1534,11 +1534,7 @@ function AddAbsenceModal({ currentDate, existingAbsences = [], onSubmit, onClose
 
         <form onSubmit={handleSubmit}>
           {/* Date Selection - Side by side with native date inputs */}
-          <div style={{
-            display: 'flex',
-            gap: '0.75rem',
-            marginBottom: '1rem'
-          }}>
+          <div className="form-row" style={{ marginBottom: '1rem' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
                 Od

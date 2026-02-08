@@ -315,7 +315,7 @@ export default function StatisticsPage() {
 
                     <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                       {/* Night Control */}
-                      <div style={{ flex: 1, minWidth: '140px', opacity: hasNight ? 1 : 0.6 }}>
+                      <div style={{ flex: 1, minWidth: '120px', opacity: hasNight ? 1 : 0.6 }}>
                         <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           🌙 Noční sm. {(!hasNight && split.night === 0) && '(neobsazeno)'}
                         </div>
@@ -336,7 +336,7 @@ export default function StatisticsPage() {
                       </div>
 
                       {/* Day Control */}
-                      <div style={{ flex: 1, minWidth: '140px', opacity: hasDay ? 1 : 0.6 }}>
+                      <div style={{ flex: 1, minWidth: '120px', opacity: hasDay ? 1 : 0.6 }}>
                         <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           ☀️ Denní sm. {(!hasDay && split.day === 0) && '(neobsazeno)'}
                         </div>
