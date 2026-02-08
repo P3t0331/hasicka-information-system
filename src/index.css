@@ -1322,7 +1322,7 @@ h4 {
   input[type="datetime-local"] {
     min-width: auto;
     /* Allow shrinking below native default */
-    -webkit-appearance: none;
+    appearance: none;
     /* Normalize iOS appearance */
   }
 
