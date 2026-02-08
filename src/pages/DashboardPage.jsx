@@ -518,28 +518,7 @@ export default function DashboardPage() {
                 )}
             </section>
 
-            {/* Quick Actions Grid */}
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>Rychlá navigace</h2>
-                <div className="dashboard-grid">
-                    <Link to="/shifts" className="action-card">
-                        <span style={{ fontSize: '1.5rem' }}>📅</span>
-                        <span>Služby</span>
-                    </Link>
-                    <Link to="/skoleni" className="action-card">
-                        <span style={{ fontSize: '1.5rem' }}>📚</span>
-                        <span>Školení</span>
-                    </Link>
-                    <Link to="/akce" className="action-card">
-                        <span style={{ fontSize: '1.5rem' }}>🚩</span>
-                        <span>Akce</span>
-                    </Link>
-                    <Link to="/profile" className="action-card">
-                        <span style={{ fontSize: '1.5rem' }}>👤</span>
-                        <span>Profil</span>
-                    </Link>
-                </div>
-            </section>
+
         </div>
     );
 }
