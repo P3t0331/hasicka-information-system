@@ -280,7 +280,7 @@ export default function ShiftCalendarPage() {
           showToast('error', 'Nelze převzít místo - všechny pozice Hasič jsou obsazené.');
           return;
         }
-      } else if (userRoles.includes('Admin') || userRoles.includes('VJ')) {
+      } else if (userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r))) {
         const confirmed = await showConfirm('Odebrat uživatele', `Chcete odebrat uživatele ${currentAssignee.name}?`);
         if (!confirmed) return;
         newData[section] = { ...newData[section], [slotKey]: deleteField() };
