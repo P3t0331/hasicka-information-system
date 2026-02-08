@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import LinkifiedText from '../components/LinkifiedText';
 
 export default function EventsPage() {
     const { currentUser, userData } = useAuth();
@@ -334,7 +335,9 @@ function EventCard({ event, isPast, currentUser, onJoin, onLeave, onDelete, onEd
                 </div>
 
                 {event.description && (
-                    <div className="event-card__description">{event.description}</div>
+                    <div className="event-card__description">
+                        <LinkifiedText text={event.description} />
+                    </div>
                 )}
 
                 {/* Footer */}

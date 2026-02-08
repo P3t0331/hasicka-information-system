@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import LinkifiedText from '../components/LinkifiedText';
 
 export default function TrainingsPage() {
     const { currentUser, userData } = useAuth();
@@ -334,7 +335,9 @@ function TrainingCard({ training, isPast, currentUser, onJoin, onLeave, onDelete
                 </div>
 
                 {training.description && (
-                    <div className="event-card__description">{training.description}</div>
+                    <div className="event-card__description">
+                        <LinkifiedText text={training.description} />
+                    </div>
                 )}
 
                 {/* Footer */}
