@@ -9,6 +9,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import AdminPage from './pages/AdminPage';
 import TrainingsPage from './pages/TrainingsPage';
 import EventsPage from './pages/EventsPage';
+import MembersPage from './pages/MembersPage';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -32,6 +33,7 @@ function App() {
               <Route path="/skoleni" element={<TrainingsPage />} />
               <Route path="/akce" element={<EventsPage />} />
               <Route path="/statistiky" element={<StatisticsPage />} />
+              <Route path="/clenove" element={<MembersPage />} />
               <Route path="/admin" element={<AdminPage />} />
             </Route>
 

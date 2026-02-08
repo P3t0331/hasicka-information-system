@@ -50,6 +50,7 @@ export default function Layout() {
       <NavLink to="/skoleni" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Školení</NavLink>
       <NavLink to="/akce" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Akce</NavLink>
       <NavLink to="/statistiky" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Statistiky</NavLink>
+      <NavLink to="/clenove" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Členové</NavLink>
       {isAdminOrVJ && (
         <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>Administrace</Link>
       )}
