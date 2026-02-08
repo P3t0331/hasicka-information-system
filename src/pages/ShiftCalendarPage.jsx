@@ -18,13 +18,13 @@ const formatDateCZ = (isoDate) => {
 // Slot types configuration
 const SLOT_TYPES = ['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3', 'hasic4', 'hasic5'];
 const SLOT_LABELS = {
-  velitel: '⭐ Velitel',
-  strojnik: '🚒 Strojník',
-  hasic1: '🧑‍🚒 Hasič 1',
-  hasic2: '🧑‍🚒 Hasič 2',
-  hasic3: '🧑‍🚒 Hasič 3',
-  hasic4: '🧑‍🚒 Hasič 4',
-  hasic5: '🧑‍🚒 Hasič 5',
+  velitel: 'Velitel',
+  strojnik: 'Strojník',
+  hasic1: 'Hasič 1',
+  hasic2: 'Hasič 2',
+  hasic3: 'Hasič 3',
+  hasic4: 'Hasič 4',
+  hasic5: 'Hasič 5',
 };
 
 export default function ShiftCalendarPage() {
@@ -58,7 +58,7 @@ export default function ShiftCalendarPage() {
   const [eventsData, setEventsData] = useState([]);
 
   // Activity popup state (for Option B - indicator dots)
-  const [activityPopup, setActivityPopup] = useState(null); // { day, activities }
+  const [activityPopup, setActivityPopup] = useState(null); // { day } - only stores the day, activities derived from live data
 
   const DAY_SHIFTS_PREVIEW_COUNT = 3;
 
@@ -793,7 +793,7 @@ export default function ShiftCalendarPage() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>☀️ DENNÍ SLUŽBY (od 9:00)</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>☀️ DENNÍ SLUŽBY</h3>
           <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
             {enabledDayShifts.length} služeb
           </span>
@@ -805,29 +805,43 @@ export default function ShiftCalendarPage() {
               Zatím nebyly vytvořeny žádné denní služby.
             </div>
           ) : (
-            enabledDayShifts.map(day => (
-              <React.Fragment key={`day-${day.date}`}>
-                <ShiftRow
-                  day={day}
-                  sectionData={shiftsData[day.date]?.dayShift || {}}
-                  section="dayShift"
-                  onSlotClick={handleSlotClick}
-                  currentUser={currentUser}
-                  onRemoveDayShift={handleRemoveDayShift}
-                  trainings={trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date)}
-                  events={eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date)}
-                  onActivityClick={(day, activities) => setActivityPopup({ day, activities })}
-                />
-                {day.dayOfWeek === 0 && (
-                  <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
-                    <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Konec týdne
-                    </span>
-                  </div>
-                )}
-              </React.Fragment>
-            ))
+            enabledDayShifts.map(day => {
+              const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
+              const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
+              const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
+
+              return (
+                <React.Fragment key={`day-${day.date}`}>
+                  <ShiftRow
+                    day={day}
+                    sectionData={shiftsData[day.date]?.dayShift || {}}
+                    section="dayShift"
+                    onSlotClick={handleSlotClick}
+                    currentUser={currentUser}
+                    onRemoveDayShift={handleRemoveDayShift}
+                    trainings={dayTrainings}
+                    events={dayEvents}
+                  />
+                  {hasActivities && (
+                    <InlineActivities
+                      trainings={dayTrainings}
+                      events={dayEvents}
+                      currentUser={currentUser}
+                      userData={userData}
+                      showToast={showToast}
+                    />
+                  )}
+                  {day.dayOfWeek === 0 && (
+                    <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
+                      <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
+                      <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Konec týdne
+                      </span>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })
           )}
 
           {/* Add Day Shift Form */}
@@ -880,33 +894,47 @@ export default function ShiftCalendarPage() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🌙 NOČNÍ SLUŽBY (od 18:00)</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🌙 NOČNÍ SLUŽBY</h3>
           <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{days.length} dnů</span>
         </div>
 
         <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-          {days.map((day, index) => (
-            <React.Fragment key={`night-${day.date}`}>
-              <ShiftRow
-                day={day}
-                sectionData={shiftsData[day.date]?.nightShift || {}}
-                section="nightShift"
-                onSlotClick={handleSlotClick}
-                currentUser={currentUser}
-                trainings={trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date)}
-                events={eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date)}
-                onActivityClick={(day, activities) => setActivityPopup({ day, activities })}
-              />
-              {day.dayOfWeek === 0 && index !== days.length - 1 && (
-                <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
-                  <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
-                  <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Konec týdne
-                  </span>
-                </div>
-              )}
-            </React.Fragment>
-          ))}
+          {days.map((day, index) => {
+            const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
+            const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
+            const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
+
+            return (
+              <React.Fragment key={`night-${day.date}`}>
+                <ShiftRow
+                  day={day}
+                  sectionData={shiftsData[day.date]?.nightShift || {}}
+                  section="nightShift"
+                  onSlotClick={handleSlotClick}
+                  currentUser={currentUser}
+                  trainings={dayTrainings}
+                  events={dayEvents}
+                />
+                {hasActivities && (
+                  <InlineActivities
+                    trainings={dayTrainings}
+                    events={dayEvents}
+                    currentUser={currentUser}
+                    userData={userData}
+                    showToast={showToast}
+                  />
+                )}
+                {day.dayOfWeek === 0 && index !== days.length - 1 && (
+                  <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderBottom: '1px dashed #e0e0e0', zIndex: 0 }} />
+                    <span style={{ position: 'relative', zIndex: 1, background: '#fff', padding: '0 0.75rem', color: '#bbb', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Konec týdne
+                    </span>
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       </section>
 
@@ -914,7 +942,8 @@ export default function ShiftCalendarPage() {
       {activityPopup && (
         <ActivityPopup
           day={activityPopup.day}
-          activities={activityPopup.activities}
+          trainingsData={trainingsData}
+          eventsData={eventsData}
           currentUser={currentUser}
           userData={userData}
           onClose={() => setActivityPopup(null)}
@@ -926,16 +955,26 @@ export default function ShiftCalendarPage() {
 }
 
 // Activity Popup Component (Option B - Integrated Day Markers)
-function ActivityPopup({ day, activities, currentUser, userData, onClose, showToast }) {
+function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, onClose, showToast }) {
   const navigate = useNavigate();
+
+  // Compute activities from real-time data (not stale snapshot)
+  const activities = [
+    ...(trainingsData || [])
+      .filter(t => parseInt(t.date?.split('-')[2]) === day.date)
+      .map(t => ({ ...t, type: 'training' })),
+    ...(eventsData || [])
+      .filter(e => parseInt(e.date?.split('-')[2]) === day.date)
+      .map(e => ({ ...e, type: 'event' }))
+  ];
 
   const handleJoin = async (activity) => {
     if (!currentUser || !userData) return;
 
-    const collection = activity.type === 'training' ? 'trainings' : 'events';
+    const collectionName = activity.type === 'training' ? 'trainings' : 'events';
 
     try {
-      await updateDoc(doc(db, collection, activity.id), {
+      await updateDoc(doc(db, collectionName, activity.id), {
         participants: arrayUnion({
           uid: currentUser.uid,
           name: `${userData.firstName} ${userData.lastName}`,
@@ -953,10 +992,10 @@ function ActivityPopup({ day, activities, currentUser, userData, onClose, showTo
     const myParticipation = activity.participants?.find(p => p.uid === currentUser?.uid);
     if (!myParticipation) return;
 
-    const collection = activity.type === 'training' ? 'trainings' : 'events';
+    const collectionName = activity.type === 'training' ? 'trainings' : 'events';
 
     try {
-      await updateDoc(doc(db, collection, activity.id), {
+      await updateDoc(doc(db, collectionName, activity.id), {
         participants: arrayRemove(myParticipation)
       });
       showToast('success', 'Odhlášeno.');
@@ -1010,8 +1049,7 @@ function ActivityPopup({ day, activities, currentUser, userData, onClose, showTo
                   </div>
 
                   <div className="activity-item__participants">
-                    👥 {count} účastník{count === 1 ? '' : count < 5 ? 'i' : 'ů'}
-                    {activity.maxParticipants && ` / ${activity.maxParticipants}`}
+                    👥 {count}{activity.maxParticipants ? `/${activity.maxParticipants}` : ''} {count === 1 ? 'účastník' : (count >= 2 && count <= 4) ? 'účastníci' : 'účastníků'}
                   </div>
 
                   <div className="activity-item__actions">
@@ -1046,6 +1084,122 @@ function ActivityPopup({ day, activities, currentUser, userData, onClose, showTo
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Inline Activities Component (Option 3 - Expandable Cards)
+function InlineActivities({ trainings, events, currentUser, userData, showToast }) {
+  const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(true); // Start expanded as requested (show always)
+
+  const activities = [
+    ...(trainings || []).map(t => ({ ...t, type: 'training' })),
+    ...(events || []).map(e => ({ ...e, type: 'event' }))
+  ];
+
+  const handleJoin = async (activity) => {
+    if (!currentUser || !userData) return;
+    const collectionName = activity.type === 'training' ? 'trainings' : 'events';
+
+    try {
+      await updateDoc(doc(db, collectionName, activity.id), {
+        participants: arrayUnion({
+          uid: currentUser.uid,
+          name: `${userData.firstName} ${userData.lastName}`,
+          joinedAt: new Date().toISOString()
+        })
+      });
+      showToast('success', 'Přihlášeno!');
+    } catch (err) {
+      console.error('Error joining:', err);
+      showToast('error', 'Chyba při přihlašování.');
+    }
+  };
+
+  const handleLeave = async (activity) => {
+    const myParticipation = activity.participants?.find(p => p.uid === currentUser?.uid);
+    if (!myParticipation) return;
+    const collectionName = activity.type === 'training' ? 'trainings' : 'events';
+
+    try {
+      await updateDoc(doc(db, collectionName, activity.id), {
+        participants: arrayRemove(myParticipation)
+      });
+      showToast('success', 'Odhlášeno.');
+    } catch (err) {
+      console.error('Error leaving:', err);
+      showToast('error', 'Chyba při odhlašování.');
+    }
+  };
+
+  const trainingCount = trainings?.length || 0;
+  const eventCount = events?.length || 0;
+
+  return (
+    <div className="inline-activities">
+      <div className="inline-activities__header" onClick={() => setExpanded(!expanded)}>
+        <div className="inline-activities__title">
+          {trainingCount > 0 && (
+            <span className="inline-activities__badge inline-activities__badge--training">
+              📚 {trainingCount} školení
+            </span>
+          )}
+          {eventCount > 0 && (
+            <span className="inline-activities__badge inline-activities__badge--event">
+              🚩 {eventCount} akce
+            </span>
+          )}
+        </div>
+        <span className={`inline-activities__toggle ${expanded ? 'inline-activities__toggle--open' : ''}`}>
+          ▼
+        </span>
+      </div>
+
+      {expanded && (
+        <div className="inline-activities__content">
+          {activities.map(activity => {
+            const isJoined = activity.participants?.some(p => p.uid === currentUser?.uid);
+            const isTraining = activity.type === 'training';
+
+            return (
+              <div
+                key={activity.id}
+                className={`inline-activity-card ${isTraining ? 'inline-activity-card--training' : 'inline-activity-card--event'}`}
+              >
+                <div className="inline-activity-card__info">
+                  <div className={`inline-activity-card__type ${isTraining ? 'inline-activity-card__type--training' : 'inline-activity-card__type--event'}`}>
+                    {isTraining ? 'Školení' : 'Akce'}
+                  </div>
+                  <div className="inline-activity-card__title">{activity.title}</div>
+                  <div className="inline-activity-card__meta">
+                    ⏰ {activity.time}{activity.timeEnd ? ` – ${activity.timeEnd}` : ''}
+                    {activity.location && ` • 📍 ${activity.location}`}
+                  </div>
+                </div>
+
+                <div className="inline-activity-card__actions">
+                  {isJoined ? (
+                    <button
+                      className="inline-activity-card__btn inline-activity-card__btn--leave"
+                      onClick={() => handleLeave(activity)}
+                    >
+                      Odhlásit
+                    </button>
+                  ) : (
+                    <button
+                      className="inline-activity-card__btn inline-activity-card__btn--join"
+                      onClick={() => handleJoin(activity)}
+                    >
+                      Přihlásit
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1127,34 +1281,6 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
         <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '2px', opacity: 0.8 }}>
           {day.dayName.slice(0, 3)}
         </div>
-
-        {/* Activity Indicator Dots - Click to see popup */}
-        {((trainings && trainings.length > 0) || (events && events.length > 0)) && (
-          <div
-            className="activity-dots"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onActivityClick) {
-                onActivityClick(day, [...(trainings || []).map(t => ({ ...t, type: 'training' })), ...(events || []).map(ev => ({ ...ev, type: 'event' }))]);
-              }
-            }}
-          >
-            {trainings && trainings.map(t => (
-              <div
-                key={t.id}
-                className={`activity-dot activity-dot--training ${t.participants?.some(p => p.uid === currentUser?.uid) ? 'activity-dot--joined' : ''}`}
-                title={`Školení: ${t.title}`}
-              />
-            ))}
-            {events && events.map(ev => (
-              <div
-                key={ev.id}
-                className={`activity-dot activity-dot--event ${ev.participants?.some(p => p.uid === currentUser?.uid) ? 'activity-dot--joined' : ''}`}
-                title={`Akce: ${ev.title}`}
-              />
-            ))}
-          </div>
-        )}
 
         {canRemove && (
           <button

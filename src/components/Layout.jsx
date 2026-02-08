@@ -29,64 +29,59 @@ export default function Layout() {
     }
   }
 
+  // Navigation Items Component for reuse
+  const NavItems = ({ mobile = false }) => (
+    <>
+      <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Domů</Link>
+      <Link to="/profile" className={`nav-link ${isActive('/profile') ? 'active' : ''}`}>Profil</Link>
+      <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>Služby</Link>
+      <NavLink to="/skoleni" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Školení</NavLink>
+      <NavLink to="/akce" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Akce</NavLink>
+      <NavLink to="/statistiky" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Statistiky</NavLink>
+      {isAdminOrVJ && (
+        <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>Administrace</Link>
+      )}
+      <button className="nav-btn" onClick={handleLogout} style={mobile ? { marginTop: 'auto', width: '100%' } : {}}>
+        Odhlásit
+      </button>
+    </>
+  );
+
   return (
     <div className="page-layout">
       <nav className="navbar">
         <div className="container navbar-content">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <Link to="/" className="nav-brand" style={{ textDecoration: 'none' }}>
-              <span>HASIČKA</span>
-            </Link>
-            {/* Mobile Hamburger */}
-            <button
-              className="btn btn-secondary mobile-only"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              style={{ padding: '0.4rem 0.8rem', minHeight: 'auto' }}
-            >
-              <span style={{ fontSize: '1.2rem' }}>{isMenuOpen ? '✕' : '☰'}</span>
-            </button>
+          {/* Logo */}
+          <Link to="/" className="nav-brand" style={{ textDecoration: 'none', zIndex: 101, position: 'relative' }}>
+            <span>HASIČKA</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="desktop-nav">
+            <NavItems />
           </div>
 
-          <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
-            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
-              Profil
-            </Link>
-            <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>
-              Služby
-            </Link>
-            <NavLink to="/skoleni" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Školení
-            </NavLink>
-            <NavLink to="/akce" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Akce
-            </NavLink>
-            <NavLink to="/statistiky" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Statistiky
-            </NavLink>
-            {isAdminOrVJ && (
-              <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>
-                Administrace
-              </Link>
-            )}
-            <button className="nav-btn" onClick={handleLogout}>
-              Odhlásit
-            </button>
-          </div>
+          {/* Mobile Hamburger Button */}
+          <button
+            className="btn btn-secondary mobile-toggle"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            style={{ padding: '0.4rem 0.8rem', minHeight: 'auto', zIndex: 101, position: 'relative' }}
+          >
+            <span style={{ fontSize: '1.2rem' }}>{isMenuOpen ? '✕' : '☰'}</span>
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      <div className={`mobile-menu-overlay ${isMenuOpen ? 'open' : ''}`}>
+        <div className="mobile-nav-content">
+          <NavItems mobile={true} />
+        </div>
+      </div>
 
       <div className="main-content" style={{ flex: 1 }}>
         <Outlet />
       </div>
-
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90, background: 'rgba(0,0,0,0.3)' }}
-          onClick={() => setIsMenuOpen(false)}
-          className="mobile-only"
-        />
-      )}
     </div>
   );
 }

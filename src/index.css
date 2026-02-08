@@ -212,10 +212,7 @@ h4 {
   color: var(--primary-red);
 }
 
-.nav-links {
-  display: flex;
-  gap: 0.5rem;
-}
+
 
 .nav-link {
   color: rgba(255, 255, 255, 0.7);
@@ -377,15 +374,95 @@ h4 {
   }
 }
 
-/* Responsive Navbar Styles */
-@media (min-width: 769px) {
-  .mobile-only {
+/* =========================================
+   Redesigned Navbar Styles
+   ========================================= */
+
+/* Desktop Navigation (Default) */
+.desktop-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mobile-toggle {
+  display: none !important;
+}
+
+.mobile-menu-overlay {
+  display: none;
+  /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #1a1a1a;
+  z-index: 90;
+  /* Behind Logo (101) */
+  flex-direction: column;
+  padding-top: 80px;
+  /* Space for header */
+  overflow-y: auto;
+}
+
+.mobile-nav-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.mobile-menu-overlay.open {
+  display: flex;
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 992px) {
+  .desktop-nav {
     display: none !important;
   }
 
-  .desktop-only {
-    display: block;
+  .mobile-toggle {
+    display: block !important;
   }
+}
+
+/* Utilities */
+.nav-btn {
+  /* Ensure nav-btn styling is consistent */
+  background: #E53935;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Link Styles */
+.mobile-menu-overlay .nav-link {
+  font-size: 1.25rem;
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
 }
 
 /* Responsive Table Pattern */
@@ -502,44 +579,7 @@ h4 {
     display: none !important;
   }
 
-  .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    background: #1a1a1a;
-    /* Match navbar bg */
-    padding: 1.5rem;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    border-radius: 0 0 24px 24px;
-    display: none;
-    z-index: 100;
-    gap: 0.5rem;
-  }
 
-  .nav-links.open {
-    display: flex;
-    animation: slideDown 0.3s ease forwards;
-  }
-
-  .nav-link {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 1rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-  }
-
-  .nav-link:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .nav-btn {
-    width: 100%;
-    margin-top: 1rem;
-    padding: 1rem;
-  }
 
   .text-subtitle {
     display: none;
@@ -1539,4 +1579,306 @@ h4 {
   .activity-popup__content {
     max-height: 60vh;
   }
+}
+
+/* ========================================
+   INLINE ACTIVITY CARDS (Option 3)
+   ======================================== */
+
+/* Container for inline activities - appears after shift row */
+.inline-activities {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f2 100%);
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin: -0.35rem 0.25rem 0.5rem 0.25rem;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    max-height: 300px;
+  }
+}
+
+/* Compact header bar showing activity count */
+.inline-activities__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.inline-activities__header:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.inline-activities__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inline-activities__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.inline-activities__badge--training {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.inline-activities__badge--event {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.inline-activities__toggle {
+  font-size: 0.8rem;
+  color: #888;
+  transition: transform 0.2s ease;
+}
+
+.inline-activities__toggle--open {
+  transform: rotate(180deg);
+}
+
+/* Expanded content */
+.inline-activities__content {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Individual inline activity card */
+.inline-activity-card {
+  background: white;
+  border-radius: 8px;
+  padding: 0.75rem;
+  border-left: 3px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.inline-activity-card--training {
+  border-left-color: #1976D2;
+}
+
+.inline-activity-card--event {
+  border-left-color: var(--primary-red);
+}
+
+.inline-activity-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-activity-card__type {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.15rem;
+}
+
+.inline-activity-card__type--training {
+  color: #1976D2;
+}
+
+.inline-activity-card__type--event {
+  color: var(--primary-red);
+}
+
+.inline-activity-card__title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inline-activity-card__meta {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 0.2rem;
+}
+
+.inline-activity-card__actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.inline-activity-card__btn {
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.inline-activity-card__btn--join {
+  background: var(--primary-red);
+  color: white;
+}
+
+.inline-activity-card__btn--join:hover {
+  background: var(--primary-red-dark);
+}
+
+.inline-activity-card__btn--leave {
+  background: transparent;
+  color: #E53935;
+  border: 1px solid #EF9A9A;
+}
+
+.inline-activity-card__btn--leave:hover {
+  background: #FFEBEE;
+}
+
+.inline-activity-card__btn--joined {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+/* Mobile adjustments for inline cards */
+@media (max-width: 600px) {
+  .inline-activities {
+    margin: -0.35rem 0.15rem 0.4rem 0.15rem;
+  }
+
+  .inline-activity-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .inline-activity-card__actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ========================================
+   DASHBOARD PAGE STYLES
+   ======================================== */
+
+.dashboard-page {
+  padding-top: 1rem;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card.highlight {
+  border-left: 4px solid #E53935;
+  background: linear-gradient(to right, #fff, #fff 90%, #ffebee 100%);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.action-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  font-weight: 600;
+  color: #333;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #eee;
+  transition: all 0.2s ease;
+}
+
+.action-card:active {
+  transform: scale(0.98);
+  background: #f9f9f9;
+}
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activity-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #eee;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.activity-icon {
+  font-size: 1.5rem;
+  background: #f5f5f5;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.activity-details {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.activity-meta {
+  font-size: 0.8rem;
+  color: #777;
+  display: flex;
+  gap: 0.75rem;
 }

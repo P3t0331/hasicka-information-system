@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import ShiftCalendarPage from './pages/ShiftCalendarPage';
 import StatisticsPage from './pages/StatisticsPage';
@@ -25,7 +26,8 @@ function App() {
                 <Layout />
               </PrivateRoute>
             }>
-              <Route path="/" element={<ProfilePage />} />
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/shifts" element={<ShiftCalendarPage />} />
               <Route path="/skoleni" element={<TrainingsPage />} />
               <Route path="/akce" element={<EventsPage />} />
