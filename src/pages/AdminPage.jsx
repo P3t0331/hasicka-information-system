@@ -327,7 +327,7 @@ export default function AdminPage() {
             }}>⚠️</div>
             <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.4rem' }}>Žádosti o registraci</h3>
           </div>
-          <div style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {pendingUsers.map(user => (
               <div key={user.uid} className="card" style={{
                 padding: '0',
@@ -415,7 +415,7 @@ export default function AdminPage() {
           <h3 style={{ margin: 0 }}>Všichni uživatelé</h3>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '0 0 12px 12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: '#fff', borderRadius: '0 0 12px 12px', overflowX: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <table className="responsive-table">
             <thead>
               <tr>
