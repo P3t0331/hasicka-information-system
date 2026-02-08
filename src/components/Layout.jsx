@@ -20,6 +20,18 @@ export default function Layout() {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  // Prevent body scroll when menu is open
+  React.useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMenuOpen]);
+
   async function handleLogout() {
     try {
       await logout();
