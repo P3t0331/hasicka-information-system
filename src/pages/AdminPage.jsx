@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
 
@@ -164,19 +164,121 @@ export default function AdminPage() {
           await updateDoc(doc(db, "users", uid), { disabled: shouldDisable });
           setAllUsers(prev => prev.map(u => u.uid === uid ? { ...u, disabled: shouldDisable } : u));
 
-          // 3. Send Email (ONLY if deactivating)
+          // 3. Clean up user from future activities (ONLY if deactivating)
+          if (shouldDisable) {
+            const today = new Date();
+            const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            // 3a. Remove from future Events
+            const eventsQuery = query(collection(db, 'events'), where('date', '>=', todayISO));
+            const eventsSnapshot = await getDocs(eventsQuery);
+            for (const eventDoc of eventsSnapshot.docs) {
+              const participants = eventDoc.data().participants || [];
+              const userParticipation = participants.find(p => p.uid === uid);
+              if (userParticipation) {
+                const updatedParticipants = participants.filter(p => p.uid !== uid);
+                await updateDoc(doc(db, 'events', eventDoc.id), { participants: updatedParticipants });
+              }
+            }
+
+            // 3b. Remove from future Trainings
+            const trainingsQuery = query(collection(db, 'trainings'), where('date', '>=', todayISO));
+            const trainingsSnapshot = await getDocs(trainingsQuery);
+            for (const trainingDoc of trainingsSnapshot.docs) {
+              const participants = trainingDoc.data().participants || [];
+              const userParticipation = participants.find(p => p.uid === uid);
+              if (userParticipation) {
+                const updatedParticipants = participants.filter(p => p.uid !== uid);
+                await updateDoc(doc(db, 'trainings', trainingDoc.id), { participants: updatedParticipants });
+              }
+            }
+
+            // 3c. Remove from future Shifts
+            const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            const currentDay = today.getDate();
+
+            // Query current and future month shift documents
+            const shiftsSnapshot = await getDocs(collection(db, 'shifts'));
+            for (const shiftDoc of shiftsSnapshot.docs) {
+              const monthId = shiftDoc.id;
+              // Only process current month onwards
+              if (monthId < currentMonth) continue;
+
+              const days = shiftDoc.data().days || {};
+              let hasUpdates = false;
+              const updatedDays = { ...days };
+
+              for (const [dayNum, dayData] of Object.entries(days)) {
+                const dayNumber = parseInt(dayNum);
+                // Skip past days in current month
+                if (monthId === currentMonth && dayNumber < currentDay) continue;
+
+                // Check dayShift
+                if (dayData.dayShift) {
+                  let shiftUpdated = false;
+                  const updatedDayShift = { ...dayData.dayShift };
+                  for (const [slotKey, assignee] of Object.entries(dayData.dayShift)) {
+                    if (assignee && assignee.uid === uid) {
+                      delete updatedDayShift[slotKey];
+                      shiftUpdated = true;
+                      hasUpdates = true;
+                    }
+                  }
+                  if (shiftUpdated) {
+                    updatedDays[dayNum] = { ...updatedDays[dayNum], dayShift: updatedDayShift };
+                  }
+                }
+
+                // Check nightShift
+                if (dayData.nightShift) {
+                  let shiftUpdated = false;
+                  const updatedNightShift = { ...dayData.nightShift };
+                  for (const [slotKey, assignee] of Object.entries(dayData.nightShift)) {
+                    if (assignee && assignee.uid === uid) {
+                      delete updatedNightShift[slotKey];
+                      shiftUpdated = true;
+                      hasUpdates = true;
+                    }
+                  }
+                  if (shiftUpdated) {
+                    updatedDays[dayNum] = { ...updatedDays[dayNum], nightShift: updatedNightShift };
+                  }
+                }
+              }
+
+              if (hasUpdates) {
+                await updateDoc(doc(db, 'shifts', monthId), { days: updatedDays });
+              }
+            }
+
+            // 3d. Remove future/ongoing absences
+            const absenceDocRef = doc(db, 'absences', 'global');
+            const absenceSnapshot = await getDoc(absenceDocRef);
+            if (absenceSnapshot.exists()) {
+              const allAbsences = absenceSnapshot.data().items || [];
+              // Remove absences where endDate >= today (future or ongoing)
+              const updatedAbsences = allAbsences.filter(
+                absence => !(absence.uid === uid && absence.endDate >= todayISO)
+              );
+              if (updatedAbsences.length !== allAbsences.length) {
+                await updateDoc(absenceDocRef, { items: updatedAbsences });
+              }
+            }
+          }
+
+          // 4. Send Email (ONLY if deactivating)
           if (shouldDisable && userToUpdate && userToUpdate.email) {
             const emailResult = await sendDeactivationEmail(
               userToUpdate.email,
               `${userToUpdate.firstName} ${userToUpdate.lastName}`
             );
             if (emailResult.success) {
-              showNotification('success', 'Uživatel deaktivován a email odeslán.');
+              showNotification('success', 'Uživatel deaktivován, odstraněn ze služeb a email odeslán.');
             } else {
-              showNotification('warning', 'Uživatel deaktivován, ale email se nepodařilo odeslat.');
+              showNotification('warning', 'Uživatel deaktivován a odstraněn ze služeb, ale email se nepodařilo odeslat.');
             }
           } else {
-            showNotification('success', shouldDisable ? 'Uživatel deaktivován.' : 'Uživatel aktivován.');
+            showNotification('success', shouldDisable ? 'Uživatel deaktivován a odstraněn ze služeb.' : 'Uživatel aktivován.');
           }
 
         } catch (error) {
