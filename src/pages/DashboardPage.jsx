@@ -11,6 +11,17 @@ export default function DashboardPage() {
     const [upcomingActivities, setUpcomingActivities] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // New state for statistics
+    const [monthlyStats, setMonthlyStats] = useState({
+        shiftsWorked: 0,
+        hoursWorked: 0,
+        eventsAttended: 0,
+        trainingsAttended: 0,
+        daysAbsent: 0
+    });
+    const [absences, setAbsences] = useState([]);
+    const [recentActivity, setRecentActivity] = useState([]);
+
     useEffect(() => {
         if (!currentUser) return;
 
@@ -155,13 +166,138 @@ export default function DashboardPage() {
             setLoading(false);
         };
 
+        // 3. Load absences for current user
+        const absencesUnsub = onSnapshot(doc(db, 'absences', 'global'), (docSnap) => {
+            if (docSnap.exists()) {
+                const allAbsences = docSnap.data().items || [];
+                const userAbsences = allAbsences
+                    .filter(a => a.uid === currentUser.uid)
+                    .sort((a, b) => b.startDate.localeCompare(a.startDate));
+                setAbsences(userAbsences);
+            }
+        });
+
+        // 4. Calculate monthly statistics for shifts
+        const calculateStats = () => {
+            const today = new Date();
+            const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+            // Get shifts for current month
+            const currentMonthShiftsRef = doc(db, 'shifts', currentMonth);
+            const statsUnsub = onSnapshot(currentMonthShiftsRef, (docSnap) => {
+                let shiftsWorked = 0;
+                let hoursWorked = 0;
+
+                if (docSnap.exists()) {
+                    const days = docSnap.data().days || {};
+                    const currentDay = today.getDate();
+
+                    Object.keys(days).forEach(dayKey => {
+                        const dayNum = parseInt(dayKey);
+                        // Only count past/today
+                        if (dayNum <= currentDay) {
+                            const dayData = days[dayKey];
+                            const dayShift = dayData.dayShift || {};
+                            const nightShift = dayData.nightShift || {};
+
+                            const inDay = Object.values(dayShift).some(u => u.uid === currentUser.uid);
+                            const inNight = Object.values(nightShift).some(u => u.uid === currentUser.uid);
+
+                            if (inDay) {
+                                shiftsWorked++;
+                                const hours = dayData.hours?.[currentUser.uid]?.day || 8;
+                                hoursWorked += hours;
+                            }
+                            if (inNight) {
+                                shiftsWorked++;
+                                const hours = dayData.hours?.[currentUser.uid]?.night || 11;
+                                hoursWorked += hours;
+                            }
+                        }
+                    });
+                }
+
+                setMonthlyStats(prev => ({
+                    ...prev,
+                    shiftsWorked,
+                    hoursWorked
+                }));
+            });
+
+            return statsUnsub;
+        };
+
+        const statsUnsub = calculateStats();
+
         return () => {
             unsub1();
             unsub2();
             trainingsUnsub();
             eventsUnsub();
+            absencesUnsub();
+            if (statsUnsub) statsUnsub();
         };
     }, [currentUser]);
+
+    // Separate effect to calculate events, trainings, and absences (depends on absences state)
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const today = new Date();
+        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const monthStart = `${currentMonth}-01`;
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        const monthEnd = `${currentMonth}-${String(lastDay).padStart(2, '0')}`;
+        const todayStr = today.toISOString().slice(0, 10);
+
+        // Get events for current month
+        const eventsUnsub = onSnapshot(collection(db, 'events'), (snapshot) => {
+            const eventsAttended = snapshot.docs
+                .filter(doc => {
+                    const data = doc.data();
+                    return data.date >= monthStart &&
+                        data.date <= monthEnd &&
+                        data.date <= todayStr &&
+                        data.participants?.some(p => p.uid === currentUser.uid);
+                }).length;
+
+            setMonthlyStats(prev => ({ ...prev, eventsAttended }));
+        });
+
+        // Get trainings for current month
+        const trainingsUnsub = onSnapshot(collection(db, 'trainings'), (snapshot) => {
+            const trainingsAttended = snapshot.docs
+                .filter(doc => {
+                    const data = doc.data();
+                    return data.date >= monthStart &&
+                        data.date <= monthEnd &&
+                        data.date <= todayStr &&
+                        data.participants?.some(p => p.uid === currentUser.uid);
+                }).length;
+
+            setMonthlyStats(prev => ({ ...prev, trainingsAttended }));
+        });
+
+        // Calculate days absent this month (based on absences state)
+        // Only count absences that have already started (not future absences)
+        const daysAbsent = absences.filter(a =>
+            a.endDate >= monthStart &&
+            a.startDate <= monthEnd &&
+            a.startDate <= todayStr  // Only count if absence has started
+        ).reduce((total, absence) => {
+            const start = new Date(Math.max(new Date(absence.startDate), new Date(monthStart)));
+            const end = new Date(Math.min(new Date(absence.endDate), new Date(monthEnd), today));
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            return total + Math.max(0, days); // Ensure no negative days
+        }, 0);
+
+        setMonthlyStats(prev => ({ ...prev, daysAbsent }));
+
+        return () => {
+            eventsUnsub();
+            trainingsUnsub();
+        };
+    }, [currentUser, absences]);
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
@@ -189,6 +325,38 @@ export default function DashboardPage() {
                     <span style={{ color: '#E53935' }}>{userData?.firstName || 'Hasiči'}</span>!
                 </h1>
             </header>
+
+            {/* Monthly Statistics Cards */}
+            <section style={{ marginBottom: '2rem' }}>
+                <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>📊 Tento měsíc</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
+                    <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>🚒</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FF9800' }}>{monthlyStats.shiftsWorked}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Služby</div>
+                    </div>
+                    <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>⏱️</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FF9800' }}>{monthlyStats.hoursWorked}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hodin</div>
+                    </div>
+                    <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>🚩</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#E53935' }}>{monthlyStats.eventsAttended}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Akce</div>
+                    </div>
+                    <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>📚</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9C27B0' }}>{monthlyStats.trainingsAttended}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Školení</div>
+                    </div>
+                    <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>🚫</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#757575' }}>{monthlyStats.daysAbsent}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dní nepřítomen</div>
+                    </div>
+                </div>
+            </section>
 
             {/* Next Shift Section */}
             <section style={{ marginBottom: '2rem' }}>
@@ -288,6 +456,60 @@ export default function DashboardPage() {
                 ) : (
                     <div className="dashboard-card" style={{ textAlign: 'center', color: '#888', padding: '1.5rem' }}>
                         Zatím nemáte žádné naplánované aktivity.
+                    </div>
+                )}
+            </section>
+
+            {/* My Absences Panel */}
+            <section style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h2 style={{ fontSize: '1.1rem', margin: 0 }}>🚫 Moje absence</h2>
+                    <Link to="/shifts" className="btn btn-sm" style={{ padding: '0.4rem 0.8rem' }}>
+                        Spravovat
+                    </Link>
+                </div>
+
+                {absences.filter(a => a.endDate >= new Date().toISOString().slice(0, 10)).length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {absences
+                            .filter(a => a.endDate >= new Date().toISOString().slice(0, 10))
+                            .slice(0, 3)
+                            .map((absence, idx) => {
+                                const startDate = new Date(absence.startDate);
+                                const endDate = new Date(absence.endDate);
+                                const daysUntil = Math.ceil((startDate - new Date()) / (1000 * 60 * 60 * 24));
+                                const isOngoing = startDate <= new Date() && endDate >= new Date();
+
+                                return (
+                                    <div key={idx} className="dashboard-card" style={{ padding: '1rem', borderLeft: `4px solid ${isOngoing ? '#F57C00' : '#757575'}` }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 700, color: '#333', marginBottom: '0.25rem' }}>
+                                                    {absence.reason}
+                                                </div>
+                                                <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                                    {formatDate(absence.startDate)} - {formatDate(absence.endDate)}
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                {isOngoing ? (
+                                                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F57C00', background: '#FFF3E0', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                                                        PROBÍHÁ
+                                                    </span>
+                                                ) : daysUntil > 0 ? (
+                                                    <div style={{ fontSize: '0.75rem', color: '#666' }}>
+                                                        Za {daysUntil} {daysUntil === 1 ? 'den' : daysUntil <= 4 ? 'dny' : 'dní'}
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                    </div>
+                ) : (
+                    <div className="dashboard-card" style={{ textAlign: 'center', padding: '1.5rem', color: '#888' }}>
+                        Žádné nadcházející absence.
                     </div>
                 )}
             </section>
