@@ -971,6 +971,12 @@ function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, 
   const handleJoin = async (activity) => {
     if (!currentUser || !userData) return;
 
+    // Check capacity
+    if (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) {
+      showToast('error', 'Kapacita je naplněna.');
+      return;
+    }
+
     const collectionName = activity.type === 'training' ? 'trainings' : 'events';
 
     try {
@@ -1100,6 +1106,13 @@ function InlineActivities({ trainings, events, currentUser, userData, showToast 
 
   const handleJoin = async (activity) => {
     if (!currentUser || !userData) return;
+
+    // Check capacity
+    if (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) {
+      showToast('error', 'Kapacita je naplněna.');
+      return;
+    }
+
     const collectionName = activity.type === 'training' ? 'trainings' : 'events';
 
     try {
