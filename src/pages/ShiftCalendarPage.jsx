@@ -1091,7 +1091,7 @@ function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, 
 // Inline Activities Component (Option 3 - Expandable Cards)
 function InlineActivities({ trainings, events, currentUser, userData, showToast }) {
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(true); // Start expanded as requested (show always)
+  const [expanded, setExpanded] = useState(false); // Start collapsed as requested
 
   const activities = [
     ...(trainings || []).map(t => ({ ...t, type: 'training' })),
