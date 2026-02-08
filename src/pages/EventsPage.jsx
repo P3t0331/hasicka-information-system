@@ -131,83 +131,51 @@ export default function EventsPage() {
         <div className="container mt-4" style={{ maxWidth: '800px', paddingBottom: '3rem' }}>
             {/* Toast */}
             {toast && (
-                <div style={{
-                    position: 'fixed',
-                    top: '80px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    padding: '0.75rem 1.25rem',
-                    borderRadius: '8px',
-                    background: toast.type === 'error' ? '#FFEBEE' : toast.type === 'warning' ? '#FFF8E1' : '#E8F5E9',
-                    color: toast.type === 'error' ? '#B71C1C' : toast.type === 'warning' ? '#F57C00' : '#1B5E20',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                    zIndex: 2100,
-                    fontSize: '0.9rem',
-                    fontWeight: 500
-                }} onClick={() => setToast(null)}>
+                <div className={`toast toast--${toast.type}`} onClick={() => setToast(null)}>
                     {toast.message}
                 </div>
             )}
 
-            {/* Header */}
-            <div style={{
-                background: 'linear-gradient(135deg, #FF6F00, #EF6C00)', // Orange/Red gradient
-                borderRadius: '12px',
-                padding: '1.25rem',
-                color: 'white',
-                marginBottom: '1.5rem',
-                boxShadow: '0 4px 20px rgba(239, 108, 0, 0.25)'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            {/* Page Header */}
+            <div className="page-header">
+                <div className="page-header__content">
                     <div>
-                        <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>🚩 Akce a události</h1>
-                        <div style={{ fontSize: '0.8rem', opacity: 0.9, marginTop: '0.25rem' }}>
+                        <h1 className="page-header__title">
+                            <span>🚩</span>
+                            <span>Akce a události</span>
+                        </h1>
+                        <div className="page-header__subtitle">
                             {upcomingEvents.length} nadcházející • {pastEvents.length} proběhlých
                         </div>
                     </div>
                     {canCreate && (
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            style={{
-                                background: 'rgba(255,255,255,0.15)',
-                                color: 'white',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '8px',
-                                fontSize: '0.85rem',
-                                cursor: 'pointer',
-                                fontWeight: 600
-                            }}
-                        >
+                        <button className="page-header__action" onClick={() => setShowCreateModal(true)}>
                             + Nová akce
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* Upcoming */}
+            {/* Upcoming Events */}
             <section style={{ marginBottom: '1.5rem' }}>
-                <div style={{
-                    background: 'linear-gradient(135deg, #D84315, #BF360C)', // Deep Orange
-                    color: 'white',
-                    padding: '0.6rem 1rem',
-                    borderRadius: '8px 8px 0 0',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'white' }}>📅 Nadcházející</span>
-                    <span style={{ fontSize: '0.8rem', opacity: 0.9 }}>{upcomingEvents.length}</span>
+                <div className="section-header section-header--upcoming">
+                    <span className="section-header__title">
+                        <span>📅</span>
+                        <span>Nadcházející</span>
+                    </span>
+                    <div className="section-header__meta">
+                        <span className="section-header__count">{upcomingEvents.length}</span>
+                    </div>
                 </div>
 
-                <div style={{ border: '1px solid #FFCCBC', borderTop: 'none', borderRadius: '0 0 8px 8px' }}>
+                <div className="section-body">
                     {upcomingEvents.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>
-                            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
+                        <div className="section-body--empty">
+                            <div className="section-body--empty-icon">📭</div>
                             Žádné nadcházející akce
                         </div>
                     ) : (
-                        upcomingEvents.map((e, i) => (
+                        upcomingEvents.map((e) => (
                             <EventCard
                                 key={e.id}
                                 event={e}
@@ -219,37 +187,31 @@ export default function EventsPage() {
                                 onEdit={openEditModal}
                                 canDelete={canDeleteAny || e.createdBy?.uid === currentUser?.uid}
                                 formatDate={formatDate}
-                                isLast={i === upcomingEvents.length - 1}
                             />
                         ))
                     )}
                 </div>
             </section>
 
-            {/* Past */}
+            {/* Past Events */}
             <section>
                 <div
+                    className={`section-header section-header--clickable ${showPast ? 'open' : ''}`}
                     onClick={() => setShowPast(!showPast)}
-                    style={{
-                        background: '#EEEEEE',
-                        padding: '0.6rem 1rem',
-                        borderRadius: showPast ? '8px 8px 0 0' : '8px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        cursor: 'pointer'
-                    }}
                 >
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#666' }}>🕐 Proběhlé</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#888' }}>{pastEvents.length}</span>
-                        <span style={{ color: '#999', transform: showPast ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▼</span>
+                    <span className="section-header__title">
+                        <span>🕐</span>
+                        <span>Proběhlé</span>
+                    </span>
+                    <div className="section-header__meta">
+                        <span className="section-header__count">{pastEvents.length}</span>
+                        <span className={`section-header__chevron ${showPast ? 'open' : ''}`}>▼</span>
                     </div>
                 </div>
 
                 {showPast && pastEvents.length > 0 && (
-                    <div style={{ border: '1px solid #E0E0E0', borderTop: 'none', borderRadius: '0 0 8px 8px' }}>
-                        {pastEvents.map((e, i) => (
+                    <div className="section-body">
+                        {pastEvents.map((e) => (
                             <EventCard
                                 key={e.id}
                                 event={e}
@@ -261,7 +223,6 @@ export default function EventsPage() {
                                 onEdit={openEditModal}
                                 canDelete={canDeleteAny || e.createdBy?.uid === currentUser?.uid}
                                 formatDate={formatDate}
-                                isLast={i === pastEvents.length - 1}
                             />
                         ))}
                     </div>
@@ -281,64 +242,17 @@ export default function EventsPage() {
 
             {/* Delete Confirmation Modal */}
             {deleteModal && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1001,
-                        padding: '1rem'
-                    }}
-                    onClick={() => setDeleteModal(null)}
-                >
-                    <div
-                        style={{
-                            background: 'white',
-                            borderRadius: '12px',
-                            padding: '1.5rem',
-                            width: '100%',
-                            maxWidth: '350px',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-                        }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.1rem', color: '#333' }}>Smazat akci?</h3>
-                        <p style={{ margin: '0 0 1.25rem 0', color: '#666', fontSize: '0.9rem' }}>
+                <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
+                    <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
+                        <h3 className="modal-title">Smazat akci?</h3>
+                        <p className="confirm-modal__message">
                             Opravdu chcete smazat akci <strong>"{deleteModal.title}"</strong>?
                         </p>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                onClick={() => setDeleteModal(null)}
-                                style={{
-                                    flex: 1,
-                                    padding: '0.6rem',
-                                    background: '#F5F5F5',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '0.9rem',
-                                    cursor: 'pointer',
-                                    fontWeight: 500
-                                }}
-                            >
+                        <div className="modal-actions">
+                            <button className="btn btn-secondary" onClick={() => setDeleteModal(null)}>
                                 Zrušit
                             </button>
-                            <button
-                                onClick={confirmDelete}
-                                style={{
-                                    flex: 1,
-                                    padding: '0.6rem',
-                                    background: '#E53935',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '0.9rem',
-                                    cursor: 'pointer',
-                                    fontWeight: 600
-                                }}
-                            >
+                            <button className="btn btn-primary" onClick={confirmDelete}>
                                 Smazat
                             </button>
                         </div>
@@ -349,209 +263,122 @@ export default function EventsPage() {
     );
 }
 
-function EventCard({ event, isPast, currentUser, onJoin, onLeave, onDelete, onEdit, canDelete, formatDate, isLast }) {
+function EventCard({ event, isPast, currentUser, onJoin, onLeave, onDelete, onEdit, canDelete, formatDate }) {
     const [expanded, setExpanded] = useState(false);
 
     const isJoined = event.participants?.some(p => p.uid === currentUser?.uid);
     const count = event.participants?.length || 0;
     const dateInfo = formatDate(event.date);
 
+    const dateBadgeClass = isPast ? 'date-badge date-badge--past' :
+        isJoined ? 'date-badge date-badge--joined' : 'date-badge';
+
     return (
-        <div style={{
-            padding: '0.875rem',
-            background: isPast ? '#FAFAFA' : 'white',
-            borderBottom: isLast ? 'none' : '1px solid #eee',
-            opacity: isPast ? 0.7 : 1
-        }}>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                {/* Date Badge */}
-                <div style={{
-                    background: isPast ? '#BDBDBD' : isJoined ? '#D84315' : '#FF6F00', // Different orange/red
-                    color: 'white',
-                    padding: '0.5rem',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    minWidth: '50px',
-                    flexShrink: 0
-                }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, lineHeight: 1 }}>{dateInfo.day}</div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>{dateInfo.month}</div>
-                </div>
+        <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
+            {/* Date Badge */}
+            <div className={dateBadgeClass}>
+                <div className="date-badge__day">{dateInfo.day}</div>
+                <div className="date-badge__month">{dateInfo.month}</div>
+            </div>
 
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-                        <div style={{ minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                                <span style={{ fontWeight: 600, fontSize: '0.95rem', color: isPast ? '#666' : '#333' }}>
-                                    {event.title}
-                                </span>
-                                {canDelete && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onEdit(event); }}
-                                        title="Upravit"
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: '#FFAB91',
-                                            cursor: 'pointer',
-                                            fontSize: '0.85rem',
-                                            padding: '0 0.3rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            opacity: 0.7,
-                                            transition: 'opacity 0.2s'
-                                        }}
-                                        onMouseEnter={e => e.target.style.opacity = 1}
-                                        onMouseLeave={e => e.target.style.opacity = 0.7}
-                                    >
-                                        ✏️
-                                    </button>
-                                )}
-                                {isJoined && !isPast && (
-                                    <span style={{
-                                        fontSize: '0.6rem',
-                                        padding: '0.1rem 0.35rem',
-                                        borderRadius: '4px',
-                                        fontWeight: 600,
-                                        background: '#FBE9E7',
-                                        color: '#D84315'
-                                    }}>
-                                        ✓
-                                    </span>
-                                )}
-                                {isPast && (
-                                    <span style={{
-                                        fontSize: '0.6rem',
-                                        padding: '0.1rem 0.35rem',
-                                        borderRadius: '4px',
-                                        fontWeight: 600,
-                                        background: '#EEEEEE',
-                                        color: '#757575'
-                                    }}>
-                                        Proběhlo
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Time & Location */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#555', fontSize: '0.9rem' }}>
-                                {event.departureTime && (
-                                    <>
-                                        <span title="Čas odjezdu">🚌 {event.departureTime}</span>
-                                        <span style={{ margin: '0 0.1rem', color: '#ccc' }}>•</span>
-                                    </>
-                                )}
-                                <span title="Čas konání">⏰ {event.time}{event.timeEnd ? ` – ${event.timeEnd}` : ''}</span>
-                                <span style={{ margin: '0 0.3rem', color: '#ccc' }}>•</span>
-                                <span>📍 {event.location || 'Stanice'}</span>
-                            </div>
-                        </div>
-
-                        {canDelete && (
-                            <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                <button
-                                    onClick={() => onDelete(event)}
-                                    title="Smazat"
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        color: '#ccc',
-                                        cursor: 'pointer',
-                                        fontSize: '0.9rem',
-                                        padding: '0.2rem',
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    ✕
-                                </button>
-                            </div>
+            {/* Content */}
+            <div className="event-card__content">
+                <div className="event-card__header">
+                    <div className={`event-card__title ${isPast ? 'event-card__title--past' : ''}`}>
+                        <span>{event.title}</span>
+                        {isJoined && !isPast && (
+                            <span className="event-card__badge event-card__badge--joined">✓ Přihlášen</span>
+                        )}
+                        {isPast && (
+                            <span className="event-card__badge event-card__badge--past">Proběhlo</span>
                         )}
                     </div>
 
-                    {event.description && (
-                        <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.35rem' }}>
-                            {event.description}
-                        </div>
-                    )}
-
-                    <div style={{ marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        <div
-                            onClick={() => count > 0 && setExpanded(!expanded)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                cursor: count > 0 ? 'pointer' : 'default',
-                                padding: '0.25rem 0.5rem',
-                                background: '#F5F5F5',
-                                borderRadius: '6px',
-                                fontSize: '0.8rem',
-                                color: '#666'
-                            }}
-                        >
-                            <span>👥</span>
-                            <span style={{ fontWeight: 600 }}>{count}{event.maxParticipants ? `/${event.maxParticipants}` : ''}</span>
-                            {count > 0 && <span style={{ fontSize: '0.65rem', color: '#999' }}>{expanded ? '▲' : '▼'}</span>}
-                        </div>
-
-                        {!isPast && (
-                            isJoined ? (
-                                <button
-                                    onClick={() => onLeave(event)}
-                                    style={{
-                                        background: 'transparent',
-                                        color: '#E53935',
-                                        border: '1px solid #EF9A9A',
-                                        padding: '0.3rem 0.6rem',
-                                        borderRadius: '6px',
-                                        fontSize: '0.75rem',
-                                        cursor: 'pointer',
-                                        fontWeight: 600
-                                    }}
-                                >
-                                    Odhlásit
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => onJoin(event)}
-                                    style={{
-                                        background: '#FF6F00',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '0.3rem 0.6rem',
-                                        borderRadius: '6px',
-                                        fontSize: '0.75rem',
-                                        cursor: 'pointer',
-                                        fontWeight: 600
-                                    }}
-                                >
-                                    Přihlásit
-                                </button>
-                            )
-                        )}
-                    </div>
-
-                    {expanded && count > 0 && (
-                        <div style={{
-                            marginTop: '0.5rem',
-                            padding: '0.5rem',
-                            background: '#F8F9FA',
-                            borderRadius: '6px',
-                            fontSize: '0.75rem'
-                        }}>
-                            {event.participants.map(p => (
-                                <div key={p.uid} style={{
-                                    padding: '0.2rem 0',
-                                    color: p.uid === currentUser?.uid ? '#D84315' : '#666',
-                                    fontWeight: p.uid === currentUser?.uid ? 600 : 400
-                                }}>
-                                    {p.uid === currentUser?.uid && '⭐ '}{p.name}
-                                </div>
-                            ))}
+                    {canDelete && (
+                        <div className="event-card__actions-top">
+                            <button
+                                className="event-card__edit-btn"
+                                onClick={(e) => { e.stopPropagation(); onEdit(event); }}
+                                title="Upravit"
+                            >
+                                ✏️
+                            </button>
+                            <button
+                                className="event-card__delete-btn"
+                                onClick={(e) => { e.stopPropagation(); onDelete(event); }}
+                                title="Smazat"
+                            >
+                                ✕
+                            </button>
                         </div>
                     )}
                 </div>
+
+                {/* Meta Info */}
+                <div className="event-card__meta">
+                    {event.departureTime && (
+                        <>
+                            <span className="event-card__meta-item" title="Čas odjezdu">
+                                🚌 {event.departureTime}
+                            </span>
+                            <span className="event-card__meta-sep">•</span>
+                        </>
+                    )}
+                    <span className="event-card__meta-item" title="Čas konání">
+                        ⏰ {event.time}{event.timeEnd ? ` – ${event.timeEnd}` : ''}
+                    </span>
+                    <span className="event-card__meta-sep">•</span>
+                    <span className="event-card__meta-item">
+                        📍 {event.location || 'Stanice'}
+                    </span>
+                </div>
+
+                {event.description && (
+                    <div className="event-card__description">{event.description}</div>
+                )}
+
+                {/* Footer */}
+                <div className="event-card__footer">
+                    <div
+                        className={`participants-count ${count > 0 ? 'participants-count--clickable' : ''}`}
+                        onClick={() => count > 0 && setExpanded(!expanded)}
+                    >
+                        <span className="participants-count__icon">👥</span>
+                        <span className="participants-count__number">
+                            {count}{event.maxParticipants ? `/${event.maxParticipants}` : ''}
+                        </span>
+                        {count > 0 && (
+                            <span className={`participants-count__chevron ${expanded ? 'open' : ''}`}>▼</span>
+                        )}
+                    </div>
+
+                    {!isPast && (
+                        isJoined ? (
+                            <button className="event-action-btn event-action-btn--leave" onClick={() => onLeave(event)}>
+                                Odhlásit
+                            </button>
+                        ) : (
+                            <button className="event-action-btn event-action-btn--join" onClick={() => onJoin(event)}>
+                                Přihlásit
+                            </button>
+                        )
+                    )}
+                </div>
+
+                {/* Expanded Participants List */}
+                {expanded && count > 0 && (
+                    <div className="participants-list">
+                        {event.participants.map(p => (
+                            <div
+                                key={p.uid}
+                                className={`participants-list__item ${p.uid === currentUser?.uid ? 'participants-list__item--current' : ''}`}
+                            >
+                                {p.uid === currentUser?.uid && <span>⭐</span>}
+                                <span>{p.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -626,31 +453,11 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
     };
 
     return (
-        <div
-            style={{
-                position: 'fixed',
-                top: 0, left: 0, right: 0, bottom: 0,
-                background: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1001,
-                padding: '1rem'
-            }}
-            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-        >
-            <div style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                width: '100%',
-                maxWidth: '400px',
-                maxHeight: '90vh',
-                overflow: 'auto'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{isEdit ? '✏️ Upravit akci' : '🚩 Nová akce'}</h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: '#999' }}>✕</button>
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h3 className="modal-title">{isEdit ? '✏️ Upravit akci' : '🚩 Nová akce'}</h3>
+                    <button className="modal-close" onClick={onClose}>✕</button>
                 </div>
 
                 <form onSubmit={handleSubmit}>
@@ -695,9 +502,9 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
                         <input className="input-field" type="number" min="1" value={maxParticipants} onChange={e => setMaxParticipants(e.target.value)} placeholder="Bez limitu" />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
-                        <button type="button" className="btn btn-secondary" onClick={onClose} style={{ flex: 1 }}>Zrušit</button>
-                        <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Ukládám...' : (isEdit ? 'Uložit změny' : 'Vytvořit')}</button>
+                    <div className="modal-actions">
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>Zrušit</button>
+                        <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Ukládám...' : (isEdit ? 'Uložit změny' : 'Vytvořit')}</button>
                     </div>
                 </form>
             </div>
