@@ -476,12 +476,12 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
                         <input className="input-field" type="time" value={departureTime} onChange={e => setDepartureTime(e.target.value)} />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <div className="input-group" style={{ flex: 1 }}>
+                    <div className="form-row">
+                        <div className="input-group">
                             <label className="input-label">Od *</label>
                             <input className="input-field" type="time" value={time} onChange={e => setTime(e.target.value)} required />
                         </div>
-                        <div className="input-group" style={{ flex: 1 }}>
+                        <div className="input-group">
                             <label className="input-label">Do (volitelné)</label>
                             <input className="input-field" type="time" value={timeEnd} onChange={e => setTimeEnd(e.target.value)} />
                         </div>

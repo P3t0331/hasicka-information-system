@@ -57,6 +57,9 @@ export default function ShiftCalendarPage() {
   // Events state
   const [eventsData, setEventsData] = useState([]);
 
+  // Activity popup state (for Option B - indicator dots)
+  const [activityPopup, setActivityPopup] = useState(null); // { day, activities }
+
   const DAY_SHIFTS_PREVIEW_COUNT = 3;
 
   const showToast = (type, message) => {
@@ -813,6 +816,7 @@ export default function ShiftCalendarPage() {
                   onRemoveDayShift={handleRemoveDayShift}
                   trainings={trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date)}
                   events={eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date)}
+                  onActivityClick={(day, activities) => setActivityPopup({ day, activities })}
                 />
                 {day.dayOfWeek === 0 && (
                   <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
@@ -891,6 +895,7 @@ export default function ShiftCalendarPage() {
                 currentUser={currentUser}
                 trainings={trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date)}
                 events={eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date)}
+                onActivityClick={(day, activities) => setActivityPopup({ day, activities })}
               />
               {day.dayOfWeek === 0 && index !== days.length - 1 && (
                 <div style={{ position: 'relative', margin: '1.25rem 0', textAlign: 'center' }}>
@@ -904,6 +909,143 @@ export default function ShiftCalendarPage() {
           ))}
         </div>
       </section>
+
+      {/* Activity Popup (Option B) */}
+      {activityPopup && (
+        <ActivityPopup
+          day={activityPopup.day}
+          activities={activityPopup.activities}
+          currentUser={currentUser}
+          userData={userData}
+          onClose={() => setActivityPopup(null)}
+          showToast={showToast}
+        />
+      )}
+    </div>
+  );
+}
+
+// Activity Popup Component (Option B - Integrated Day Markers)
+function ActivityPopup({ day, activities, currentUser, userData, onClose, showToast }) {
+  const navigate = useNavigate();
+
+  const handleJoin = async (activity) => {
+    if (!currentUser || !userData) return;
+
+    const collection = activity.type === 'training' ? 'trainings' : 'events';
+
+    try {
+      await updateDoc(doc(db, collection, activity.id), {
+        participants: arrayUnion({
+          uid: currentUser.uid,
+          name: `${userData.firstName} ${userData.lastName}`,
+          joinedAt: new Date().toISOString()
+        })
+      });
+      showToast('success', 'Přihlášeno!');
+    } catch (err) {
+      console.error('Error joining:', err);
+      showToast('error', 'Chyba při přihlašování.');
+    }
+  };
+
+  const handleLeave = async (activity) => {
+    const myParticipation = activity.participants?.find(p => p.uid === currentUser?.uid);
+    if (!myParticipation) return;
+
+    const collection = activity.type === 'training' ? 'trainings' : 'events';
+
+    try {
+      await updateDoc(doc(db, collection, activity.id), {
+        participants: arrayRemove(myParticipation)
+      });
+      showToast('success', 'Odhlášeno.');
+    } catch (err) {
+      console.error('Error leaving:', err);
+      showToast('error', 'Chyba při odhlašování.');
+    }
+  };
+
+  const formatDate = () => {
+    const MONTHS = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+    return `${day.date}. ${MONTHS[new Date().getMonth()]}`;
+  };
+
+  return (
+    <div className="activity-popup-overlay" onClick={onClose}>
+      <div className="activity-popup" onClick={e => e.stopPropagation()}>
+        <div className="activity-popup__header">
+          <span className="activity-popup__date">📅 {formatDate()}</span>
+          <button className="activity-popup__close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="activity-popup__content">
+          {activities.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#888' }}>
+              Žádné aktivity
+            </div>
+          ) : (
+            activities.map(activity => {
+              const isJoined = activity.participants?.some(p => p.uid === currentUser?.uid);
+              const isTraining = activity.type === 'training';
+              const count = activity.participants?.length || 0;
+
+              return (
+                <div
+                  key={activity.id}
+                  className={`activity-item ${isTraining ? 'activity-item--training' : 'activity-item--event'}`}
+                >
+                  <div className={`activity-item__type ${isTraining ? 'activity-item__type--training' : 'activity-item__type--event'}`}>
+                    {isTraining ? '📚 Školení' : '🚩 Akce'}
+                  </div>
+
+                  <div className="activity-item__title">
+                    <span>{activity.title}</span>
+                    {isJoined && <span className="activity-item__joined-badge">✓ Přihlášen</span>}
+                  </div>
+
+                  <div className="activity-item__meta">
+                    <span>⏰ {activity.time}{activity.timeEnd ? ` – ${activity.timeEnd}` : ''}</span>
+                    {activity.location && <span>📍 {activity.location}</span>}
+                  </div>
+
+                  <div className="activity-item__participants">
+                    👥 {count} účastník{count === 1 ? '' : count < 5 ? 'i' : 'ů'}
+                    {activity.maxParticipants && ` / ${activity.maxParticipants}`}
+                  </div>
+
+                  <div className="activity-item__actions">
+                    {isJoined ? (
+                      <button
+                        className="activity-item__btn activity-item__btn--leave"
+                        onClick={() => handleLeave(activity)}
+                      >
+                        Odhlásit
+                      </button>
+                    ) : (
+                      <button
+                        className="activity-item__btn activity-item__btn--join"
+                        onClick={() => handleJoin(activity)}
+                      >
+                        Přihlásit
+                      </button>
+                    )}
+                    <button
+                      className="activity-item__btn activity-item__btn--view"
+                      onClick={() => {
+                        onClose();
+                        navigate(isTraining ? '/skoleni' : '/akce');
+                      }}
+                    >
+                      Detail
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -925,7 +1067,7 @@ const SLOT_ICONS = {
 };
 
 // Single Row Component
-function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift, trainings, events }) {
+function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift, trainings, events, onActivityClick }) {
   const navigate = useNavigate();
   // Check if shift is empty (no users assigned)
   const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
@@ -986,77 +1128,30 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
           {day.dayName.slice(0, 3)}
         </div>
 
-        {/* Training Indicator */}
-        {trainings && trainings.length > 0 && (
-          <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', width: '100%' }}>
-            {trainings.map(t => (
+        {/* Activity Indicator Dots - Click to see popup */}
+        {((trainings && trainings.length > 0) || (events && events.length > 0)) && (
+          <div
+            className="activity-dots"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onActivityClick) {
+                onActivityClick(day, [...(trainings || []).map(t => ({ ...t, type: 'training' })), ...(events || []).map(ev => ({ ...ev, type: 'event' }))]);
+              }
+            }}
+          >
+            {trainings && trainings.map(t => (
               <div
                 key={t.id}
+                className={`activity-dot activity-dot--training ${t.participants?.some(p => p.uid === currentUser?.uid) ? 'activity-dot--joined' : ''}`}
                 title={`Školení: ${t.title}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate('/skoleni');
-                }}
-                style={{
-                  fontSize: '0.7rem',
-                  cursor: 'pointer',
-                  background: '#E3F2FD',
-                  color: '#1565C0',
-                  border: '1px solid #90CAF9',
-                  borderRadius: '4px',
-                  padding: '1px 4px',
-                  maxWidth: '90%',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: 'center',
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                  transition: 'background 0.2s',
-                  marginBottom: '1px'
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#BBDEFB'}
-                onMouseLeave={e => e.currentTarget.style.background = '#E3F2FD'}
-              >
-                📚 Školení
-              </div>
+              />
             ))}
-          </div>
-        )}
-
-        {/* Events Indicator */}
-        {events && events.length > 0 && (
-          <div style={{ marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', width: '100%' }}>
-            {events.map(e => (
+            {events && events.map(ev => (
               <div
-                key={e.id}
-                title={`Akce: ${e.title}`}
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  navigate('/akce');
-                }}
-                style={{
-                  fontSize: '0.7rem',
-                  cursor: 'pointer',
-                  background: '#FBE9E7', // Light Orange
-                  color: '#D84315',      // Deep Orange
-                  border: '1px solid #FFAB91',
-                  borderRadius: '4px',
-                  padding: '1px 4px',
-                  maxWidth: '90%',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: 'center',
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                  transition: 'background 0.2s'
-                }}
-                onMouseEnter={ev => ev.currentTarget.style.background = '#FFCCBC'}
-                onMouseLeave={ev => ev.currentTarget.style.background = '#FBE9E7'}
-              >
-                🚩 Akce
-              </div>
+                key={ev.id}
+                className={`activity-dot activity-dot--event ${ev.participants?.some(p => p.uid === currentUser?.uid) ? 'activity-dot--joined' : ''}`}
+                title={`Akce: ${ev.title}`}
+              />
             ))}
           </div>
         )}
