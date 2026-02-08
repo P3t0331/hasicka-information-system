@@ -4,7 +4,7 @@ import emailjs from '@emailjs/browser';
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID_APPROVAL = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_APPROVAL;
 const TEMPLATE_ID_DEACTIVATION = import.meta.env.VITE_EMAILJS_TEMPLATE_ID_DEACTIVATION;
-const PUBLIC_KEY = import.meta.env.EMAILJS_PUBLIC_KEY;
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const APP_URL = import.meta.env.VITE_APP_URL;
 
 /**

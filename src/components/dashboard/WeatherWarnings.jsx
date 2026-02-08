@@ -13,7 +13,7 @@ export default function WeatherWarnings() {
         try {
             // WeatherAPI.com - Brno
             // Key from .env
-            const apiKey = import.meta.env.WEATHER_API_KEY;
+            const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
             const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Brno&days=1&alerts=yes&lang=cs`;
 
             const response = await fetch(url);
