@@ -47,10 +47,17 @@ export default function WeatherWarnings() {
         if (!data) return;
 
         // Process Warnings (Alerts)
-        const alerts = data.alerts && data.alerts.alert ? data.alerts.alert : [];
+        let alertsList = [];
+        if (data.alerts) {
+            if (Array.isArray(data.alerts)) {
+                alertsList = data.alerts;
+            } else if (data.alerts.alert) {
+                alertsList = Array.isArray(data.alerts.alert) ? data.alerts.alert : [data.alerts.alert];
+            }
+        }
 
         // Filter alerts relevant for Brno
-        const relevantAlerts = alerts.filter(alert => {
+        const relevantAlerts = alertsList.filter(alert => {
             const text = ((alert.areas || '') + ' ' + (alert.headline || '')).toLowerCase();
 
             // 1. Explicit Brno mention
@@ -103,8 +110,23 @@ export default function WeatherWarnings() {
         );
     }
 
-    // If no warnings, render NOTHING.
-    if (warnings.length === 0) return null;
+    // If no warnings, render a positive state
+    if (warnings.length === 0) {
+        return (
+            <section style={{ marginBottom: '2rem' }}>
+                <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    🌤️ Počasí a výstrahy
+                </h2>
+                <div className="dashboard-card" style={{ padding: '1rem', background: '#E8F5E9', borderLeft: '5px solid #4CAF50', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>✅</span>
+                    <div>
+                        <div style={{ fontWeight: 600, color: '#2E7D32' }}>Bez meteorologických výstrah</div>
+                        <div style={{ fontSize: '0.85rem', color: '#4CAF50' }}>Pro oblast Brno a okolí nejsou aktuálně vydány žádné nebezpečné jevy.</div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section style={{ marginBottom: '2rem' }}>
