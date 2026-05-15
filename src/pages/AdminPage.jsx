@@ -1207,26 +1207,52 @@ function LogsTab({
   // Use the imported db instead of non-existent useDbInstance
   const dbCtx = db;
 
+  const fetchLogs = React.useCallback(async (isRefresh = false) => {
+    setLogsLoading(true);
+    try {
+      const q = query(
+        collection(db, 'activityLogs'),
+        orderBy('timestamp', 'desc'),
+        limit(300)
+      );
+
+      // For a manual refresh, we use getDocs to ensure we get fresh server data
+      if (isRefresh) {
+        const snap = await getDocs(q);
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setActivityLogs(docs);
+        setLogsLoading(false);
+        setLogsLoaded(true);
+      } else {
+        // Otherwise use onSnapshot for live updates
+        const unsub = onSnapshot(q, (snap) => {
+          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setActivityLogs(docs);
+          setLogsLoading(false);
+          setLogsLoaded(true);
+        }, (err) => {
+          console.error('Logs error:', err);
+          setLogsLoading(false);
+        });
+        return unsub;
+      }
+    } catch (err) {
+      console.error('Fetch logs error:', err);
+      setLogsLoading(false);
+    }
+  }, [db, limit, orderBy, query, collection, setActivityLogs, setLogsLoading, setLogsLoaded]);
+
   // Load logs lazily when tab first opened
   React.useEffect(() => {
-    if (logsLoaded) return;
-    setLogsLoading(true);
-    const q = query(
-      collection(db, 'activityLogs'),
-      orderBy('timestamp', 'desc'),
-      limit(300)
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setActivityLogs(docs);
-      setLogsLoading(false);
-      setLogsLoaded(true);
-    }, (err) => {
-      console.error('Logs error:', err);
-      setLogsLoading(false);
-    });
-    return unsub;
-  }, [logsLoaded]);
+    if (!logsLoaded) {
+      const unsubPromise = fetchLogs(false);
+      return () => {
+        if (unsubPromise && typeof unsubPromise.then === 'function') {
+          unsubPromise.then(unsub => unsub && unsub());
+        }
+      };
+    }
+  }, [logsLoaded, fetchLogs]);
 
   const filteredLogs = activityLogs.filter(log => {
     if (logFilterUser !== 'all' && log.uid !== logFilterUser) return false;
@@ -1302,8 +1328,7 @@ function LogsTab({
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', width: '100%', marginTop: '0.5rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }} className="mobile-only-border-top">
           <button
             onClick={() => {
-              setLogsLoaded(false);
-              setActivityLogs([]); // Clear existing logs to show loading state
+              fetchLogs(true);
             }}
             disabled={logsLoading}
             style={{
