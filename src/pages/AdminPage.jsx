@@ -1016,12 +1016,12 @@ export default function AdminPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ background: '#f5f5f5' }}>
-                    <th style={{
+                    <th className="sticky-col" style={{
                       position: 'sticky', left: 0, zIndex: 2,
                       background: '#f5f5f5', textAlign: 'left',
-                      padding: '0.6rem 1rem', fontWeight: 700, color: '#333',
+                      padding: '0.6rem 0.75rem', fontWeight: 700, color: '#333',
                       borderRight: '2px solid #e0e0e0', borderBottom: '2px solid #e0e0e0',
-                      minWidth: '160px', whiteSpace: 'nowrap'
+                      width: '120px', minWidth: '120px'
                     }}>
                       Člen
                     </th>
@@ -1054,27 +1054,23 @@ export default function AdminPage() {
                     return (
                       <tr key={user.uid} style={{ background: rowIdx % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
                         {/* Sticky name column */}
-                        <td style={{
+                        <td className="sticky-col" style={{
                           position: 'sticky', left: 0, zIndex: 1,
                           background: rowIdx % 2 === 0 ? 'white' : '#fafafa',
-                          padding: '0.6rem 1rem',
-                          borderRight: '2px solid #e0e0e0',
-                          whiteSpace: 'nowrap'
+                          padding: '0.6rem 0.5rem',
+                          borderRight: '2px solid #e0e0e0'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                             <div style={{
-                              width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                              width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
                               background: 'linear-gradient(135deg, #263238, #546E7A)',
                               color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontWeight: 700, fontSize: '0.75rem'
+                              fontWeight: 700, fontSize: '0.7rem'
                             }}>
                               {user.firstName?.[0]}{user.lastName?.[0]}
                             </div>
-                            <div>
-                              <div style={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>{user.firstName} {user.lastName}</div>
-                              <div style={{ fontSize: '0.72rem', color: '#888' }}>
-                                {(user.roles || [user.role || 'Hasič']).join(', ')}
-                              </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontWeight: 600, color: '#333', fontSize: '0.8rem', lineHeight: 1.1, wordBreak: 'break-word' }}>{user.firstName} {user.lastName}</div>
                             </div>
                           </div>
                         </td>
@@ -1245,21 +1241,21 @@ function LogsTab({
   return (
     <div>
       {/* Filter Bar */}
-      <div style={{
-        background: 'white', borderRadius: '12px', padding: '1rem 1.25rem',
+      <div className="mobile-stack" style={{
+        background: 'white', borderRadius: '12px', padding: '1rem',
         marginBottom: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between'
       }}>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
           {/* User filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1', minWidth: '200px' }}>
             <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: 600, whiteSpace: 'nowrap' }}>Uživatel:</span>
             <select
               value={logFilterUser}
               onChange={e => setLogFilterUser(e.target.value)}
               style={{
                 padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #e0e0e0',
-                fontSize: '0.85rem', background: '#fafafa', cursor: 'pointer', minWidth: '160px'
+                fontSize: '0.85rem', background: '#fafafa', cursor: 'pointer', width: '100%'
               }}
             >
               <option value="all">Všichni</option>
@@ -1276,6 +1272,7 @@ function LogsTab({
             flexWrap: 'nowrap', 
             overflowX: 'auto', 
             paddingBottom: '0.25rem',
+            width: '100%',
             msOverflowStyle: 'none',
             scrollbarWidth: 'none'
           }} className="hide-scrollbar">
@@ -1302,7 +1299,7 @@ function LogsTab({
         </div>
 
         {/* Actions (Refresh) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', width: '100%', marginTop: '0.5rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }} className="mobile-only-border-top">
           <button
             onClick={() => {
               setLogsLoaded(false);

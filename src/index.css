@@ -678,6 +678,19 @@ h4 {
   .d-desktop-only {
     display: none !important;
   }
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .mobile-only-border-top {
+    border-top: none !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    width: auto !important;
+  }
 }
 
 /* ========================================
