@@ -573,8 +573,18 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Tab Bar */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '2rem', borderBottom: '2px solid #e0e0e0' }}>
+      {/* Tab Bar - Scrollable on mobile */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '0', 
+        marginBottom: '2rem', 
+        borderBottom: '2px solid #e0e0e0',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none'
+      }} className="hide-scrollbar">
         {[
           { id: 'uzivatele', label: '👥 Uživatelé' },
           { id: 'vybaveni', label: `🧰 Vybavení ${equipmentTypes.length > 0 ? `(${equipmentTypes.length})` : ''}` },
@@ -593,8 +603,10 @@ export default function AdminPage() {
               color: activeTab === tab.id ? 'var(--primary-red)' : '#666',
               borderBottom: activeTab === tab.id ? '2px solid var(--primary-red)' : '2px solid transparent',
               marginBottom: '-2px',
-              fontSize: '0.95rem',
-              transition: 'color 0.2s'
+              fontSize: '0.9rem',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.2s',
+              flexShrink: 0
             }}
           >
             {tab.label}
@@ -611,7 +623,7 @@ export default function AdminPage() {
           {/* Roles Stats */}
           <div>
             <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '0.75rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>FUNKCE (ROLE)</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {ROLE_OPTIONS.filter(r => r !== 'Admin').map(role => (
                 <div key={role} style={{
                   background: '#e3f2fd', color: '#1565c0', padding: '0.4rem 0.8rem', borderRadius: '8px',
@@ -627,7 +639,7 @@ export default function AdminPage() {
           {/* Certs Stats */}
           <div>
             <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '0.75rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>KVALIFIKACE</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {CERTIFICATION_OPTIONS.map(cert => (
                 <div key={cert} style={{
                   background: '#fff3e0', color: '#e65100', padding: '0.4rem 0.8rem', borderRadius: '8px',
@@ -755,36 +767,38 @@ export default function AdminPage() {
           {equipmentTypes.length === 0 ? (
             <p style={{ color: '#888', fontStyle: 'italic', margin: '1rem 0 0' }}>Zatím nejsou definovány žádné druhy. Členové si nemohou evidovat vybavení.</p>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.5rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #eee' }}>
-                  <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Název</th>
-                  <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Velikost</th>
-                  <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Počet</th>
-                  <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Vlastní/JSDH</th>
-                  <th style={{ width: '40px' }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {equipmentTypes.map((eq, i) => (
-                  <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
-                    <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333' }}>{eq.name}</td>
-                    <td style={{ textAlign: 'center', padding: '0.6rem' }}>
-                      {eq.hasSize ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '0.6rem' }}>
-                      {eq.hasAmount ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '0.6rem' }}>
-                      <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span>
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '0.4rem' }}>
-                      <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">×</button>
-                    </td>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.5rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #eee' }}>
+                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Název</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Velikost</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Počet</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Vlastní/JSDH</th>
+                    <th style={{ width: '40px' }}></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {equipmentTypes.map((eq, i) => (
+                    <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td data-label="Název" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333' }}>{eq.name}</td>
+                      <td data-label="Velikost" style={{ textAlign: 'center', padding: '0.6rem' }}>
+                        {eq.hasSize ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
+                      </td>
+                      <td data-label="Počet" style={{ textAlign: 'center', padding: '0.6rem' }}>
+                        {eq.hasAmount ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
+                      </td>
+                      <td data-label="Vlastní/JSDH" style={{ textAlign: 'center', padding: '0.6rem' }}>
+                        <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span>
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '0.4rem' }}>
+                        <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">×</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -1256,7 +1270,15 @@ function LogsTab({
           </div>
 
           {/* Category filter pills */}
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.4rem', 
+            flexWrap: 'nowrap', 
+            overflowX: 'auto', 
+            paddingBottom: '0.25rem',
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none'
+          }} className="hide-scrollbar">
             {[{ id: 'all', label: 'Vše', icon: '🔍' }, ...Object.entries(CATEGORY_CONFIG).map(([k, v]) => ({ id: k, label: v.label, icon: v.icon }))]
               .map(cat => (
                 <button
@@ -1268,7 +1290,8 @@ function LogsTab({
                     border: `1px solid ${logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.border || '#aaa') : '#e0e0e0'}`,
                     background: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.bg || '#eee') : 'white',
                     color: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.color || '#333') : '#666',
-                    cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap'
+                    cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    flexShrink: 0
                   }}
                 >
                   {cat.icon} {cat.label}
@@ -1279,7 +1302,7 @@ function LogsTab({
         </div>
 
         {/* Actions (Refresh) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}>
           <button
             onClick={() => {
               setLogsLoaded(false);
@@ -1288,8 +1311,8 @@ function LogsTab({
             disabled={logsLoading}
             style={{
               background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px',
-              padding: '0.45rem 0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
-              fontSize: '0.85rem', color: '#555', transition: 'all 0.2s',
+              padding: '0.4rem 0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              fontSize: '0.8rem', color: '#555', transition: 'all 0.2s',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
             onMouseOver={e => { e.currentTarget.style.background = '#f9f9f9'; e.currentTarget.style.borderColor = '#ccc'; }}
@@ -1298,16 +1321,16 @@ function LogsTab({
             <span style={{ 
               display: 'inline-block', 
               animation: logsLoading ? 'spin 1s linear infinite' : 'none',
-              fontSize: '1rem'
+              fontSize: '0.9rem'
             }}>
               🔄
             </span>
-            Obnovit
+            <span className="d-desktop-only">Obnovit</span>
           </button>
 
           {/* Count */}
-          <span style={{ fontSize: '0.8rem', color: '#aaa', whiteSpace: 'nowrap' }}>
-            {filteredLogs.length} záznamů
+          <span style={{ fontSize: '0.75rem', color: '#aaa', whiteSpace: 'nowrap' }}>
+            {filteredLogs.length} <span className="d-desktop-only">záznamů</span>
           </span>
         </div>
       </div>
@@ -1376,11 +1399,11 @@ function LogsTab({
                 </div>
 
                 {/* Timestamp */}
-                <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '80px' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#888', fontWeight: 600 }}>
+                <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '70px', alignSelf: 'center' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>
                     {formatRelativeTime(log.timestamp)}
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: '#bbb', marginTop: '0.15rem' }}>
+                  <div className="d-desktop-only" style={{ fontSize: '0.65rem', color: '#bbb', marginTop: '0.15rem' }}>
                     {formatAbsoluteTime(log.timestamp)}
                   </div>
                 </div>

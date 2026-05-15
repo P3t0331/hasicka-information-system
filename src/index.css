@@ -666,6 +666,20 @@ h4 {
   background: #E8F5E9 !important;
 }
 
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (max-width: 600px) {
+  .d-desktop-only {
+    display: none !important;
+  }
+}
+
 /* ========================================
    EVENT/TRAINING PAGE SYSTEM
    ======================================== */
