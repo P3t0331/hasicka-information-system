@@ -330,6 +330,34 @@ export default function DashboardPage() {
             {/* Weather Warnings */}
             <WeatherWarnings />
 
+            {/* Quick Links / Manuals */}
+            <section style={{ marginBottom: '2rem' }}>
+                <a 
+                    href="https://docs.google.com/spreadsheets/d/1qWtU8OSbAX1PB9biEztcqjwtLVIx3KBegE1L52FOWhM/edit?gid=0#gid=0" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="dashboard-card"
+                    style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '1rem', 
+                        padding: '1.25rem', 
+                        textDecoration: 'none',
+                        background: 'linear-gradient(135deg, #FFB74D, #FFA726)',
+                        color: 'white',
+                        border: 'none',
+                        boxShadow: '0 4px 15px rgba(255, 152, 0, 0.25)'
+                    }}
+                >
+                    <div style={{ fontSize: '2rem' }}>📖</div>
+                    <div>
+                        <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.1rem' }}>Návody k obsluze</div>
+                        <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Kompletní dokumentace k technice a vybavení</div>
+                    </div>
+                    <div style={{ marginLeft: 'auto', fontSize: '1.2rem', opacity: 0.8 }}>➜</div>
+                </a>
+            </section>
+
             {/* Monthly Statistics Cards */}
             <section style={{ marginBottom: '2rem' }}>
                 <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>📊 Tento měsíc</h2>
