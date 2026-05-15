@@ -1,47 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function WeatherWarnings() {
     const [warnings, setWarnings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    useEffect(() => {
-        fetchWeather();
-    }, []);
+    const [timerText, setTimerText] = useState('');
+    
+    const nextUpdateRef = useRef(null);
 
     const fetchWeather = async () => {
         try {
-            // Check cache first (30 minutes)
+            const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in ms
             const cachedData = localStorage.getItem('weatherWarningsCache');
             const cacheTimestamp = localStorage.getItem('weatherWarningsTimestamp');
+            
+            let dataToProcess = null;
+            let targetTime = 0;
             
             if (cachedData && cacheTimestamp) {
                 const now = new Date().getTime();
                 const cacheTime = parseInt(cacheTimestamp, 10);
-                const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in ms
 
                 if (now - cacheTime < CACHE_DURATION) {
-                    processWeatherData(JSON.parse(cachedData));
-                    setLoading(false);
-                    return;
+                    dataToProcess = JSON.parse(cachedData);
+                    targetTime = cacheTime + CACHE_DURATION;
                 }
             }
 
-            // WeatherAPI.com - Brno
-            // Key from .env
-            const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-            const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Brno&days=1&alerts=yes&lang=cs`;
+            if (!dataToProcess) {
+                // WeatherAPI.com - Brno
+                // Key from .env
+                const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+                const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Brno&days=1&alerts=yes&lang=cs`;
 
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Nelze načíst data o počasí');
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Nelze načíst data o počasí');
 
-            const data = await response.json();
+                dataToProcess = await response.json();
+                
+                const now = new Date().getTime();
+                localStorage.setItem('weatherWarningsCache', JSON.stringify(dataToProcess));
+                localStorage.setItem('weatherWarningsTimestamp', now.toString());
+                targetTime = now + CACHE_DURATION;
+            }
+
+            processWeatherData(dataToProcess);
+            nextUpdateRef.current = targetTime;
             
-            // Save to cache
-            localStorage.setItem('weatherWarningsCache', JSON.stringify(data));
-            localStorage.setItem('weatherWarningsTimestamp', new Date().getTime().toString());
-
-            processWeatherData(data);
         } catch (err) {
             console.error('Error fetching weather:', err);
             setError('Nepodařilo se načíst výstrahy.');
@@ -49,6 +54,29 @@ export default function WeatherWarnings() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchWeather();
+        
+        const interval = setInterval(() => {
+            if (!nextUpdateRef.current) return;
+            
+            const now = new Date().getTime();
+            const diff = nextUpdateRef.current - now;
+            
+            if (diff <= 0) {
+                setTimerText('Aktualizuji...');
+                nextUpdateRef.current = null;
+                fetchWeather();
+            } else {
+                const minutes = Math.floor(diff / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                setTimerText(`Aktualizace za ${minutes}:${seconds.toString().padStart(2, '0')}`);
+            }
+        }, 1000);
+        
+        return () => clearInterval(interval);
+    }, []);
 
     const loadDemoData = () => {
         setError(null);
@@ -135,8 +163,9 @@ export default function WeatherWarnings() {
     if (warnings.length === 0) {
         return (
             <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    🌤️ Počasí a výstrahy
+                <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🌤️ Počasí a výstrahy</span>
+                    {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
                 </h2>
                 <div className="dashboard-card" style={{ padding: '1rem', background: '#E8F5E9', borderLeft: '5px solid #4CAF50', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontSize: '1.5rem' }}>✅</span>
@@ -151,8 +180,9 @@ export default function WeatherWarnings() {
 
     return (
         <section style={{ marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                ⚠️ Výstrahy
+            <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>⚠️ Výstrahy</span>
+                {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
             </h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

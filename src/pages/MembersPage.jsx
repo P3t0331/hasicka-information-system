@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function MembersPage() {
@@ -8,9 +8,24 @@ export default function MembersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
 
+    const [equipmentTypes, setEquipmentTypes] = useState([]);
+
     useEffect(() => {
         fetchMembers();
+        fetchEquipmentTypes();
     }, []);
+
+    const fetchEquipmentTypes = async () => {
+        try {
+            const docRef = doc(db, 'settings', 'equipmentTypes');
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                setEquipmentTypes(docSnap.data().types || []);
+            }
+        } catch (error) {
+            console.error('Error fetching equipment types:', error);
+        }
+    };
 
     const fetchMembers = async () => {
         try {
@@ -154,7 +169,7 @@ export default function MembersPage() {
                     gap: '1.5rem'
                 }}>
                     {filteredMembers.map(member => (
-                        <MemberCard key={member.id} member={member} roleLabels={roleLabels} />
+                        <MemberCard key={member.id} member={member} roleLabels={roleLabels} equipmentTypes={equipmentTypes} />
                     ))}
                 </div>
             )}
@@ -162,7 +177,7 @@ export default function MembersPage() {
     );
 }
 
-function MemberCard({ member, roleLabels }) {
+function MemberCard({ member, roleLabels, equipmentTypes }) {
     // Normalize roles to array of strings
     const rawRoles = member.roles || [member.role || 'Hasič'];
     const userRoles = Array.isArray(rawRoles)
@@ -362,6 +377,57 @@ function MemberCard({ member, roleLabels }) {
                                         {cert}
                                     </span>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Equipment */}
+                    {member.equipment && Object.keys(member.equipment).length > 0 && equipmentTypes && equipmentTypes.length > 0 && (
+                        <div style={{
+                            marginTop: '0.5rem',
+                            paddingTop: '1rem',
+                            borderTop: '1px solid #eee'
+                        }}>
+                            <div style={{
+                                fontSize: '0.75rem',
+                                color: '#888',
+                                marginBottom: '0.5rem',
+                                fontWeight: 600
+                            }}>
+                                🧰 Vybavení
+                            </div>
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '0.5rem'
+                            }}>
+                                {equipmentTypes.map(eq => {
+                                    const eqData = member.equipment[eq.id];
+                                    if (!eqData || (!eqData.size && (!eqData.amount || eqData.amount === 0))) return null;
+
+                                    return (
+                                        <div key={eq.id} style={{
+                                            background: '#f5f5f5',
+                                            padding: '0.4rem 0.6rem',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8rem',
+                                            border: '1px solid #e0e0e0',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.2rem',
+                                            flex: '1 1 calc(50% - 0.5rem)',
+                                            minWidth: '120px'
+                                        }}>
+                                            <div style={{ fontWeight: 600, color: '#333' }}>
+                                                {eq.name} {eqData.ownership === 'vlastni' ? '(Vlastní)' : ''}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
+                                                {eq.hasSize && eqData.size && <span>Vel: <strong>{eqData.size}</strong></span>}
+                                                {eq.hasAmount && eqData.amount > 0 && <span>Ks: <strong>{eqData.amount}</strong></span>}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

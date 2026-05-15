@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import LinkifiedText from '../components/LinkifiedText';
+import { logAction } from '../utils/logger';
 
 export default function TrainingsPage() {
     const { currentUser, userData } = useAuth();
@@ -64,6 +65,9 @@ export default function TrainingsPage() {
                     joinedAt: new Date().toISOString()
                 })
             });
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'JOINED_TRAINING', 'activities',
+                `Přihlásil se na školení „${training.title}“ (${training.date})${training.location ? ` – místo: ${training.location}` : ''}`);
             showToast('success', 'Přihlášeno!');
         } catch (err) {
             console.error('Error joining:', err);
@@ -79,6 +83,9 @@ export default function TrainingsPage() {
             await updateDoc(doc(db, 'trainings', training.id), {
                 participants: arrayRemove(myParticipation)
             });
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'LEFT_TRAINING', 'activities',
+                `Odhlásil se ze školení „${training.title}“ (${training.date})`);
             showToast('success', 'Odhlášeno.');
         } catch (err) {
             console.error('Error leaving:', err);

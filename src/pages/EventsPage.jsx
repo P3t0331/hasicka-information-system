@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import LinkifiedText from '../components/LinkifiedText';
+import { logAction } from '../utils/logger';
 
 export default function EventsPage() {
     const { currentUser, userData } = useAuth();
@@ -64,6 +65,9 @@ export default function EventsPage() {
                     joinedAt: new Date().toISOString()
                 })
             });
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'JOINED_EVENT', 'activities',
+                `Přihlásil se na akci „${event.title}“ (${event.date})${event.location ? ` – místo: ${event.location}` : ''}`);
             showToast('success', 'Přihlášeno!');
         } catch (err) {
             console.error('Error joining:', err);
@@ -79,6 +83,9 @@ export default function EventsPage() {
             await updateDoc(doc(db, 'events', event.id), {
                 participants: arrayRemove(myParticipation)
             });
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'LEFT_EVENT', 'activities',
+                `Odhlásil se z akce „${event.title}“ (${event.date})`);
             showToast('success', 'Odhlášeno.');
         } catch (err) {
             console.error('Error leaving:', err);

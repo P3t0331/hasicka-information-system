@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
+import { logAction } from '../utils/logger';
 
 const ROLE_OPTIONS = ['Hasič', 'Strojník', 'VD', 'Zástupce VJ', 'VJ', 'Admin'];
 const CERTIFICATION_OPTIONS = [
@@ -24,6 +25,21 @@ export default function AdminPage() {
   // Admin Data
   const [pendingUsers, setPendingUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+
+  // Equipment Types
+  const [equipmentTypes, setEquipmentTypes] = useState([]);
+  const [showEqModal, setShowEqModal] = useState(false);
+  const [newEq, setNewEq] = useState({ name: '', hasSize: false, hasAmount: true });
+
+  // Tab
+  const [activeTab, setActiveTab] = useState('uzivatele');
+
+  // Logs
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsLoaded, setLogsLoaded] = useState(false);
+  const [logFilterUser, setLogFilterUser] = useState('all');
+  const [logFilterCategory, setLogFilterCategory] = useState('all');
 
   // Stats
   const [stats, setStats] = useState({ roles: {}, certs: {} });
@@ -98,6 +114,12 @@ export default function AdminPage() {
       startAll.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
       setAllUsers(startAll);
 
+      // Fetch Equipment Types
+      const eqDoc = await getDoc(doc(db, "settings", "equipmentTypes"));
+      if (eqDoc.exists()) {
+        setEquipmentTypes(eqDoc.data().types || []);
+      }
+
     } catch (error) {
       console.error("Error fetching admin data:", error);
       showNotification('error', 'Chyba při načítání dat.');
@@ -114,17 +136,64 @@ export default function AdminPage() {
     setConfirmModal({ message, onConfirm });
   }
 
+  async function saveEquipmentTypes(newTypes) {
+    try {
+      await setDoc(doc(db, "settings", "equipmentTypes"), { types: newTypes }, { merge: true });
+      setEquipmentTypes(newTypes);
+      showNotification('success', 'Druhy vybavení byly uloženy.');
+    } catch (err) {
+      console.error(err);
+      showNotification('error', 'Chyba při ukládání vybavení.');
+    }
+  }
 
+  function handleAddEq(e) {
+    e.preventDefault();
+    if (!newEq.name.trim()) return;
+    
+    // Create an ID that is url-safe and unique-ish
+    const id = newEq.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
+    
+    if (equipmentTypes.some(t => t.id === id)) {
+      showNotification('error', 'Tento druh vybavení již pravděpodobně existuje (podle názvu).');
+      return;
+    }
+    const newTypes = [...equipmentTypes, { ...newEq, name: newEq.name.trim(), id }];
+    saveEquipmentTypes(newTypes);
+    handleAddEqLog(newEq.name.trim(), newEq.hasSize, newEq.hasAmount);
+    setNewEq({ name: '', hasSize: false, hasAmount: true });
+    setShowEqModal(false);
+  }
+
+  function handleRemoveEq(id) {
+    const eqType = equipmentTypes.find(t => t.id === id);
+    requestConfirm('Opravdu smazat tento druh vybavení ze systému? Uživatelská data zůstanou, ale nepůjdou editovat.', () => {
+      const newTypes = equipmentTypes.filter(t => t.id !== id);
+      saveEquipmentTypes(newTypes);
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_REMOVED_EQUIPMENT_TYPE', 'admin',
+        `Smazal druh vybavení: "${eqType?.name || id}"`);
+    });
+  }
+
+  function handleAddEqLog(name, hasSize, hasAmount) {
+    logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+      'ADMIN_ADDED_EQUIPMENT_TYPE', 'admin',
+      `Přidal druh vybavení: "${name}" (velikost: ${hasSize ? 'ano' : 'ne'}, počet: ${hasAmount ? 'ano' : 'ne'})`);
+  }
 
   async function approveUser(uid) {
     try {
-      // 1. Get user data for email
       const userToApprove = pendingUsers.find(u => u.uid === uid);
 
-      // 2. Approve in DB
       await updateDoc(doc(db, "users", uid), { approved: true });
 
-      // 3. Send Email
+      if (userToApprove) {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'ADMIN_APPROVED_USER', 'admin',
+          `Schválil registraci uživatele ${userToApprove.firstName} ${userToApprove.lastName} (${userToApprove.email})`);
+      }
+
       if (userToApprove && userToApprove.email) {
         const emailResult = await sendApprovalEmail(
           userToApprove.email,
@@ -147,6 +216,7 @@ export default function AdminPage() {
     }
   }
 
+
   async function deactivateUser(uid, shouldDisable) {
     if (uid === currentUser.uid) {
       showNotification('error', "Nemůžete deaktivovat vlastní účet.");
@@ -163,6 +233,10 @@ export default function AdminPage() {
           // 2. Update DB
           await updateDoc(doc(db, "users", uid), { disabled: shouldDisable });
           setAllUsers(prev => prev.map(u => u.uid === uid ? { ...u, disabled: shouldDisable } : u));
+
+          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+            shouldDisable ? 'ADMIN_DEACTIVATED_USER' : 'ADMIN_ACTIVATED_USER', 'admin',
+            `${shouldDisable ? 'Deaktivoval' : 'Aktivoval'} účet uživatele ${userToUpdate?.firstName} ${userToUpdate?.lastName}`);
 
           // 3. Clean up user from future activities (ONLY if deactivating)
           if (shouldDisable) {
@@ -294,14 +368,18 @@ export default function AdminPage() {
       showNotification('error', "Nemůžete smazat vlastní účet.");
       return;
     }
+    const userToDelete = allUsers.find(u => u.uid === uid);
 
     requestConfirm(
       "Opravdu chcete TRVALE SMAZAT tohoto uživatele? Tato akce je nevratná.",
       async () => {
         try {
+          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+            'ADMIN_DELETED_USER', 'admin',
+            `Trvale smazal účet uživatele ${userToDelete?.firstName} ${userToDelete?.lastName} (${userToDelete?.email || uid})`);
           await deleteDoc(doc(db, "users", uid));
           setAllUsers(prev => prev.filter(u => u.uid !== uid));
-          showNotification('success', 'Uživatel trvale smazán.');
+          showNotification('success', 'Uživatel trvalě smazán.');
         } catch (error) {
           console.error("Error deleting user:", error);
           showNotification('error', "Chyba při mazání uživatele.");
@@ -342,6 +420,16 @@ export default function AdminPage() {
     try {
       await updateDoc(doc(db, "users", uid), { roles: newRoles });
       setAllUsers(prev => prev.map(u => u.uid === uid ? { ...u, roles: newRoles } : u));
+      const targetUser = allUsers.find(u => u.uid === uid);
+      const added = newRoles.filter(r => !roles.includes(r));
+      const removed = roles.filter(r => !newRoles.includes(r));
+      const changeDesc = [
+        ...added.map(r => `+${r}`),
+        ...removed.map(r => `-${r}`)
+      ].join(', ');
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_CHANGED_ROLE', 'admin',
+        `Změnil role uživatele ${targetUser?.firstName} ${targetUser?.lastName}: ${changeDesc}`);
     } catch (error) {
       console.error("Error updating roles:", error);
       showNotification('error', "Chyba při aktualizaci rolí.");
@@ -360,6 +448,16 @@ export default function AdminPage() {
     try {
       await updateDoc(doc(db, "users", uid), { certifications: newCerts });
       setAllUsers(prev => prev.map(u => u.uid === uid ? { ...u, certifications: newCerts } : u));
+      const targetUser = allUsers.find(u => u.uid === uid);
+      const added = newCerts.filter(c => !certs.includes(c));
+      const removed = certs.filter(c => !newCerts.includes(c));
+      const changeDesc = [
+        ...added.map(c => `+${c}`),
+        ...removed.map(c => `-${c}`)
+      ].join(', ');
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_CHANGED_CERT', 'admin',
+        `Změnil kvalifikace uživatele ${targetUser?.firstName} ${targetUser?.lastName}: ${changeDesc}`);
     } catch (error) {
       console.error("Error updating certifications:", error);
       showNotification('error', "Chyba při aktualizaci certifikací.");
@@ -421,7 +519,39 @@ export default function AdminPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      {/* Add Equipment Modal */}
+      {showEqModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }} onClick={() => setShowEqModal(false)}>
+          <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%', animation: 'fadeIn 0.2s' }}>
+            <h3 className="mb-4">Přidat druh vybavení</h3>
+            <form onSubmit={handleAddEq}>
+              <div className="input-group">
+                <label className="input-label">Název (např. Oblečení PS II)</label>
+                <input className="input-field" value={newEq.name} onChange={e => setNewEq({...newEq, name: e.target.value})} required />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={newEq.hasSize} onChange={e => setNewEq({...newEq, hasSize: e.target.checked})} />
+                  Evidovat velikost
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={newEq.hasAmount} onChange={e => setNewEq({...newEq, hasAmount: e.target.checked})} />
+                  Evidovat počet
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEqModal(false)}>Zrušit</button>
+                <button type="submit" className="btn btn-primary">Přidat</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem', marginBottom: '0.2rem' }}>Administrace</h1>
           <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Správa členů, rolí a kvalifikací</span>
@@ -441,6 +571,36 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* Tab Bar */}
+      <div style={{ display: 'flex', gap: '0', marginBottom: '2rem', borderBottom: '2px solid #e0e0e0' }}>
+        {[
+          { id: 'uzivatele', label: '👥 Uživatelé' },
+          { id: 'vybaveni', label: `🧰 Vybavení ${equipmentTypes.length > 0 ? `(${equipmentTypes.length})` : ''}` },
+          { id: 'prehled', label: '📋 Přehled vybavení' },
+          { id: 'logy', label: '📜 Logy' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '0.6rem 1.4rem',
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              fontWeight: activeTab === tab.id ? 700 : 500,
+              color: activeTab === tab.id ? 'var(--primary-red)' : '#666',
+              borderBottom: activeTab === tab.id ? '2px solid var(--primary-red)' : '2px solid transparent',
+              marginBottom: '-2px',
+              fontSize: '0.95rem',
+              transition: 'color 0.2s'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'uzivatele' && (<>
       {/* Stats Dashboard */}
       <div className="card mb-5" style={{ padding: '1.5rem' }}>
         <h3 className="mb-3" style={{ fontSize: '1.2rem' }}>Přehled stavu jednotky</h3>
@@ -574,6 +734,57 @@ export default function AdminPage() {
         </div>
       )}
 
+      </>)}
+
+      {/* Equipment Tab */}
+      {activeTab === 'vybaveni' && (
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Druhy vybavení</h3>
+              <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#888' }}>Definujte typy vybavení, které mohou členové evidovat na svém profilu.</p>
+            </div>
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => setShowEqModal(true)}>+ Přidat</button>
+          </div>
+
+          {equipmentTypes.length === 0 ? (
+            <p style={{ color: '#888', fontStyle: 'italic', margin: '1rem 0 0' }}>Zatím nejsou definovány žádné druhy. Členové si nemohou evidovat vybavení.</p>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.5rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #eee' }}>
+                  <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Název</th>
+                  <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Velikost</th>
+                  <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Počet</th>
+                  <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Vlastní/JSDH</th>
+                  <th style={{ width: '40px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {equipmentTypes.map((eq, i) => (
+                  <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
+                    <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333' }}>{eq.name}</td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem' }}>
+                      {eq.hasSize ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem' }}>
+                      {eq.hasAmount ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem' }}>
+                      <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span>
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '0.4rem' }}>
+                      <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">×</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'uzivatele' && (<>
       {/* All Users / Role Management */}
       <div className="card" style={{ overflow: 'hidden', padding: 0, border: 'none', background: 'transparent', boxShadow: 'none' }}>
         <div style={{ padding: '1rem', background: '#fff', borderBottom: '1px solid #eee', borderRadius: '12px 12px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -714,7 +925,7 @@ export default function AdminPage() {
                           <button
                             onClick={() => deactivateUser(user.uid, !isDisabled)}
                             style={{
-                              background: 'none', border: 'none', cursor: 'pointer',
+                              border: 'none', cursor: 'pointer',
                               padding: '0.5rem 0.8rem', borderRadius: '6px',
                               color: isDisabled ? '#2e7d32' : '#c62828',
                               background: isDisabled ? '#E8F5E9' : '#FFEBEE',
@@ -730,7 +941,7 @@ export default function AdminPage() {
                             <button
                               onClick={() => deleteUser(user.uid)}
                               style={{
-                                background: 'none', border: 'none', cursor: 'pointer',
+                                border: 'none', cursor: 'pointer',
                                 padding: '0.5rem 0.8rem', borderRadius: '6px',
                                 color: '#fff',
                                 background: '#d32f2f',
@@ -754,6 +965,388 @@ export default function AdminPage() {
           </table>
         </div>
       </div>
+      </>)}
+
+      {/* Equipment Overview Matrix Tab */}
+      {activeTab === 'prehled' && (
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Přehled vybavení členů</h3>
+              <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: '#888' }}>
+                {allUsers.filter(u => !u.disabled).length} členů &middot; {equipmentTypes.length} druhů vybavení
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.78rem', color: '#666', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#4CAF50', display: 'inline-block' }}></span> Fasované (JSDH)
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#2196F3', display: 'inline-block' }}></span> Vlastní
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#e0e0e0', display: 'inline-block' }}></span> Neevidováno
+              </span>
+            </div>
+          </div>
+
+          {equipmentTypes.length === 0 ? (
+            <p style={{ padding: '2rem', color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Nejsou definovány žádné druhy vybavení. Přejděte na záložku Vybavení a přidejte typy.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5' }}>
+                    <th style={{
+                      position: 'sticky', left: 0, zIndex: 2,
+                      background: '#f5f5f5', textAlign: 'left',
+                      padding: '0.6rem 1rem', fontWeight: 700, color: '#333',
+                      borderRight: '2px solid #e0e0e0', borderBottom: '2px solid #e0e0e0',
+                      minWidth: '160px', whiteSpace: 'nowrap'
+                    }}>
+                      Člen
+                    </th>
+                    {equipmentTypes.map(eq => (
+                      <th key={eq.id} style={{
+                        padding: '0.5rem 0.75rem',
+                        fontWeight: 600, color: '#555',
+                        borderBottom: '2px solid #e0e0e0',
+                        textAlign: 'center',
+                        whiteSpace: 'nowrap',
+                        minWidth: '110px',
+                        fontSize: '0.78rem'
+                      }}>
+                        {eq.name}
+                        <div style={{ fontWeight: 400, color: '#aaa', fontSize: '0.7rem', marginTop: '0.1rem' }}>
+                          {[eq.hasSize && 'vel.', eq.hasAmount && 'ks'].filter(Boolean).join(' · ')}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {allUsers.filter(u => !u.disabled).map((user, rowIdx) => {
+                    const userEq = user.equipment || {};
+                    const hasAnyEquipment = equipmentTypes.some(eq => {
+                      const d = userEq[eq.id];
+                      return d && (d.size || (d.amount && d.amount > 0));
+                    });
+
+                    return (
+                      <tr key={user.uid} style={{ background: rowIdx % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
+                        {/* Sticky name column */}
+                        <td style={{
+                          position: 'sticky', left: 0, zIndex: 1,
+                          background: rowIdx % 2 === 0 ? 'white' : '#fafafa',
+                          padding: '0.6rem 1rem',
+                          borderRight: '2px solid #e0e0e0',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <div style={{
+                              width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                              background: 'linear-gradient(135deg, #263238, #546E7A)',
+                              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontWeight: 700, fontSize: '0.75rem'
+                            }}>
+                              {user.firstName?.[0]}{user.lastName?.[0]}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#333', fontSize: '0.875rem' }}>{user.firstName} {user.lastName}</div>
+                              <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                                {(user.roles || [user.role || 'Hasič']).join(', ')}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Equipment columns */}
+                        {equipmentTypes.map(eq => {
+                          const d = userEq[eq.id];
+                          const hasData = d && (d.size || (d.amount && d.amount > 0));
+                          const isOwn = d?.ownership === 'vlastni';
+
+                          return (
+                            <td key={eq.id} style={{ padding: '0.4rem 0.5rem', textAlign: 'center', verticalAlign: 'middle' }}>
+                              {hasData ? (
+                                <div style={{
+                                  display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+                                  background: isOwn ? '#E3F2FD' : '#E8F5E9',
+                                  border: `1px solid ${isOwn ? '#90CAF9' : '#A5D6A7'}`,
+                                  borderRadius: '6px',
+                                  padding: '0.25rem 0.5rem',
+                                  minWidth: '60px',
+                                  gap: '0.1rem'
+                                }}>
+                                  {eq.hasSize && d.size && (
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isOwn ? '#1565C0' : '#2E7D32' }}>{d.size}</span>
+                                  )}
+                                  {eq.hasAmount && d.amount > 0 && (
+                                    <span style={{ fontSize: '0.72rem', color: isOwn ? '#1976D2' : '#388E3C' }}>{d.amount} ks</span>
+                                  )}
+                                  <span style={{ fontSize: '0.6rem', color: isOwn ? '#64B5F6' : '#81C784', letterSpacing: '0.02em' }}>
+                                    {isOwn ? 'vlastní' : 'JSDH'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span style={{ color: '#d0d0d0', fontSize: '1rem' }}>—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========== LOGY TAB ========== */}
+      {activeTab === 'logy' && (
+        <LogsTab
+          allUsers={allUsers}
+          activityLogs={activityLogs}
+          setActivityLogs={setActivityLogs}
+          logsLoading={logsLoading}
+          setLogsLoading={setLogsLoading}
+          logsLoaded={logsLoaded}
+          setLogsLoaded={setLogsLoaded}
+          logFilterUser={logFilterUser}
+          setLogFilterUser={setLogFilterUser}
+          logFilterCategory={logFilterCategory}
+          setLogFilterCategory={setLogFilterCategory}
+        />
+      )}
+
     </div>
   );
 }
+
+// ======== CATEGORY CONFIGURATION ========
+const CATEGORY_CONFIG = {
+  shifts:     { label: 'Směny',       color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9', icon: '📅' },
+  activities: { label: 'Aktivity',     color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7', icon: '🎓' },
+  profile:    { label: 'Profil',       color: '#6A1B9A', bg: '#F3E5F5', border: '#CE93D8', icon: '👤' },
+  admin:      { label: 'Administrace', color: '#B71C1C', bg: '#FFEBEE', border: '#EF9A9A', icon: '🛡️' },
+};
+
+const ACTION_LABELS = {
+  JOINED_SHIFT:              'Přihlášen na směnu',
+  LEFT_SHIFT:                'Odhlášen ze směny',
+  REMOVED_USER_FROM_SHIFT:   'Odebral uživatele ze směny',
+  ADDED_ABSENCE:             'Přidána absence',
+  DELETED_ABSENCE:           'Smazána absence',
+  JOINED_TRAINING:           'Přihlášen na školení',
+  LEFT_TRAINING:             'Odhlášen ze školení',
+  JOINED_EVENT:              'Přihlášen na akci',
+  LEFT_EVENT:                'Odhlášen z akce',
+  UPDATED_PROFILE:           'Aktualizace profilu',
+  UPDATED_EQUIPMENT:         'Aktualizace vybavení',
+  ADMIN_APPROVED_USER:       'Schválení registrace',
+  ADMIN_DEACTIVATED_USER:    'Deaktivace účtu',
+  ADMIN_ACTIVATED_USER:      'Aktivace účtu',
+  ADMIN_DELETED_USER:        'Smazání účtu',
+  ADMIN_CHANGED_ROLE:        'Změna role',
+  ADMIN_CHANGED_CERT:        'Změna kvalifikace',
+  ADMIN_ADDED_EQUIPMENT_TYPE:   'Přidán druh vybavení',
+  ADMIN_REMOVED_EQUIPMENT_TYPE: 'Smazán druh vybavení',
+};
+
+function formatRelativeTime(ts) {
+  if (!ts) return '';
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'právě teď';
+  if (diff < 3600) return `před ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `před ${Math.floor(diff / 3600)} hod`;
+  if (diff < 604800) return `před ${Math.floor(diff / 86400)} dny`;
+  return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatAbsoluteTime(ts) {
+  if (!ts) return '';
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  return date.toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function LogsTab({
+  allUsers, activityLogs, setActivityLogs,
+  logsLoading, setLogsLoading, logsLoaded, setLogsLoaded,
+  logFilterUser, setLogFilterUser, logFilterCategory, setLogFilterCategory
+}) {
+  const { db: dbCtx } = useDbInstance();
+
+  // Load logs lazily when tab first opened
+  React.useEffect(() => {
+    if (logsLoaded) return;
+    setLogsLoading(true);
+    const q = query(
+      collection(db, 'activityLogs'),
+      orderBy('timestamp', 'desc'),
+      limit(300)
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setActivityLogs(docs);
+      setLogsLoading(false);
+      setLogsLoaded(true);
+    }, (err) => {
+      console.error('Logs error:', err);
+      setLogsLoading(false);
+    });
+    return unsub;
+  }, [logsLoaded]);
+
+  const filteredLogs = activityLogs.filter(log => {
+    if (logFilterUser !== 'all' && log.uid !== logFilterUser) return false;
+    if (logFilterCategory !== 'all' && log.category !== logFilterCategory) return false;
+    return true;
+  });
+
+  const uniqueUsers = Array.from(
+    new Map(activityLogs.map(l => [l.uid, { uid: l.uid, name: l.userName }])).values()
+  ).sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+
+  return (
+    <div>
+      {/* Filter Bar */}
+      <div style={{
+        background: 'white', borderRadius: '12px', padding: '1rem 1.25rem',
+        marginBottom: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* User filter */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: 600, whiteSpace: 'nowrap' }}>Uživatel:</span>
+            <select
+              value={logFilterUser}
+              onChange={e => setLogFilterUser(e.target.value)}
+              style={{
+                padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #e0e0e0',
+                fontSize: '0.85rem', background: '#fafafa', cursor: 'pointer', minWidth: '160px'
+              }}
+            >
+              <option value="all">Všichni</option>
+              {uniqueUsers.map(u => (
+                <option key={u.uid} value={u.uid}>{u.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category filter pills */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+            {[{ id: 'all', label: 'Vše', icon: '🔍' }, ...Object.entries(CATEGORY_CONFIG).map(([k, v]) => ({ id: k, label: v.label, icon: v.icon }))]
+              .map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setLogFilterCategory(cat.id)}
+                  style={{
+                    padding: '0.35rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem',
+                    fontWeight: logFilterCategory === cat.id ? 700 : 500,
+                    border: `1px solid ${logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.border || '#aaa') : '#e0e0e0'}`,
+                    background: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.bg || '#eee') : 'white',
+                    color: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.color || '#333') : '#666',
+                    cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap'
+                  }}
+                >
+                  {cat.icon} {cat.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Count */}
+        <span style={{ fontSize: '0.8rem', color: '#aaa', whiteSpace: 'nowrap' }}>
+          {filteredLogs.length} záznamů
+        </span>
+      </div>
+
+      {/* Log List */}
+      {logsLoading ? (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#aaa' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+          Načítám záznamy...
+        </div>
+      ) : filteredLogs.length === 0 ? (
+        <div style={{
+          textAlign: 'center', padding: '3rem', color: '#bbb',
+          background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+        }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📭</div>
+          <div style={{ fontWeight: 600, color: '#999', marginBottom: '0.3rem' }}>Žádné záznamy</div>
+          <div style={{ fontSize: '0.82rem' }}>Změňte filtry nebo počkejte, až nějaká akce proběhne.</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {filteredLogs.map((log, idx) => {
+            const cat = CATEGORY_CONFIG[log.category] || { label: log.category, color: '#555', bg: '#f5f5f5', border: '#ddd', icon: '•' };
+            const actionLabel = ACTION_LABELS[log.action] || log.action;
+            const initials = log.userName ? log.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
+
+            return (
+              <div
+                key={log.id || idx}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+                  background: 'white', borderRadius: '10px',
+                  padding: '0.75rem 1rem',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                  borderLeft: `4px solid ${cat.border}`,
+                  transition: 'box-shadow 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)'}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                  background: cat.bg, border: `2px solid ${cat.border}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: cat.color, fontWeight: 700, fontSize: '0.72rem'
+                }}>
+                  {initials}
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#222' }}>{log.userName}</span>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
+                      borderRadius: '12px', background: cat.bg, color: cat.color, border: `1px solid ${cat.border}`
+                    }}>
+                      {cat.icon} {actionLabel}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#555', lineHeight: 1.45 }}>
+                    {log.detail}
+                  </p>
+                </div>
+
+                {/* Timestamp */}
+                <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '80px' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#888', fontWeight: 600 }}>
+                    {formatRelativeTime(log.timestamp)}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#bbb', marginTop: '0.15rem' }}>
+                    {formatAbsoluteTime(log.timestamp)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Thin hook shim so LogsTab can use db without prop drilling
+function useDbInstance() { return { db }; }

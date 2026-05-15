@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, updateDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { logAction } from '../utils/logger';
 
 const DEFAULT_NIGHT_HOURS = 11;
 const DEFAULT_DAY_HOURS = 8;
@@ -19,6 +20,28 @@ export default function ProfilePage() {
 
   // Statistics State
   const [monthlyHours, setMonthlyHours] = useState(0);
+
+  // Equipment State
+  const [equipmentTypes, setEquipmentTypes] = useState([]);
+  const [isEditingEquipment, setIsEditingEquipment] = useState(false);
+  const [editEqForm, setEditEqForm] = useState({});
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "settings", "equipmentTypes"), (docSnap) => {
+      if (docSnap.exists()) {
+        setEquipmentTypes(docSnap.data().types || []);
+      }
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (userData && userData.equipment) {
+      setEditEqForm(userData.equipment);
+    } else {
+      setEditEqForm({});
+    }
+  }, [userData, isEditingEquipment]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -97,16 +120,64 @@ export default function ProfilePage() {
     e.preventDefault();
     try {
       const userRef = doc(db, "users", currentUser.uid);
+
+      // Build list of changed fields for the log
+      const changed = [];
+      if (editForm.firstName !== userData.firstName) changed.push('Jméno');
+      if (editForm.lastName !== userData.lastName) changed.push('Příjmení');
+      if (editForm.phone !== userData.phone) changed.push('Telefon');
+      if (editForm.address !== userData.address) changed.push('Adresa');
+
       await updateDoc(userRef, {
         firstName: editForm.firstName,
         lastName: editForm.lastName,
         phone: editForm.phone,
         address: editForm.address
       });
+
+      if (changed.length > 0) {
+        logAction(db, currentUser.uid, `${editForm.firstName} ${editForm.lastName}`,
+          'UPDATED_PROFILE', 'profile',
+          `Aktualizoval osobní údaje – změněna pole: ${changed.join(', ')}`);
+      }
+
       setIsEditing(false);
-      window.location.reload();
     } catch (error) {
       console.error("Error updating profile:", error);
+    }
+  }
+
+  async function handleUpdateEquipment(e) {
+    e.preventDefault();
+    try {
+      const userRef = doc(db, "users", currentUser.uid);
+
+      // Build summary of what equipment was set
+      const summary = equipmentTypes
+        .filter(eq => {
+          const d = editEqForm[eq.id];
+          return d && (d.size || (d.amount && d.amount > 0));
+        })
+        .map(eq => {
+          const d = editEqForm[eq.id];
+          const parts = [eq.name];
+          if (eq.hasSize && d.size) parts.push(`vel. ${d.size}`);
+          if (eq.hasAmount && d.amount > 0) parts.push(`${d.amount} ks`);
+          parts.push(d.ownership === 'vlastni' ? '(vlastní)' : '(JSDH)');
+          return parts.join(' ');
+        }).join('; ');
+
+      await updateDoc(userRef, {
+        equipment: editEqForm
+      });
+
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'UPDATED_EQUIPMENT', 'profile',
+        summary ? `Aktualizoval vybavení: ${summary}` : 'Vybavení vynulováno / smazano');
+
+      setIsEditingEquipment(false);
+    } catch (error) {
+      console.error("Error updating equipment:", error);
     }
   }
 
@@ -215,53 +286,144 @@ export default function ProfilePage() {
         gap: '1.5rem'
       }}>
 
-        {/* Left Col: Personal Info */}
-        <div className="card" style={{ height: 'fit-content' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1.25rem', color: '#333' }}>👤 Osobní Údaje</h3>
-            {!isEditing && (
-              <button
-                className="btn btn-secondary"
-                onClick={() => setIsEditing(true)}
-                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-              >
-                Upravit
-              </button>
+        {/* Left Col: Personal Info & Equipment */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="card" style={{ height: 'fit-content' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.25rem', color: '#333' }}>👤 Osobní Údaje</h3>
+              {!isEditing && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setIsEditing(true)}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                >
+                  Upravit
+                </button>
+              )}
+            </div>
+
+            {isEditing ? (
+              <form onSubmit={handleUpdateProfile}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Jméno</label>
+                    <input className="input-field" value={editForm.firstName} onChange={e => setEditForm({ ...editForm, firstName: e.target.value })} required />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Příjmení</label>
+                    <input className="input-field" value={editForm.lastName} onChange={e => setEditForm({ ...editForm, lastName: e.target.value })} required />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Telefon</label>
+                  <input className="input-field" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Adresa Bydliště</label>
+                  <input className="input-field" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit změny</button>
+                  <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setIsEditing(false)}>Zrušit</button>
+                </div>
+              </form>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <ProfileItem label="Email (Přihlášení)" value={userData.email} icon="✉️" />
+                <ProfileItem label="Telefon" value={userData.phone || 'Neuvedeno'} icon="📱" />
+                <ProfileItem label="Adresa" value={userData.address || 'Neuvedeno'} icon="🏠" />
+              </div>
             )}
           </div>
 
-          {isEditing ? (
-            <form onSubmit={handleUpdateProfile}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="input-group">
-                  <label className="input-label">Jméno</label>
-                  <input className="input-field" value={editForm.firstName} onChange={e => setEditForm({ ...editForm, firstName: e.target.value })} required />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">Příjmení</label>
-                  <input className="input-field" value={editForm.lastName} onChange={e => setEditForm({ ...editForm, lastName: e.target.value })} required />
-                </div>
-              </div>
-              <div className="input-group">
-                <label className="input-label">Telefon</label>
-                <input className="input-field" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Adresa Bydliště</label>
-                <input className="input-field" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} />
-              </div>
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-                <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit změny</button>
-                <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setIsEditing(false)}>Zrušit</button>
-              </div>
-            </form>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <ProfileItem label="Email (Přihlášení)" value={userData.email} icon="✉️" />
-              <ProfileItem label="Telefon" value={userData.phone || 'Neuvedeno'} icon="📱" />
-              <ProfileItem label="Adresa" value={userData.address || 'Neuvedeno'} icon="🏠" />
+          <div className="card" style={{ height: 'fit-content' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.25rem', color: '#333' }}>🧰 Přidělené vybavení</h3>
+              {!isEditingEquipment && equipmentTypes.length > 0 && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setIsEditingEquipment(true)}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                >
+                  Upravit
+                </button>
+              )}
             </div>
-          )}
+
+            {isEditingEquipment ? (
+              <form onSubmit={handleUpdateEquipment}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                  {equipmentTypes.map(eq => {
+                    const eqData = editEqForm[eq.id] || {};
+                    return (
+                      <div key={eq.id} style={{ padding: '1rem', background: '#f9f9f9', borderRadius: '8px', border: '1px solid #eee' }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.75rem', color: '#333' }}>{eq.name}</div>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                          {eq.hasSize && (
+                            <div style={{ flex: 1, minWidth: '100px' }}>
+                              <label style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '0.2rem' }}>Velikost</label>
+                              <input className="input-field" value={eqData.size || ''} onChange={e => setEditEqForm({...editEqForm, [eq.id]: {...eqData, size: e.target.value}})} style={{ padding: '0.4rem' }} />
+                            </div>
+                          )}
+                          {eq.hasAmount && (
+                            <div style={{ flex: 1, minWidth: '100px' }}>
+                              <label style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '0.2rem' }}>Počet (Ks)</label>
+                              <input type="number" min="0" className="input-field" value={eqData.amount === undefined ? '' : eqData.amount} onChange={e => setEditEqForm({...editEqForm, [eq.id]: {...eqData, amount: e.target.value ? parseInt(e.target.value) : 0}})} style={{ padding: '0.4rem' }} />
+                            </div>
+                          )}
+                          <div style={{ flex: 1, minWidth: '120px' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '0.2rem' }}>Původ</label>
+                            <select className="input-field" value={eqData.ownership || 'jsdh'} onChange={e => setEditEqForm({...editEqForm, [eq.id]: {...eqData, ownership: e.target.value}})} style={{ padding: '0.4rem' }}>
+                              <option value="jsdh">Fasované (JSDH)</option>
+                              <option value="vlastni">Vlastní</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit vybavení</button>
+                  <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setIsEditingEquipment(false)}>Zrušit</button>
+                </div>
+              </form>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {equipmentTypes.length === 0 ? (
+                  <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Vybavení není nastaveno administrátorem.</p>
+                ) : (
+                  equipmentTypes.map(eq => {
+                    const eqData = userData.equipment?.[eq.id];
+                    // Check if something is actually set (has an amount > 0 or a size string)
+                    if (!eqData || (!eqData.size && (!eqData.amount || eqData.amount === 0))) return null;
+                    
+                    return (
+                      <div key={eq.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f5f5f5', borderRadius: '8px' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#333' }}>{eq.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.2rem' }}>
+                            {eqData.ownership === 'vlastni' ? '🟢 Vlastní' : '🏢 Fasované (JSDH)'}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                          {eq.hasSize && eqData.size && (
+                            <span style={{ background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.85rem' }}>Vel: <strong>{eqData.size}</strong></span>
+                          )}
+                          {eq.hasAmount && eqData.amount > 0 && (
+                            <span style={{ background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.85rem' }}>Ks: <strong>{eqData.amount}</strong></span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+                {equipmentTypes.length > 0 && (!userData.equipment || Object.values(userData.equipment).every(e => !e.size && (!e.amount || e.amount === 0))) && (
+                  <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Zatím nemáte evidováno žádné vybavení.</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Col: Certifications & System Info */}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, setDoc, onSnapshot, deleteField, updateDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
+import { logAction } from '../utils/logger';
 
 const DAYS_CZ = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -341,6 +342,27 @@ export default function ShiftCalendarPage() {
     try {
       const docRef = doc(db, 'shifts', currentDocId);
       await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
+
+      // Determine what happened for logging
+      const shiftLabel = section === 'dayShift' ? 'denní' : 'noční';
+      const slotLabel = { velitel: 'Velitel', strojnik: 'Strojník', hasic1: 'Hasič 1', hasic2: 'Hasič 2', hasic3: 'Hasič 3', hasic4: 'Hasič 4', hasic5: 'Hasič 5' }[slotKey] || slotKey;
+      const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+      const wasRemoved = currentAssignee && currentAssignee.uid === currentUser.uid;
+      const wasKicked = currentAssignee && currentAssignee.uid !== currentUser.uid;
+      if (wasKicked) {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'REMOVED_USER_FROM_SHIFT', 'shifts',
+          `Odebral ${currentAssignee.name} z pozice ${slotLabel} – ${shiftLabel} sloužba ${dateLabel}`);
+      } else if (wasRemoved) {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'LEFT_SHIFT', 'shifts',
+          `Odhlásil se z ${shiftLabel} služby ${dateLabel} (${slotLabel})`);
+      } else {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'JOINED_SHIFT', 'shifts',
+          `Přihlásil se na ${shiftLabel} službu ${dateLabel} – pozice: ${slotLabel}`);
+      }
+
       showToast('success', 'Služba uložena.');
     } catch (err) {
       console.error("Error updating shift:", err);
@@ -440,6 +462,9 @@ export default function ShiftCalendarPage() {
       await setDoc(absenceDocRef, {
         items: arrayUnion(newAbsence)
       }, { merge: true });
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADDED_ABSENCE', 'shifts',
+        `Přidal absenci: "${absenceData.reason}" (${absenceData.startDate} – ${absenceData.endDate})`);
       showToast('success', 'Absence uložena.');
       setAbsenceModal(null);
     } catch (err) {
@@ -464,6 +489,9 @@ export default function ShiftCalendarPage() {
       await updateDoc(absenceDocRef, {
         items: arrayRemove(absence)
       });
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'DELETED_ABSENCE', 'shifts',
+        `Smazal absenci: "${absence.reason}" (${absence.startDate} – ${absence.endDate})`);
       showToast('success', 'Absence smazána.');
     } catch (err) {
       console.error("Error deleting absence:", err);
@@ -1068,6 +1096,10 @@ function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, 
           joinedAt: new Date().toISOString()
         })
       });
+      const typeLabel = activity.type === 'training' ? 'školení' : 'akci';
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        activity.type === 'training' ? 'JOINED_TRAINING' : 'JOINED_EVENT', 'activities',
+        `Přihlásil se na ${typeLabel} „${activity.title}“ (${activity.date}) – ze stránky Směn`);
       showToast('success', 'Přihlášeno!');
     } catch (err) {
       console.error('Error joining:', err);
@@ -1085,6 +1117,10 @@ function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, 
       await updateDoc(doc(db, collectionName, activity.id), {
         participants: arrayRemove(myParticipation)
       });
+      const typeLabel = activity.type === 'training' ? 'školení' : 'akce';
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        activity.type === 'training' ? 'LEFT_TRAINING' : 'LEFT_EVENT', 'activities',
+        `Odhlásil se ze ${typeLabel} „${activity.title}“ (${activity.date}) – ze stránky Směn`);
       showToast('success', 'Odhlášeno.');
     } catch (err) {
       console.error('Error leaving:', err);
@@ -1212,10 +1248,14 @@ function InlineActivities({ trainings, events, currentUser, userData, showToast 
           joinedAt: new Date().toISOString()
         })
       });
+      const typeLabel = activity.type === 'training' ? 'školení' : 'akci';
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        activity.type === 'training' ? 'JOINED_TRAINING' : 'JOINED_EVENT', 'activities',
+        `Přihlásil se na ${typeLabel} „${activity.title}“ (${activity.date}) – ze stránky Směn`);
       showToast('success', 'Přihlášeno!');
     } catch (err) {
       console.error('Error joining:', err);
-      showToast('error', 'Chyba při přihlašování.');
+      showToast('error', 'Chyba při přihlášování.');
     }
   };
 
@@ -1228,6 +1268,10 @@ function InlineActivities({ trainings, events, currentUser, userData, showToast 
       await updateDoc(doc(db, collectionName, activity.id), {
         participants: arrayRemove(myParticipation)
       });
+      const typeLabel = activity.type === 'training' ? 'školení' : 'akce';
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        activity.type === 'training' ? 'LEFT_TRAINING' : 'LEFT_EVENT', 'activities',
+        `Odhlásil se ze ${typeLabel} „${activity.title}“ (${activity.date}) – ze stránky Směn`);
       showToast('success', 'Odhlášeno.');
     } catch (err) {
       console.error('Error leaving:', err);
