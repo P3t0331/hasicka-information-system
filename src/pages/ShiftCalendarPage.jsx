@@ -400,6 +400,9 @@ export default function ShiftCalendarPage() {
           }
         }
       }, { merge: true });
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_REMOVED_DAY_SHIFT', 'admin',
+        `Zrušil denní službu pro den ${date}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`);
       showToast('success', 'Denní služba odebrána.');
     } catch (err) {
       console.error("Error removing day shift:", err);
@@ -436,6 +439,9 @@ export default function ShiftCalendarPage() {
           }
         }
       }, { merge: true });
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_ADDED_DAY_SHIFT', 'admin',
+        `Vytvořil denní službu pro den ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`);
       showToast('success', `Denní služba pro ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} vytvořena.`);
       setNewDayShiftDate('');
     } catch (err) {

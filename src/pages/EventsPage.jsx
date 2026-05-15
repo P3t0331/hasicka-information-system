@@ -102,6 +102,9 @@ export default function EventsPage() {
         if (!deleteModal) return;
         try {
             await deleteDoc(doc(db, 'events', deleteModal.id));
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'ADMIN_DELETED_EVENT', 'admin',
+                `Smazal akci „${deleteModal.title}“ (${deleteModal.date})`);
             showToast('success', 'Smazáno.');
         } catch (err) {
             console.error('Error deleting:', err);
@@ -441,6 +444,9 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null
                 });
+                logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                    'ADMIN_UPDATED_EVENT', 'admin',
+                    `Upravil akci „${title.trim()}“ (${date})`);
                 showToast('success', 'Upraveno!');
             } else {
                 await addDoc(collection(db, 'events'), {
@@ -456,6 +462,9 @@ function CreateEventModal({ onClose, currentUser, userData, showToast, initialDa
                     createdAt: new Date().toISOString(),
                     participants: []
                 });
+                logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                    'ADMIN_CREATED_EVENT', 'admin',
+                    `Vytvořil novou akci „${title.trim()}“ (${date})`);
                 showToast('success', 'Vytvořeno!');
             }
             onClose();

@@ -225,6 +225,7 @@ export default function StatisticsPage() {
           currentDocId={currentDocId}
           isAdmin={isAdmin}
           currentUser={currentUser}
+          userData={userData}
         />
       )}
 

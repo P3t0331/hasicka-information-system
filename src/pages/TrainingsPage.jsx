@@ -102,6 +102,9 @@ export default function TrainingsPage() {
         if (!deleteModal) return;
         try {
             await deleteDoc(doc(db, 'trainings', deleteModal.id));
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'ADMIN_DELETED_TRAINING', 'admin',
+                `Smazal školení „${deleteModal.title}“ (${deleteModal.date})`);
             showToast('success', 'Smazáno.');
         } catch (err) {
             console.error('Error deleting:', err);
@@ -441,6 +444,9 @@ function CreateTrainingModal({ onClose, currentUser, userData, showToast, initia
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null
                 });
+                logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                    'ADMIN_UPDATED_TRAINING', 'admin',
+                    `Upravil školení „${title.trim()}“ (${date})`);
                 showToast('success', 'Upraveno!');
             } else {
                 await addDoc(collection(db, 'trainings'), {
@@ -456,6 +462,9 @@ function CreateTrainingModal({ onClose, currentUser, userData, showToast, initia
                     createdAt: new Date().toISOString(),
                     participants: []
                 });
+                logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                    'ADMIN_CREATED_TRAINING', 'admin',
+                    `Vytvořil nové školení „${title.trim()}“ (${date})`);
                 showToast('success', 'Vytvořeno!');
             }
             onClose();

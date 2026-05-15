@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { db } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { logAction } from '../../utils/logger';
 import StatCard from './StatCard';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
@@ -14,7 +15,8 @@ export default function ShiftsTab({
     currentDate,
     currentDocId,
     isAdmin,
-    currentUser
+    currentUser,
+    userData
 }) {
     const [editingCell, setEditingCell] = useState(null);
 
@@ -169,6 +171,11 @@ export default function ShiftsTab({
                     }
                 }
             }, { merge: true });
+
+            const targetUser = users.find(u => u.uid === uid);
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'ADMIN_UPDATED_SHIFT_HOURS', 'shifts',
+                `Upravil hodiny uživateli ${targetUser?.name || uid} na den ${day}. ${MONTHS_CZ[currentDate.getMonth()]} (Denní: ${update.day}h, Noční: ${update.night}h)`);
         } catch (err) {
             console.error("Error updating hours:", err);
         }

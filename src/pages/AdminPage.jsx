@@ -708,6 +708,9 @@ export default function AdminPage() {
                       requestConfirm(`Opravdu zamítnout a smazat ${user.firstName} ${user.lastName}?`, async () => {
                         try {
                           await deleteDoc(doc(db, "users", user.uid));
+                          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                            'ADMIN_REJECTED_USER', 'admin',
+                            `Zamítl a smazal registraci uživatele ${user.firstName} ${user.lastName} (${user.email})`);
                           fetchAdminData();
                           showNotification('success', 'Žádost zamítnuta.');
                         } catch (e) { console.error(e); showNotification('error', "Chyba akce."); }

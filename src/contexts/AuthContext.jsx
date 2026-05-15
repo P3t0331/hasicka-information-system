@@ -7,6 +7,7 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import { logAction } from "../utils/logger";
 
 const AuthContext = React.createContext();
 
@@ -68,6 +69,9 @@ export function AuthProvider({ children }) {
           approved: false,
           createdAt: new Date().toISOString()
         });
+        logAction(db, user.uid, `${profileData.firstName} ${profileData.lastName}`,
+          'USER_REGISTERED', 'profile',
+          `Zaregistroval se do systému (${email})`);
       } catch (dbError) {
         console.error("Error writing to Firestore:", dbError);
         throw new Error("Chyba při vytváření profilu: " + dbError.message);
