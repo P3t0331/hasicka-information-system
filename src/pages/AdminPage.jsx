@@ -1148,7 +1148,9 @@ const ACTION_LABELS = {
   LEFT_EVENT:                'Odhlášen z akce',
   UPDATED_PROFILE:           'Aktualizace profilu',
   UPDATED_EQUIPMENT:         'Aktualizace vybavení',
+  USER_REGISTERED:           'Registrace do systému',
   ADMIN_APPROVED_USER:       'Schválení registrace',
+  ADMIN_REJECTED_USER:       'Zamítnutí registrace',
   ADMIN_DEACTIVATED_USER:    'Deaktivace účtu',
   ADMIN_ACTIVATED_USER:      'Aktivace účtu',
   ADMIN_DELETED_USER:        'Smazání účtu',
@@ -1156,6 +1158,15 @@ const ACTION_LABELS = {
   ADMIN_CHANGED_CERT:        'Změna kvalifikace',
   ADMIN_ADDED_EQUIPMENT_TYPE:   'Přidán druh vybavení',
   ADMIN_REMOVED_EQUIPMENT_TYPE: 'Smazán druh vybavení',
+  ADMIN_CREATED_TRAINING:    'Vytvořeno školení',
+  ADMIN_UPDATED_TRAINING:    'Upraveno školení',
+  ADMIN_DELETED_TRAINING:    'Smazáno školení',
+  ADMIN_CREATED_EVENT:       'Vytvořena akce',
+  ADMIN_UPDATED_EVENT:       'Upravena akce',
+  ADMIN_DELETED_EVENT:       'Smazána akce',
+  ADMIN_ADDED_DAY_SHIFT:     'Přidána denní služba',
+  ADMIN_REMOVED_DAY_SHIFT:   'Zrušena denní služba',
+  ADMIN_UPDATED_SHIFT_HOURS: 'Úprava hodin služby',
 };
 
 function formatRelativeTime(ts) {
@@ -1264,10 +1275,38 @@ function LogsTab({
           </div>
         </div>
 
-        {/* Count */}
-        <span style={{ fontSize: '0.8rem', color: '#aaa', whiteSpace: 'nowrap' }}>
-          {filteredLogs.length} záznamů
-        </span>
+        {/* Actions (Refresh) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => {
+              setLogsLoaded(false);
+              setActivityLogs([]); // Clear existing logs to show loading state
+            }}
+            disabled={logsLoading}
+            style={{
+              background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px',
+              padding: '0.45rem 0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontSize: '0.85rem', color: '#555', transition: 'all 0.2s',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}
+            onMouseOver={e => { e.currentTarget.style.background = '#f9f9f9'; e.currentTarget.style.borderColor = '#ccc'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e0e0e0'; }}
+          >
+            <span style={{ 
+              display: 'inline-block', 
+              animation: logsLoading ? 'spin 1s linear infinite' : 'none',
+              fontSize: '1rem'
+            }}>
+              🔄
+            </span>
+            Obnovit
+          </button>
+
+          {/* Count */}
+          <span style={{ fontSize: '0.8rem', color: '#aaa', whiteSpace: 'nowrap' }}>
+            {filteredLogs.length} záznamů
+          </span>
+        </div>
       </div>
 
       {/* Log List */}

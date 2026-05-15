@@ -647,6 +647,11 @@ h4 {
   }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .hover-row:hover {
   background: #f1f8e9 !important;
   /* Very light green hint */
