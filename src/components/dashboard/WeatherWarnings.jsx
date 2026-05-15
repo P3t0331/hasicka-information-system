@@ -11,6 +11,22 @@ export default function WeatherWarnings() {
 
     const fetchWeather = async () => {
         try {
+            // Check cache first (30 minutes)
+            const cachedData = localStorage.getItem('weatherWarningsCache');
+            const cacheTimestamp = localStorage.getItem('weatherWarningsTimestamp');
+            
+            if (cachedData && cacheTimestamp) {
+                const now = new Date().getTime();
+                const cacheTime = parseInt(cacheTimestamp, 10);
+                const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in ms
+
+                if (now - cacheTime < CACHE_DURATION) {
+                    processWeatherData(JSON.parse(cachedData));
+                    setLoading(false);
+                    return;
+                }
+            }
+
             // WeatherAPI.com - Brno
             // Key from .env
             const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
@@ -20,6 +36,11 @@ export default function WeatherWarnings() {
             if (!response.ok) throw new Error('Nelze načíst data o počasí');
 
             const data = await response.json();
+            
+            // Save to cache
+            localStorage.setItem('weatherWarningsCache', JSON.stringify(data));
+            localStorage.setItem('weatherWarningsTimestamp', new Date().getTime().toString());
+
             processWeatherData(data);
         } catch (err) {
             console.error('Error fetching weather:', err);
