@@ -1147,6 +1147,14 @@ function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, 
                       >
                         Odhlásit
                       </button>
+                    ) : (activity.maxParticipants && count >= parseInt(activity.maxParticipants)) ? (
+                      <button
+                        className="activity-item__btn"
+                        disabled
+                        style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}
+                      >
+                        Plno
+                      </button>
                     ) : (
                       <button
                         className="activity-item__btn activity-item__btn--join"
@@ -1279,6 +1287,14 @@ function InlineActivities({ trainings, events, currentUser, userData, showToast 
                       onClick={() => handleLeave(activity)}
                     >
                       Odhlásit
+                    </button>
+                  ) : (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) ? (
+                    <button
+                      className="inline-activity-card__btn"
+                      disabled
+                      style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}
+                    >
+                      Plno
                     </button>
                   ) : (
                     <button

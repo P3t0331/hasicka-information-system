@@ -360,6 +360,10 @@ function TrainingCard({ training, isPast, currentUser, onJoin, onLeave, onDelete
                             <button className="event-action-btn event-action-btn--leave" onClick={() => onLeave(training)}>
                                 Odhlásit
                             </button>
+                        ) : (training.maxParticipants && count >= parseInt(training.maxParticipants)) ? (
+                            <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}>
+                                Plno
+                            </button>
                         ) : (
                             <button className="event-action-btn event-action-btn--join" onClick={() => onJoin(training)}>
                                 Přihlásit

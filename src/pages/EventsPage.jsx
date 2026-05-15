@@ -360,6 +360,10 @@ function EventCard({ event, isPast, currentUser, onJoin, onLeave, onDelete, onEd
                             <button className="event-action-btn event-action-btn--leave" onClick={() => onLeave(event)}>
                                 Odhlásit
                             </button>
+                        ) : (event.maxParticipants && count >= parseInt(event.maxParticipants)) ? (
+                            <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}>
+                                Plno
+                            </button>
                         ) : (
                             <button className="event-action-btn event-action-btn--join" onClick={() => onJoin(event)}>
                                 Přihlásit
