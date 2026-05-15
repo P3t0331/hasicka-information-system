@@ -55,12 +55,16 @@ export default function AdminPage() {
   const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
 
   useEffect(() => {
+    // Only proceed if userData is actually loaded
+    if (!userData) return;
+
     if (isAdminOrVJ) {
       fetchAdminData();
     } else {
-      setDataLoading(false); // Stop loading so we can show Access Denied
+      // If not an admin, stop loading so Access Denied can show
+      setDataLoading(false);
     }
-  }, [isAdminOrVJ]);
+  }, [isAdminOrVJ, userData]);
 
   useEffect(() => {
     // Calculate stats whenever users change
@@ -94,25 +98,22 @@ export default function AdminPage() {
     setLoading(true);
     setDataLoading(true);
     try {
-      // Fetch Pending (approved == false)
-      const qPending = query(collection(db, "users"), where("approved", "==", false));
-      const querySnapshotPending = await getDocs(qPending);
-      const startPending = [];
-      querySnapshotPending.forEach((doc) => {
-        startPending.push(doc.data());
+      // Fetch all users in one go
+      const q = query(collection(db, "users"));
+      const querySnapshot = await getDocs(q);
+      const allFetchedUsers = [];
+      querySnapshot.forEach((doc) => {
+        allFetchedUsers.push(doc.data());
       });
-      setPendingUsers(startPending);
 
-      // Fetch All Confirmed Users (approved == true)
-      const qAll = query(collection(db, "users"), where("approved", "==", true));
-      const querySnapshotAll = await getDocs(qAll);
-      const startAll = [];
-      querySnapshotAll.forEach((doc) => {
-        startAll.push(doc.data());
-      });
-      // Sort alphabetically
-      startAll.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
-      setAllUsers(startAll);
+      // Filter and sort in memory
+      const pending = allFetchedUsers.filter(u => u.approved === false);
+      const confirmed = allFetchedUsers.filter(u => u.approved === true);
+      
+      confirmed.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
+      
+      setPendingUsers(pending);
+      setAllUsers(confirmed);
 
       // Fetch Equipment Types
       const eqDoc = await getDoc(doc(db, "settings", "equipmentTypes"));
@@ -123,9 +124,10 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Error fetching admin data:", error);
       showNotification('error', 'Chyba při načítání dat.');
+    } finally {
+      setLoading(false);
+      setDataLoading(false);
     }
-    setLoading(false);
-    setDataLoading(false);
   }
 
   function showNotification(type, message) {
@@ -1192,7 +1194,8 @@ function LogsTab({
   logsLoading, setLogsLoading, logsLoaded, setLogsLoaded,
   logFilterUser, setLogFilterUser, logFilterCategory, setLogFilterCategory
 }) {
-  const { db: dbCtx } = useDbInstance();
+  // Use the imported db instead of non-existent useDbInstance
+  const dbCtx = db;
 
   // Load logs lazily when tab first opened
   React.useEffect(() => {
