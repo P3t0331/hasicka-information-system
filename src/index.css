@@ -857,6 +857,16 @@ h4 {
   opacity: 0.8;
 }
 
+.event-card--important {
+  background: #FFF3E0;
+  border-left: 4px solid #FF9800;
+}
+
+.event-card--important:hover {
+  background: #FFE0B2;
+}
+
+
 /* Date Badge */
 .date-badge {
   background: var(--primary-red);

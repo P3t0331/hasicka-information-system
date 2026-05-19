@@ -1,6 +1,5 @@
 import React from 'react';
-
-const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+import { MONTHS_CZ } from '../../utils/constants';
 
 export default function ActivitiesTab({ eventsData, trainingsData }) {
     // Get all participants with stats
@@ -23,6 +22,21 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
         );
     }
 
+    const getActivityHours = (activity) => {
+        if (!activity.time || !activity.timeEnd) return 0;
+        const [startH, startM] = activity.time.split(':').map(Number);
+        const [endH, endM] = activity.timeEnd.split(':').map(Number);
+        if (isNaN(startH) || isNaN(endH)) return 0;
+        
+        const startMinutes = startH * 60 + (isNaN(startM) ? 0 : startM);
+        const endMinutes = endH * 60 + (isNaN(endM) ? 0 : endM);
+        let diffMins = endMinutes - startMinutes;
+        if (diffMins < 0) {
+            diffMins += 24 * 60; // spans midnight
+        }
+        return diffMins / 60;
+    };
+
     // Calculate statistics for each user
     const userStats = users.map(user => {
         const userEvents = eventsData.filter(e =>
@@ -32,6 +46,10 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
             t.participants?.some(p => p.uid === user.uid)
         );
         const total = userEvents.length + userTrainings.length;
+
+        const eventsHours = userEvents.reduce((sum, e) => sum + getActivityHours(e), 0);
+        const trainingsHours = userTrainings.reduce((sum, t) => sum + getActivityHours(t), 0);
+        const totalHours = eventsHours + trainingsHours;
 
         // Get latest activity
         const allActivities = [
@@ -43,17 +61,26 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
             ...user,
             events: userEvents.length,
             trainings: userTrainings.length,
+            eventsHours,
+            trainingsHours,
             total,
+            totalHours,
             latestActivity: allActivities[0]
         };
-    }).sort((a, b) => b.total - a.total);
+    }).sort((a, b) => b.totalHours - a.totalHours || b.total - a.total);
 
     const totalEvents = eventsData.length;
     const totalTrainings = trainingsData.length;
     const totalActivities = totalEvents + totalTrainings;
+
+    const totalEventsHours = eventsData.reduce((sum, e) => sum + getActivityHours(e), 0);
+    const totalTrainingsHours = trainingsData.reduce((sum, t) => sum + getActivityHours(t), 0);
+    const totalActivitiesHours = totalEventsHours + totalTrainingsHours;
+
     const activeParticipants = users.length;
     const avgPerPerson = activeParticipants > 0 ? (totalActivities / activeParticipants).toFixed(1) : 0;
-    const maxParticipation = Math.max(...userStats.map(u => u.total), 1);
+    const avgHoursPerPerson = activeParticipants > 0 ? (totalActivitiesHours / activeParticipants) : 0;
+    const maxParticipationHours = Math.max(...userStats.map(u => u.totalHours), 1);
 
     return (
         <>
@@ -72,8 +99,10 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                     boxShadow: '0 4px 12px rgba(229, 57, 53, 0.25)'
                 }}>
                     <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🚩</div>
-                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>{totalEvents}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Akce celkem</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                        {totalEvents} <span style={{ fontSize: '1.1rem', fontWeight: 500, opacity: 0.85 }}>({totalEventsHours.toFixed(1).replace('.0', '')}h)</span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Akce celkem (odpracované h)</div>
                 </div>
 
                 <div className="card" style={{
@@ -84,8 +113,10 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                     boxShadow: '0 4px 12px rgba(156, 39, 176, 0.25)'
                 }}>
                     <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📚</div>
-                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>{totalTrainings}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Školení celkem</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                        {totalTrainings} <span style={{ fontSize: '1.1rem', fontWeight: 500, opacity: 0.85 }}>({totalTrainingsHours.toFixed(1).replace('.0', '')}h)</span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Školení celkem (odškolené h)</div>
                 </div>
 
                 <div className="card" style={{
@@ -108,8 +139,10 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                     boxShadow: '0 4px 12px rgba(56, 142, 60, 0.25)'
                 }}>
                     <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📊</div>
-                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>{avgPerPerson}</div>
-                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Průměr na osobu</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                        {avgPerPerson} <span style={{ fontSize: '1.1rem', fontWeight: 500, opacity: 0.85 }}>({avgHoursPerPerson.toFixed(1).replace('.0', '')}h)</span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Průměr na osobu (aktivity / h)</div>
                 </div>
             </div>
 
@@ -117,11 +150,11 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                 {/* TOP 5 LEADERBOARD */}
                 <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'fit-content' }}>
                     <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>🏆 Top 5 Nejaktivnějších</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>🏆 Top 5 Nejaktivnějších (podle hodin)</h3>
                     </div>
                     <div style={{ padding: '0.5rem 1rem' }}>
                         {userStats.slice(0, 5).map((user, i) => {
-                            const pct = (user.total / maxParticipation) * 100;
+                            const pct = (user.totalHours / maxParticipationHours) * 100;
                             const medals = ['🥇', '🥈', '🥉', '4.', '5.'];
                             return (
                                 <div key={user.uid} style={{
@@ -151,8 +184,8 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                     </div>
 
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>{user.total}</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#999' }}>aktivit</div>
+                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>{user.totalHours.toFixed(1).replace('.0', '')}h</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#999' }}>{user.total} aktivit</div>
                                     </div>
                                 </div>
                             );
@@ -166,25 +199,34 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                         <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>📈 Rozložení aktivit</h3>
                     </div>
                     <div style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                            <div style={{ flex: 1, textAlign: 'center', padding: '1rem', borderRadius: '8px', background: '#FFEBEE' }}>
-                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚩</div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#E53935', marginBottom: '0.25rem' }}>{totalEvents}</div>
+                        {/* Counts breakdown */}
+                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ flex: 1, textAlign: 'center', padding: '0.75rem', borderRadius: '8px', background: '#FFEBEE' }}>
+                                <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>🚩</div>
+                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#E53935', marginBottom: '0.1rem' }}>
+                                    {totalEvents} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#666' }}>({totalEventsHours.toFixed(1).replace('.0', '')}h)</span>
+                                </div>
                                 <div style={{ fontSize: '0.85rem', color: '#666' }}>Akce</div>
                             </div>
-                            <div style={{ flex: 1, textAlign: 'center', padding: '1rem', borderRadius: '8px', background: '#F3E5F5' }}>
-                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📚</div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#9C27B0', marginBottom: '0.25rem' }}>{totalTrainings}</div>
+                            <div style={{ flex: 1, textAlign: 'center', padding: '0.75rem', borderRadius: '8px', background: '#F3E5F5' }}>
+                                <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>📚</div>
+                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#9C27B0', marginBottom: '0.1rem' }}>
+                                    {totalTrainings} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#666' }}>({totalTrainingsHours.toFixed(1).replace('.0', '')}h)</span>
+                                </div>
                                 <div style={{ fontSize: '0.85rem', color: '#666' }}>Školení</div>
                             </div>
                         </div>
+
+                        {/* Counts breakdown bar */}
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#777', marginBottom: '4px' }}>Rozložení podle počtu:</div>
                         <div style={{
                             width: '100%',
-                            height: '12px',
-                            borderRadius: '6px',
+                            height: '10px',
+                            borderRadius: '5px',
                             overflow: 'hidden',
                             display: 'flex',
-                            background: '#f0f0f0'
+                            background: '#f0f0f0',
+                            marginBottom: '1rem'
                         }}>
                             {totalActivities > 0 && (
                                 <>
@@ -199,12 +241,36 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                 </>
                             )}
                         </div>
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', fontSize: '0.8rem', color: '#666', justifyContent: 'center' }}>
+
+                        {/* Hours breakdown bar */}
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#777', marginBottom: '4px' }}>Rozložení podle hodin:</div>
+                        <div style={{
+                            width: '100%',
+                            height: '10px',
+                            borderRadius: '5px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            background: '#f0f0f0'
+                        }}>
+                            {totalActivitiesHours > 0 && (
+                                <>
+                                    <div style={{
+                                        width: `${(totalEventsHours / totalActivitiesHours) * 100}%`,
+                                        background: '#E53935'
+                                    }} />
+                                    <div style={{
+                                        width: `${(totalTrainingsHours / totalActivitiesHours) * 100}%`,
+                                        background: '#9C27B0'
+                                    }} />
+                                </>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.8rem', color: '#666', justifyContent: 'center' }}>
                             <div>
-                                <span style={{ color: '#E53935', fontWeight: 600 }}>{totalActivities > 0 ? Math.round((totalEvents / totalActivities) * 100) : 0}%</span> Akce
+                                <span style={{ color: '#E53935', fontWeight: 600 }}>{totalActivitiesHours > 0 ? Math.round((totalEventsHours / totalActivitiesHours) * 100) : 0}%</span> Akce
                             </div>
                             <div>
-                                <span style={{ color: '#9C27B0', fontWeight: 600 }}>{totalActivities > 0 ? Math.round((totalTrainings / totalActivities) * 100) : 0}%</span> Školení
+                                <span style={{ color: '#9C27B0', fontWeight: 600 }}>{totalActivitiesHours > 0 ? Math.round((totalTrainingsHours / totalActivitiesHours) * 100) : 0}%</span> Školení
                             </div>
                         </div>
                     </div>
@@ -244,39 +310,42 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                 {user.name}
                             </div>
 
-                            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                                 <div style={{
                                     flex: 1,
-                                    padding: '0.75rem',
+                                    padding: '0.5rem 0.25rem',
                                     borderRadius: '8px',
                                     background: '#FFEBEE',
                                     textAlign: 'center'
                                 }}>
-                                    <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>🚩</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#E53935', marginBottom: '0.125rem' }}>{user.events}</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666' }}>Akce</div>
+                                    <div style={{ fontSize: '1.3rem', marginBottom: '0.25rem' }}>🚩</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#E53935', marginBottom: '0.125rem' }}>{user.events}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#c62828' }}>{user.eventsHours.toFixed(1).replace('.0', '')}h</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#777' }}>Akce</div>
                                 </div>
                                 <div style={{
                                     flex: 1,
-                                    padding: '0.75rem',
+                                    padding: '0.5rem 0.25rem',
                                     borderRadius: '8px',
                                     background: '#F3E5F5',
                                     textAlign: 'center'
                                 }}>
-                                    <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>📚</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#9C27B0', marginBottom: '0.125rem' }}>{user.trainings}</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666' }}>Školení</div>
+                                    <div style={{ fontSize: '1.3rem', marginBottom: '0.25rem' }}>📚</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#9C27B0', marginBottom: '0.125rem' }}>{user.trainings}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#7b1fa2' }}>{user.trainingsHours.toFixed(1).replace('.0', '')}h</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#777' }}>Školení</div>
                                 </div>
                                 <div style={{
                                     flex: 1,
-                                    padding: '0.75rem',
+                                    padding: '0.5rem 0.25rem',
                                     borderRadius: '8px',
                                     background: '#FFF3E0',
                                     textAlign: 'center'
                                 }}>
-                                    <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>📊</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#FF9800', marginBottom: '0.125rem' }}>{user.total}</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666' }}>Celkem</div>
+                                    <div style={{ fontSize: '1.3rem', marginBottom: '0.25rem' }}>📊</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#FF9800', marginBottom: '0.125rem' }}>{user.total}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#ef6c00' }}>{user.totalHours.toFixed(1).replace('.0', '')}h</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#777' }}>Celkem</div>
                                 </div>
                             </div>
 

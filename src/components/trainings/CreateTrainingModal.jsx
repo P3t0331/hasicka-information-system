@@ -12,6 +12,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
     const [departureTime, setDepartureTime] = useState(initialData?.departureTime || '');
     const [location, setLocation] = useState(initialData?.location || '');
     const [maxParticipants, setMaxParticipants] = useState(initialData?.maxParticipants || '');
+    const [vehicles, setVehicles] = useState(initialData?.vehicles || '');
     const [saving, setSaving] = useState(false);
 
     const isEdit = !!initialData;
@@ -44,7 +45,8 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     timeEnd: timeEnd || null,
                     departureTime: departureTime || null,
                     location: location.trim(),
-                    maxParticipants: maxParticipants ? parseInt(maxParticipants) : null
+                    maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                    vehicles: vehicles.trim() || null
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_UPDATED_TRAINING', 'admin',
@@ -60,6 +62,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                    vehicles: vehicles.trim() || null,
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
                     createdAt: new Date().toISOString(),
                     participants: []
@@ -199,6 +202,11 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     <div className="input-group">
                         <label className="input-label">Max. účastníků</label>
                         <input className="input-field" type="number" min="1" value={maxParticipants} onChange={e => setMaxParticipants(e.target.value)} placeholder="Bez limitu" />
+                    </div>
+
+                    <div className="input-group">
+                        <label className="input-label">Technika (např. CAS 20, DA)</label>
+                        <input className="input-field" type="text" value={vehicles} onChange={e => setVehicles(e.target.value)} placeholder="Vypište vozidla/techniku, která pojede" />
                     </div>
 
                     <div className="modal-actions">

@@ -77,6 +77,14 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                     <span className="event-card__meta-item">
                         📍 {training.location || 'Stanice'}
                     </span>
+                    {training.vehicles && (
+                        <>
+                            <span className="event-card__meta-sep">•</span>
+                            <span className="event-card__meta-item" title="Technika" style={{ color: '#E65100', fontWeight: 600 }}>
+                                🚒 {training.vehicles}
+                            </span>
+                        </>
+                    )}
                 </div>
 
                 {training.description && (

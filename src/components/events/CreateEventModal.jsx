@@ -12,6 +12,8 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
     const [departureTime, setDepartureTime] = useState(initialData?.departureTime || '');
     const [location, setLocation] = useState(initialData?.location || '');
     const [maxParticipants, setMaxParticipants] = useState(initialData?.maxParticipants || '');
+    const [isImportant, setIsImportant] = useState(initialData?.isImportant || false);
+    const [vehicles, setVehicles] = useState(initialData?.vehicles || '');
     const [saving, setSaving] = useState(false);
 
     const isEdit = !!initialData;
@@ -44,7 +46,9 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     timeEnd: timeEnd || null,
                     departureTime: departureTime || null,
                     location: location.trim(),
-                    maxParticipants: maxParticipants ? parseInt(maxParticipants) : null
+                    maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                    isImportant,
+                    vehicles: vehicles.trim() || null
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_UPDATED_EVENT', 'admin',
@@ -60,6 +64,8 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                    isImportant,
+                    vehicles: vehicles.trim() || null,
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
                     createdAt: new Date().toISOString(),
                     participants: []
@@ -199,6 +205,16 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     <div className="input-group">
                         <label className="input-label">Max. účastníků</label>
                         <input className="input-field" type="number" min="1" value={maxParticipants} onChange={e => setMaxParticipants(e.target.value)} placeholder="Bez limitu" />
+                    </div>
+
+                    <div className="input-group">
+                        <label className="input-label">Technika (např. CAS 20, DA)</label>
+                        <input className="input-field" type="text" value={vehicles} onChange={e => setVehicles(e.target.value)} placeholder="Vypište vozidla/techniku, která pojede" />
+                    </div>
+
+                    <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input type="checkbox" id="isImportant" checked={isImportant} onChange={e => setIsImportant(e.target.checked)} style={{ cursor: 'pointer', width: '1.1rem', height: '1.1rem', margin: 0 }} />
+                        <label htmlFor="isImportant" style={{ fontSize: '0.9rem', color: '#333', fontWeight: 'bold', cursor: 'pointer', userSelect: 'none' }}>Důležitá akce (zvýraznit oranžově)</label>
                     </div>
 
                     <div className="modal-actions">

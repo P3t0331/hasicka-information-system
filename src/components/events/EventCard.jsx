@@ -19,8 +19,10 @@ export default function EventCard({ event, isPast, currentUser, onJoin, onLeave,
     const dateBadgeClass = isPast ? 'date-badge date-badge--past' :
         isJoined ? 'date-badge date-badge--joined' : 'date-badge';
 
+    const cardClass = `event-card ${isPast ? 'event-card--past' : event.isImportant ? 'event-card--important' : ''}`;
+
     return (
-        <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
+        <div className={cardClass}>
             {/* Date Badge */}
             <div className={dateBadgeClass}>
                 <div className="date-badge__day">{dateInfo.day}</div>
@@ -32,6 +34,9 @@ export default function EventCard({ event, isPast, currentUser, onJoin, onLeave,
                 <div className="event-card__header">
                     <div className={`event-card__title ${isPast ? 'event-card__title--past' : ''}`}>
                         <span>{event.title}</span>
+                        {event.isImportant && !isPast && (
+                            <span className="event-card__badge" style={{ background: '#FFE082', color: '#E65100' }}>⚠️ Důležité</span>
+                        )}
                         {isJoined && !isPast && (
                             <span className="event-card__badge event-card__badge--joined">✓ Přihlášen</span>
                         )}
@@ -77,6 +82,14 @@ export default function EventCard({ event, isPast, currentUser, onJoin, onLeave,
                     <span className="event-card__meta-item">
                         📍 {event.location || 'Stanice'}
                     </span>
+                    {event.vehicles && (
+                        <>
+                            <span className="event-card__meta-sep">•</span>
+                            <span className="event-card__meta-item" title="Technika" style={{ color: '#E65100', fontWeight: 600 }}>
+                                🚒 {event.vehicles}
+                            </span>
+                        </>
+                    )}
                 </div>
 
                 {event.description && (
