@@ -58,11 +58,14 @@ export default function StatisticsPage() {
     const lastDay = new Date(year, month + 1, 0).getDate();
     const monthEnd = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
     // Fetch Events
     const eventsUnsub = onSnapshot(collection(db, 'events'), (snapshot) => {
       const monthEvents = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(e => e.date >= monthStart && e.date <= monthEnd);
+        .filter(e => e.date >= monthStart && e.date <= monthEnd && e.date <= todayStr);
       setEventsData(monthEvents);
     });
 
@@ -70,7 +73,7 @@ export default function StatisticsPage() {
     const trainingsUnsub = onSnapshot(collection(db, 'trainings'), (snapshot) => {
       const monthTrainings = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(t => t.date >= monthStart && t.date <= monthEnd);
+        .filter(t => t.date >= monthStart && t.date <= monthEnd && t.date <= todayStr);
       setTrainingsData(monthTrainings);
     });
 
