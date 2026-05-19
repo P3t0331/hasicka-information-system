@@ -23,8 +23,8 @@ export default function ProfilePage() {
 
   // Equipment State
   const [equipmentTypes, setEquipmentTypes] = useState([]);
-  const [isEditingEquipment, setIsEditingEquipment] = useState(false);
-  const [editEqForm, setEditEqForm] = useState({});
+  const [showEqModal, setShowEqModal] = useState(false);
+  const [currentEq, setCurrentEq] = useState(null);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "settings", "equipmentTypes"), (docSnap) => {
@@ -35,13 +35,7 @@ export default function ProfilePage() {
     return unsub;
   }, []);
 
-  useEffect(() => {
-    if (userData && userData.equipment) {
-      setEditEqForm(userData.equipment);
-    } else {
-      setEditEqForm({});
-    }
-  }, [userData, isEditingEquipment]);
+  // No need for useEffect for editEqForm anymore
 
   useEffect(() => {
     if (!currentUser) return;
@@ -147,39 +141,86 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleUpdateEquipment(e) {
+  async function handleSaveEquipment(e) {
     e.preventDefault();
+    if (!currentEq || !currentEq.typeId) return;
+
     try {
       const userRef = doc(db, "users", currentUser.uid);
+      const currentList = userData.equipmentList || [];
+      let newList = [];
+      let isNew = false;
+      
+      // If saving for the first time, migrate legacy data if exists
+      const legacyEq = userData.equipment || {};
+      const legacyItems = Object.entries(legacyEq)
+        .filter(([key, d]) => d && (d.size || (d.amount && d.amount > 0)))
+        .map(([key, d]) => ({
+          id: `legacy_${key}`,
+          typeId: key,
+          size: d.size,
+          amount: d.amount,
+          ownership: d.ownership || 'jsdh'
+        }));
+        
+      const baseList = currentList.length === 0 && legacyItems.length > 0 ? legacyItems : currentList;
 
-      // Build summary of what equipment was set
-      const summary = equipmentTypes
-        .filter(eq => {
-          const d = editEqForm[eq.id];
-          return d && (d.size || (d.amount && d.amount > 0));
-        })
-        .map(eq => {
-          const d = editEqForm[eq.id];
-          const parts = [eq.name];
-          if (eq.hasSize && d.size) parts.push(`vel. ${d.size}`);
-          if (eq.hasAmount && d.amount > 0) parts.push(`${d.amount} ks`);
-          parts.push(d.ownership === 'vlastni' ? '(vlastní)' : '(JSDH)');
-          return parts.join(' ');
-        }).join('; ');
+      if (currentEq.id) {
+        // Edit existing
+        newList = baseList.map(item => item.id === currentEq.id ? currentEq : item);
+      } else {
+        // Add new
+        isNew = true;
+        newList = [...baseList, { ...currentEq, id: crypto.randomUUID() }];
+      }
 
+      const eqType = equipmentTypes.find(t => t.id === currentEq.typeId);
+      
       await updateDoc(userRef, {
-        equipment: editEqForm
+        equipmentList: newList,
+        equipment: {} // clear legacy to prevent duplicates if migrated
       });
 
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'UPDATED_EQUIPMENT', 'profile',
-        summary ? `Aktualizoval vybavení: ${summary}` : 'Vybavení vynulováno / smazano');
+        `${isNew ? 'Přidal' : 'Upravil'} vybavení: ${eqType?.name}`);
 
-      setIsEditingEquipment(false);
+      setShowEqModal(false);
+      setCurrentEq(null);
     } catch (error) {
-      console.error("Error updating equipment:", error);
+      console.error("Error saving equipment:", error);
     }
   }
+  
+  async function handleDeleteEquipment(eqId) {
+    if (!window.confirm('Opravdu smazat toto vybavení?')) return;
+    try {
+      const userRef = doc(db, "users", currentUser.uid);
+      const currentList = userData.equipmentList || [];
+      const newList = currentList.filter(item => item.id !== eqId);
+      
+      await updateDoc(userRef, { equipmentList: newList });
+      
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'UPDATED_EQUIPMENT', 'profile',
+        `Smazal záznam vybavení.`);
+    } catch (error) {
+      console.error("Error deleting equipment:", error);
+    }
+  }
+
+  const legacyEq = userData?.equipment || {};
+  const legacyItems = Object.entries(legacyEq)
+    .filter(([key, d]) => d && (d.size || (d.amount && d.amount > 0)))
+    .map(([key, d]) => ({
+      id: `legacy_${key}`,
+      typeId: key,
+      size: d.size,
+      amount: d.amount,
+      ownership: d.ownership || 'jsdh'
+    }));
+  const allEquipment = userData?.equipmentList?.length > 0 ? userData.equipmentList : (userData?.equipmentList ? [] : legacyItems);
+
 
   if (loading) return <div>Načítání...</div>;
 
@@ -252,6 +293,18 @@ export default function ProfilePage() {
             {userData.firstName} {userData.lastName}
           </h1>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {userData.registrationNumber && (
+              <span style={{
+                background: 'rgba(255, 193, 7, 0.15)',
+                color: '#FFD54F',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '50px',
+                fontSize: '0.85rem', fontWeight: 600,
+                border: '1px solid rgba(255, 193, 7, 0.3)'
+              }}>
+                Ev. č. {userData.registrationNumber}
+              </span>
+            )}
             {userRoles.map(role => (
               <span key={role} style={{
                 background: 'rgba(255,255,255,0.15)',
@@ -339,90 +392,64 @@ export default function ProfilePage() {
           <div className="card" style={{ height: 'fit-content' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
               <h3 style={{ fontSize: '1.25rem', color: '#333' }}>🧰 Přidělené vybavení</h3>
-              {!isEditingEquipment && equipmentTypes.length > 0 && (
+              {equipmentTypes.length > 0 && (
                 <button
-                  className="btn btn-secondary"
-                  onClick={() => setIsEditingEquipment(true)}
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setCurrentEq({ typeId: equipmentTypes[0]?.id, ownership: 'jsdh' });
+                    setShowEqModal(true);
+                  }}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                 >
-                  Upravit
+                  + Přidat vybavení
                 </button>
               )}
             </div>
 
-            {isEditingEquipment ? (
-              <form onSubmit={handleUpdateEquipment}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-                  {equipmentTypes.map(eq => {
-                    const eqData = editEqForm[eq.id] || {};
-                    return (
-                      <div key={eq.id} style={{ padding: '1rem', background: '#f9f9f9', borderRadius: '8px', border: '1px solid #eee' }}>
-                        <div style={{ fontWeight: 600, marginBottom: '0.75rem', color: '#333' }}>{eq.name}</div>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                          {eq.hasSize && (
-                            <div style={{ flex: 1, minWidth: '100px' }}>
-                              <label style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '0.2rem' }}>Velikost</label>
-                              <input className="input-field" value={eqData.size || ''} onChange={e => setEditEqForm({...editEqForm, [eq.id]: {...eqData, size: e.target.value}})} style={{ padding: '0.4rem' }} />
-                            </div>
-                          )}
-                          {eq.hasAmount && (
-                            <div style={{ flex: 1, minWidth: '100px' }}>
-                              <label style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '0.2rem' }}>Počet (Ks)</label>
-                              <input type="number" min="0" className="input-field" value={eqData.amount === undefined ? '' : eqData.amount} onChange={e => setEditEqForm({...editEqForm, [eq.id]: {...eqData, amount: e.target.value ? parseInt(e.target.value) : 0}})} style={{ padding: '0.4rem' }} />
-                            </div>
-                          )}
-                          <div style={{ flex: 1, minWidth: '120px' }}>
-                            <label style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '0.2rem' }}>Původ</label>
-                            <select className="input-field" value={eqData.ownership || 'jsdh'} onChange={e => setEditEqForm({...editEqForm, [eq.id]: {...eqData, ownership: e.target.value}})} style={{ padding: '0.4rem' }}>
-                              <option value="jsdh">Fasované (JSDH)</option>
-                              <option value="vlastni">Vlastní</option>
-                            </select>
-                          </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {equipmentTypes.length === 0 ? (
+                <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Vybavení není nastaveno administrátorem.</p>
+              ) : allEquipment.length === 0 ? (
+                <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Zatím nemáte evidováno žádné vybavení.</p>
+              ) : (
+                allEquipment.map(item => {
+                  const eqType = equipmentTypes.find(t => t.id === item.typeId);
+                  if (!eqType) return null;
+                  
+                  return (
+                    <div key={item.id} style={{ padding: '1rem', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ flex: '1 1 200px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          <span style={{ fontWeight: 700, color: '#222', fontSize: '1rem' }}>{eqType.name}</span>
+                          <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: item.ownership === 'vlastni' ? '#E3F2FD' : '#E8F5E9', color: item.ownership === 'vlastni' ? '#1565C0' : '#2E7D32', fontWeight: 600 }}>
+                            {item.ownership === 'vlastni' ? 'Vlastní' : 'JSDH'}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.85rem', color: '#555' }}>
+                          {eqType.hasSize && item.size && <div><span style={{ color: '#999' }}>Velikost:</span> <strong>{item.size}</strong></div>}
+                          {eqType.hasAmount && item.amount > 0 && <div><span style={{ color: '#999' }}>Ks:</span> <strong>{item.amount}</strong></div>}
+                          {eqType.hasInventoryNumber && item.inventoryNumber && <div><span style={{ color: '#999' }}>Evid. č.:</span> <strong>{item.inventoryNumber}</strong></div>}
+                          {eqType.hasSerialNumber && item.serialNumber && <div><span style={{ color: '#999' }}>S/N:</span> <strong>{item.serialNumber}</strong></div>}
+                          {eqType.hasManufactureYear && item.manufactureYear && <div><span style={{ color: '#999' }}>Vyrobeno:</span> <strong>{item.manufactureYear}</strong></div>}
+                          {eqType.hasIssueYear && item.issueYear && <div><span style={{ color: '#999' }}>Nafasováno:</span> <strong>{item.issueYear}</strong></div>}
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit vybavení</button>
-                  <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setIsEditingEquipment(false)}>Zrušit</button>
-                </div>
-              </form>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {equipmentTypes.length === 0 ? (
-                  <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Vybavení není nastaveno administrátorem.</p>
-                ) : (
-                  equipmentTypes.map(eq => {
-                    const eqData = userData.equipment?.[eq.id];
-                    // Check if something is actually set (has an amount > 0 or a size string)
-                    if (!eqData || (!eqData.size && (!eqData.amount || eqData.amount === 0))) return null;
-                    
-                    return (
-                      <div key={eq.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f5f5f5', borderRadius: '8px' }}>
-                        <div>
-                          <div style={{ fontWeight: 600, color: '#333' }}>{eq.name}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.2rem' }}>
-                            {eqData.ownership === 'vlastni' ? '🟢 Vlastní' : '🏢 Fasované (JSDH)'}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                          {eq.hasSize && eqData.size && (
-                            <span style={{ background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.85rem' }}>Vel: <strong>{eqData.size}</strong></span>
-                          )}
-                          {eq.hasAmount && eqData.amount > 0 && (
-                            <span style={{ background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.85rem' }}>Ks: <strong>{eqData.amount}</strong></span>
-                          )}
-                        </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, width: '100%', justifyContent: 'flex-end', borderTop: '1px solid #f0f0f0', paddingTop: '0.5rem', marginTop: '0.5rem' }} className="mobile-only-border-top">
+                        <button onClick={() => { setCurrentEq(item); setShowEqModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#1976D2' }}>✏️</button>
+                        <button onClick={() => handleDeleteEquipment(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }}>🗑️</button>
                       </div>
-                    )
-                  })
-                )}
-                {equipmentTypes.length > 0 && (!userData.equipment || Object.values(userData.equipment).every(e => !e.size && (!e.amount || e.amount === 0))) && (
-                  <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Zatím nemáte evidováno žádné vybavení.</p>
-                )}
-              </div>
-            )}
+                      
+                      <style dangerouslySetInnerHTML={{__html: `
+                        @media (min-width: 600px) {
+                          .mobile-only-border-top { border-top: none !important; padding-top: 0 !important; margin-top: 0 !important; width: auto !important; justify-content: flex-start !important; }
+                        }
+                      `}} />
+                    </div>
+                  )
+                })
+              )}
+            </div>
           </div>
         </div>
 
@@ -467,6 +494,92 @@ export default function ProfilePage() {
 
         </div>
       </div>
+
+      {/* EQUIPMENT MODAL */}
+      {showEqModal && currentEq && (
+        <div className="modal-overlay" onClick={() => setShowEqModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#333' }}>
+              {currentEq.id ? 'Upravit vybavení' : 'Přidat vybavení'}
+            </h3>
+            
+            <form onSubmit={handleSaveEquipment}>
+              <div className="input-group">
+                <label className="input-label">Druh vybavení</label>
+                <select 
+                  className="input-field" 
+                  value={currentEq.typeId || ''} 
+                  onChange={e => setCurrentEq({ ...currentEq, typeId: e.target.value })}
+                  disabled={!!currentEq.id} // Cannot change type of existing item
+                >
+                  {equipmentTypes.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(() => {
+                const eqType = equipmentTypes.find(t => t.id === currentEq.typeId) || equipmentTypes[0];
+                if (!eqType) return null;
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+                    <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                      <label className="input-label">Původ (Vlastnictví)</label>
+                      <select className="input-field" value={currentEq.ownership || 'jsdh'} onChange={e => setCurrentEq({...currentEq, ownership: e.target.value})}>
+                        <option value="jsdh">Fasované (JSDH)</option>
+                        <option value="vlastni">Vlastní</option>
+                      </select>
+                    </div>
+
+                    {eqType.hasSize && (
+                      <div className="input-group">
+                        <label className="input-label">Velikost</label>
+                        <input className="input-field" value={currentEq.size || ''} onChange={e => setCurrentEq({...currentEq, size: e.target.value})} placeholder="Např. XL, 42" />
+                      </div>
+                    )}
+                    {eqType.hasAmount && (
+                      <div className="input-group">
+                        <label className="input-label">Počet kusů</label>
+                        <input type="number" min="1" className="input-field" value={currentEq.amount || 1} onChange={e => setCurrentEq({...currentEq, amount: parseInt(e.target.value) || 1})} />
+                      </div>
+                    )}
+                    {eqType.hasInventoryNumber && (
+                      <div className="input-group">
+                        <label className="input-label">Evidenční číslo (JSDH)</label>
+                        <input className="input-field" value={currentEq.inventoryNumber || ''} onChange={e => setCurrentEq({...currentEq, inventoryNumber: e.target.value})} placeholder="Např. 123-45" />
+                      </div>
+                    )}
+                    {eqType.hasSerialNumber && (
+                      <div className="input-group">
+                        <label className="input-label">Výrobní číslo (S/N)</label>
+                        <input className="input-field" value={currentEq.serialNumber || ''} onChange={e => setCurrentEq({...currentEq, serialNumber: e.target.value})} placeholder="Např. AB123456" />
+                      </div>
+                    )}
+                    {eqType.hasManufactureYear && (
+                      <div className="input-group">
+                        <label className="input-label">Rok výroby</label>
+                        <input type="number" className="input-field" value={currentEq.manufactureYear || ''} onChange={e => setCurrentEq({...currentEq, manufactureYear: parseInt(e.target.value) || ''})} placeholder="Např. 2021" />
+                      </div>
+                    )}
+                    {eqType.hasIssueYear && (
+                      <div className="input-group">
+                        <label className="input-label">Rok nafasování</label>
+                        <input type="number" className="input-field" value={currentEq.issueYear || ''} onChange={e => setCurrentEq({...currentEq, issueYear: parseInt(e.target.value) || ''})} placeholder="Např. 2023" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit položku</button>
+                <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setShowEqModal(false)}>Zrušit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

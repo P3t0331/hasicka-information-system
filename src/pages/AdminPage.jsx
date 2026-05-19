@@ -29,7 +29,11 @@ export default function AdminPage() {
   // Equipment Types
   const [equipmentTypes, setEquipmentTypes] = useState([]);
   const [showEqModal, setShowEqModal] = useState(false);
-  const [newEq, setNewEq] = useState({ name: '', hasSize: false, hasAmount: true });
+  const [newEq, setNewEq] = useState({ 
+    name: '', hasSize: false, hasAmount: true, 
+    hasInventoryNumber: false, hasSerialNumber: false, 
+    hasManufactureYear: false, hasIssueYear: false 
+  });
 
   // Tab
   const [activeTab, setActiveTab] = useState('uzivatele');
@@ -153,17 +157,30 @@ export default function AdminPage() {
     e.preventDefault();
     if (!newEq.name.trim()) return;
     
-    // Create an ID that is url-safe and unique-ish
-    const id = newEq.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
-    
-    if (equipmentTypes.some(t => t.id === id)) {
-      showNotification('error', 'Tento druh vybavení již pravděpodobně existuje (podle názvu).');
-      return;
+    if (newEq.id) {
+      const newTypes = equipmentTypes.map(t => t.id === newEq.id ? { ...newEq, name: newEq.name.trim() } : t);
+      saveEquipmentTypes(newTypes);
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_UPDATED_EQUIPMENT_TYPE', 'admin',
+        `Upravil definici druhu vybavení: "${newEq.name.trim()}"`);
+    } else {
+      // Create an ID that is url-safe and unique-ish
+      const id = newEq.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
+      
+      if (equipmentTypes.some(t => t.id === id)) {
+        showNotification('error', 'Tento druh vybavení již pravděpodobně existuje (podle názvu).');
+        return;
+      }
+      const newTypes = [...equipmentTypes, { ...newEq, name: newEq.name.trim(), id }];
+      saveEquipmentTypes(newTypes);
+      handleAddEqLog(newEq);
     }
-    const newTypes = [...equipmentTypes, { ...newEq, name: newEq.name.trim(), id }];
-    saveEquipmentTypes(newTypes);
-    handleAddEqLog(newEq.name.trim(), newEq.hasSize, newEq.hasAmount);
-    setNewEq({ name: '', hasSize: false, hasAmount: true });
+
+    setNewEq({ 
+      id: null, name: '', hasSize: false, hasAmount: true, 
+      hasInventoryNumber: false, hasSerialNumber: false, 
+      hasManufactureYear: false, hasIssueYear: false 
+    });
     setShowEqModal(false);
   }
 
@@ -178,10 +195,18 @@ export default function AdminPage() {
     });
   }
 
-  function handleAddEqLog(name, hasSize, hasAmount) {
+  function handleAddEqLog(eqObj) {
+    const fields = [];
+    if (eqObj.hasSize) fields.push('velikost');
+    if (eqObj.hasAmount) fields.push('počet');
+    if (eqObj.hasInventoryNumber) fields.push('evid. číslo');
+    if (eqObj.hasSerialNumber) fields.push('výrobní číslo');
+    if (eqObj.hasManufactureYear) fields.push('rok výroby');
+    if (eqObj.hasIssueYear) fields.push('rok nafasování');
+    
     logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
       'ADMIN_ADDED_EQUIPMENT_TYPE', 'admin',
-      `Přidal druh vybavení: "${name}" (velikost: ${hasSize ? 'ano' : 'ne'}, počet: ${hasAmount ? 'ano' : 'ne'})`);
+      `Přidal druh vybavení: "${eqObj.name.trim()}" (Eviduje se: ${fields.join(', ') || 'nic'})`);
   }
 
   async function approveUser(uid) {
@@ -466,6 +491,22 @@ export default function AdminPage() {
     }
   }
 
+  async function updateRegistrationNumber(uid, newVal, oldVal) {
+    if (newVal === oldVal) return;
+    try {
+      await updateDoc(doc(db, "users", uid), { registrationNumber: newVal });
+      setAllUsers(prev => prev.map(u => u.uid === uid ? { ...u, registrationNumber: newVal } : u));
+      const targetUser = allUsers.find(u => u.uid === uid);
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'UPDATED_PROFILE', 'admin',
+        `Změnil evidenční číslo uživatele ${targetUser?.firstName} ${targetUser?.lastName} na "${newVal}"`);
+      showNotification('success', 'Evidenční číslo uloženo.');
+    } catch (error) {
+      console.error("Error updating registration number:", error);
+      showNotification('error', "Chyba při ukládání evidenčního čísla.");
+    }
+  }
+
   // Access Control View
   if (!userData) return <div className="p-4 text-center">Načítání profilu...</div>;
 
@@ -528,25 +569,41 @@ export default function AdminPage() {
           background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
         }} onClick={() => setShowEqModal(false)}>
           <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%', animation: 'fadeIn 0.2s' }}>
-            <h3 className="mb-4">Přidat druh vybavení</h3>
+            <h3 className="mb-4">{newEq.id ? 'Upravit druh vybavení' : 'Přidat druh vybavení'}</h3>
             <form onSubmit={handleAddEq}>
               <div className="input-group">
                 <label className="input-label">Název (např. Oblečení PS II)</label>
                 <input className="input-field" value={newEq.name} onChange={e => setNewEq({...newEq, name: e.target.value})} required />
               </div>
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
                   <input type="checkbox" checked={newEq.hasSize} onChange={e => setNewEq({...newEq, hasSize: e.target.checked})} />
-                  Evidovat velikost
+                  Velikost
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
                   <input type="checkbox" checked={newEq.hasAmount} onChange={e => setNewEq({...newEq, hasAmount: e.target.checked})} />
-                  Evidovat počet
+                  Počet (ks)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={newEq.hasInventoryNumber} onChange={e => setNewEq({...newEq, hasInventoryNumber: e.target.checked})} />
+                  Evidenční číslo (JSDH)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={newEq.hasSerialNumber} onChange={e => setNewEq({...newEq, hasSerialNumber: e.target.checked})} />
+                  Výrobní číslo (S/N)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={newEq.hasManufactureYear} onChange={e => setNewEq({...newEq, hasManufactureYear: e.target.checked})} />
+                  Rok výroby
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={newEq.hasIssueYear} onChange={e => setNewEq({...newEq, hasIssueYear: e.target.checked})} />
+                  Rok nafasování
                 </label>
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowEqModal(false)}>Zrušit</button>
-                <button type="submit" className="btn btn-primary">Přidat</button>
+                <button type="submit" className="btn btn-primary">{newEq.id ? 'Uložit' : 'Přidat'}</button>
               </div>
             </form>
           </div>
@@ -761,7 +818,10 @@ export default function AdminPage() {
               <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Druhy vybavení</h3>
               <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#888' }}>Definujte typy vybavení, které mohou členové evidovat na svém profilu.</p>
             </div>
-            <button className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => setShowEqModal(true)}>+ Přidat</button>
+            <button className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => {
+              setNewEq({ id: null, name: '', hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false });
+              setShowEqModal(true);
+            }}>+ Přidat</button>
           </div>
 
           {equipmentTypes.length === 0 ? (
@@ -771,31 +831,40 @@ export default function AdminPage() {
               <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.5rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #eee' }}>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Název</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Velikost</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Počet</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Vlastní/JSDH</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Název typu</th>
+                    <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Sledované údaje</th>
                     <th style={{ width: '40px' }}></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {equipmentTypes.map((eq, i) => (
-                    <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td data-label="Název" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333' }}>{eq.name}</td>
-                      <td data-label="Velikost" style={{ textAlign: 'center', padding: '0.6rem' }}>
-                        {eq.hasSize ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
-                      </td>
-                      <td data-label="Počet" style={{ textAlign: 'center', padding: '0.6rem' }}>
-                        {eq.hasAmount ? <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span> : <span style={{ color: '#ccc' }}>—</span>}
-                      </td>
-                      <td data-label="Vlastní/JSDH" style={{ textAlign: 'center', padding: '0.6rem' }}>
-                        <span style={{ color: '#2e7d32', fontWeight: 700 }}>✓</span>
-                      </td>
-                      <td style={{ textAlign: 'center', padding: '0.4rem' }}>
-                        <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">×</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {equipmentTypes.map((eq, i) => {
+                    const tracked = [];
+                    if (eq.hasSize) tracked.push('Velikost');
+                    if (eq.hasAmount) tracked.push('Počet');
+                    if (eq.hasInventoryNumber) tracked.push('Evid. číslo');
+                    if (eq.hasSerialNumber) tracked.push('Výrobní číslo');
+                    if (eq.hasManufactureYear) tracked.push('Rok výroby');
+                    if (eq.hasIssueYear) tracked.push('Rok nafasování');
+                    
+                    return (
+                      <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
+                        <td data-label="Název" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333' }}>{eq.name}</td>
+                        <td data-label="Sledované údaje" style={{ padding: '0.6rem' }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                            {tracked.length > 0 ? tracked.map(t => (
+                              <span key={t} style={{ background: '#E3F2FD', color: '#1565C0', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', border: '1px solid #90CAF9' }}>{t}</span>
+                            )) : <span style={{ color: '#aaa', fontSize: '0.75rem', fontStyle: 'italic' }}>Žádné dodatečné pole</span>}
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '0.4rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                            <button onClick={() => { setNewEq(eq); setShowEqModal(true); }} style={{ background: 'none', border: 'none', color: '#1976D2', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Upravit">✏️</button>
+                            <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">🗑️</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -814,9 +883,10 @@ export default function AdminPage() {
           <table className="responsive-table">
             <thead>
               <tr>
-                <th style={{ width: '30%' }}>Jméno & Email</th>
-                <th style={{ width: '30%' }}>Funkce (Role)</th>
-                <th style={{ width: '30%' }}>Kvalifikace (Školení)</th>
+                <th style={{ width: '25%' }}>Jméno & Email</th>
+                <th style={{ width: '15%' }}>Evidenční číslo</th>
+                <th style={{ width: '25%' }}>Funkce (Role)</th>
+                <th style={{ width: '25%' }}>Kvalifikace (Školení)</th>
                 <th style={{ textAlign: 'right' }}>Akce</th>
               </tr>
             </thead>
@@ -853,6 +923,19 @@ export default function AdminPage() {
                           </div>
                         </div>
                       </div>
+                    </td>
+
+                    {/* COL 1.5: REGISTRATION NUMBER */}
+                    <td data-label="Evidenční číslo">
+                      <input 
+                         type="text" 
+                         className="input-field"
+                         style={{ padding: '0.4rem', fontSize: '0.9rem', width: '100%', maxWidth: '60px', textAlign: 'center' }}
+                         placeholder="Číslo"
+                         defaultValue={user.registrationNumber || ''}
+                         onBlur={(e) => updateRegistrationNumber(user.uid, e.target.value, user.registrationNumber || '')}
+                         disabled={isDisabled} 
+                      />
                     </td>
 
                     {/* COL 2: ROLES - mobile-col for stacking pills */}
@@ -986,137 +1069,14 @@ export default function AdminPage() {
       </div>
       </>)}
 
-      {/* Equipment Overview Matrix Tab */}
+      {/* Equipment Overview Detailed Inventory Tab */}
       {activeTab === 'prehled' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Přehled vybavení členů</h3>
-              <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: '#888' }}>
-                {allUsers.filter(u => !u.disabled).length} členů &middot; {equipmentTypes.length} druhů vybavení
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.78rem', color: '#666', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#4CAF50', display: 'inline-block' }}></span> Fasované (JSDH)
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#2196F3', display: 'inline-block' }}></span> Vlastní
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#e0e0e0', display: 'inline-block' }}></span> Neevidováno
-              </span>
-            </div>
-          </div>
-
-          {equipmentTypes.length === 0 ? (
-            <p style={{ padding: '2rem', color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Nejsou definovány žádné druhy vybavení. Přejděte na záložku Vybavení a přidejte typy.</p>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                <thead>
-                  <tr style={{ background: '#f5f5f5' }}>
-                    <th className="sticky-col" style={{
-                      position: 'sticky', left: 0, zIndex: 2,
-                      background: '#f5f5f5', textAlign: 'left',
-                      padding: '0.6rem 0.75rem', fontWeight: 700, color: '#333',
-                      borderRight: '2px solid #e0e0e0', borderBottom: '2px solid #e0e0e0',
-                      width: '120px', minWidth: '120px'
-                    }}>
-                      Člen
-                    </th>
-                    {equipmentTypes.map(eq => (
-                      <th key={eq.id} style={{
-                        padding: '0.5rem 0.75rem',
-                        fontWeight: 600, color: '#555',
-                        borderBottom: '2px solid #e0e0e0',
-                        textAlign: 'center',
-                        whiteSpace: 'nowrap',
-                        minWidth: '110px',
-                        fontSize: '0.78rem'
-                      }}>
-                        {eq.name}
-                        <div style={{ fontWeight: 400, color: '#aaa', fontSize: '0.7rem', marginTop: '0.1rem' }}>
-                          {[eq.hasSize && 'vel.', eq.hasAmount && 'ks'].filter(Boolean).join(' · ')}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {allUsers.filter(u => !u.disabled).map((user, rowIdx) => {
-                    const userEq = user.equipment || {};
-                    const hasAnyEquipment = equipmentTypes.some(eq => {
-                      const d = userEq[eq.id];
-                      return d && (d.size || (d.amount && d.amount > 0));
-                    });
-
-                    return (
-                      <tr key={user.uid} style={{ background: rowIdx % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                        {/* Sticky name column */}
-                        <td className="sticky-col" style={{
-                          position: 'sticky', left: 0, zIndex: 1,
-                          background: rowIdx % 2 === 0 ? 'white' : '#fafafa',
-                          padding: '0.6rem 0.5rem',
-                          borderRight: '2px solid #e0e0e0'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <div style={{
-                              width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
-                              background: 'linear-gradient(135deg, #263238, #546E7A)',
-                              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontWeight: 700, fontSize: '0.7rem'
-                            }}>
-                              {user.firstName?.[0]}{user.lastName?.[0]}
-                            </div>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontWeight: 600, color: '#333', fontSize: '0.8rem', lineHeight: 1.1, wordBreak: 'break-word' }}>{user.firstName} {user.lastName}</div>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Equipment columns */}
-                        {equipmentTypes.map(eq => {
-                          const d = userEq[eq.id];
-                          const hasData = d && (d.size || (d.amount && d.amount > 0));
-                          const isOwn = d?.ownership === 'vlastni';
-
-                          return (
-                            <td key={eq.id} style={{ padding: '0.4rem 0.5rem', textAlign: 'center', verticalAlign: 'middle' }}>
-                              {hasData ? (
-                                <div style={{
-                                  display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
-                                  background: isOwn ? '#E3F2FD' : '#E8F5E9',
-                                  border: `1px solid ${isOwn ? '#90CAF9' : '#A5D6A7'}`,
-                                  borderRadius: '6px',
-                                  padding: '0.25rem 0.5rem',
-                                  minWidth: '60px',
-                                  gap: '0.1rem'
-                                }}>
-                                  {eq.hasSize && d.size && (
-                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isOwn ? '#1565C0' : '#2E7D32' }}>{d.size}</span>
-                                  )}
-                                  {eq.hasAmount && d.amount > 0 && (
-                                    <span style={{ fontSize: '0.72rem', color: isOwn ? '#1976D2' : '#388E3C' }}>{d.amount} ks</span>
-                                  )}
-                                  <span style={{ fontSize: '0.6rem', color: isOwn ? '#64B5F6' : '#81C784', letterSpacing: '0.02em' }}>
-                                    {isOwn ? 'vlastní' : 'JSDH'}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span style={{ color: '#d0d0d0', fontSize: '1rem' }}>—</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <DetailedInventoryTab 
+          allUsers={allUsers} 
+          equipmentTypes={equipmentTypes} 
+          currentUser={currentUser} 
+          userData={userData}
+        />
       )}
 
       {/* ========== LOGY TAB ========== */}
@@ -1160,6 +1120,7 @@ const ACTION_LABELS = {
   LEFT_EVENT:                'Odhlášen z akce',
   UPDATED_PROFILE:           'Aktualizace profilu',
   UPDATED_EQUIPMENT:         'Aktualizace vybavení',
+  ADMIN_UPDATED_EQUIPMENT:   'Úprava vybavení člena',
   USER_REGISTERED:           'Registrace do systému',
   ADMIN_APPROVED_USER:       'Schválení registrace',
   ADMIN_REJECTED_USER:       'Zamítnutí registrace',
@@ -1169,6 +1130,7 @@ const ACTION_LABELS = {
   ADMIN_CHANGED_ROLE:        'Změna role',
   ADMIN_CHANGED_CERT:        'Změna kvalifikace',
   ADMIN_ADDED_EQUIPMENT_TYPE:   'Přidán druh vybavení',
+  ADMIN_UPDATED_EQUIPMENT_TYPE: 'Upraven druh vybavení',
   ADMIN_REMOVED_EQUIPMENT_TYPE: 'Smazán druh vybavení',
   ADMIN_CREATED_TRAINING:    'Vytvořeno školení',
   ADMIN_UPDATED_TRAINING:    'Upraveno školení',
@@ -1440,3 +1402,305 @@ function LogsTab({
 
 // Thin hook shim so LogsTab can use db without prop drilling
 function useDbInstance() { return { db }; }
+
+function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData }) {
+  const [filterUser, setFilterUser] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [currentEq, setCurrentEq] = useState(null);
+  const [targetUserId, setTargetUserId] = useState(null);
+  
+  // Extract all equipment items from all users
+  const allItems = [];
+  allUsers.forEach(user => {
+    // Collect from equipmentList
+    const list = user.equipmentList || [];
+    list.forEach(item => {
+      allItems.push({ ...item, _userId: user.uid, _userName: `${user.firstName} ${user.lastName}` });
+    });
+    
+    // Collect legacy if equipmentList is missing
+    if (!user.equipmentList && user.equipment) {
+      Object.entries(user.equipment).forEach(([key, d]) => {
+        if (d && (d.size || (d.amount && d.amount > 0))) {
+          allItems.push({
+            id: `legacy_${user.uid}_${key}`,
+            typeId: key,
+            size: d.size,
+            amount: d.amount,
+            ownership: d.ownership || 'jsdh',
+            _userId: user.uid,
+            _userName: `${user.firstName} ${user.lastName}`,
+            isLegacy: true
+          });
+        }
+      });
+    }
+  });
+  
+  // Filter
+  const filtered = allItems.filter(item => {
+    if (filterUser !== 'all' && item._userId !== filterUser) return false;
+    if (filterType !== 'all' && item.typeId !== filterType) return false;
+    return true;
+  });
+  
+  async function handleSaveEquipment(e) {
+    e.preventDefault();
+    if (!currentEq || !currentEq.typeId || !targetUserId) return;
+    
+    try {
+      const userRef = doc(db, "users", targetUserId);
+      const targetUser = allUsers.find(u => u.uid === targetUserId);
+      const currentList = targetUser.equipmentList || [];
+      let newList = [];
+      let isNew = false;
+      
+      const legacyEq = targetUser.equipment || {};
+      const legacyItems = Object.entries(legacyEq)
+        .filter(([key, d]) => d && (d.size || (d.amount && d.amount > 0)))
+        .map(([key, d]) => ({
+          id: `legacy_${key}`,
+          typeId: key,
+          size: d.size,
+          amount: d.amount,
+          ownership: d.ownership || 'jsdh'
+        }));
+        
+      const baseList = currentList.length === 0 && legacyItems.length > 0 ? legacyItems : currentList;
+
+      if (currentEq.id && !currentEq.id.startsWith('new_')) {
+        newList = baseList.map(item => item.id === currentEq.id ? currentEq : item);
+      } else {
+        isNew = true;
+        const newEqObj = { ...currentEq };
+        if (newEqObj.id.startsWith('new_')) {
+          newEqObj.id = crypto.randomUUID();
+        }
+        newList = [...baseList, newEqObj];
+      }
+      
+      const eqType = equipmentTypes.find(t => t.id === currentEq.typeId);
+      
+      await updateDoc(userRef, { equipmentList: newList, equipment: {} });
+      
+      const actionCreatorName = `${userData.firstName} ${userData.lastName}`;
+      logAction(db, currentUser.uid, actionCreatorName,
+        'ADMIN_UPDATED_EQUIPMENT', 'admin',
+        `${isNew ? 'Přidal' : 'Upravil'} vybavení (${eqType?.name}) uživateli ${targetUser.firstName} ${targetUser.lastName}`);
+        
+      setShowEditModal(false);
+    } catch (err) {
+      console.error(err);
+      alert('Chyba při ukládání');
+    }
+  }
+  
+  async function handleDelete(itemId, userId) {
+    if (!window.confirm('Opravdu smazat tuto položku vybavení?')) return;
+    try {
+      const targetUser = allUsers.find(u => u.uid === userId);
+      const userRef = doc(db, "users", userId);
+      
+      const currentList = targetUser.equipmentList || [];
+      const newList = currentList.filter(item => item.id !== itemId);
+      
+      await updateDoc(userRef, { equipmentList: newList, equipment: {} }); // Clear legacy as we migrate on first write
+      
+      const actionCreatorName = `${userData.firstName} ${userData.lastName}`;
+      logAction(db, currentUser.uid, actionCreatorName,
+        'ADMIN_UPDATED_EQUIPMENT', 'admin',
+        `Smazal záznam vybavení uživateli ${targetUser.firstName} ${targetUser.lastName}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  
+  return (
+    <div className="card" style={{ padding: '1.25rem' }}>
+      <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Detailní inventář vybavení</h3>
+      
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label className="input-label">Filtr dle uživatele</label>
+          <select className="input-field" value={filterUser} onChange={e => setFilterUser(e.target.value)}>
+            <option value="all">Všichni členové</option>
+            {allUsers.filter(u => !u.disabled).map(u => (
+              <option key={u.uid} value={u.uid}>{u.firstName} {u.lastName}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label className="input-label">Filtr dle typu vybavení</label>
+          <select className="input-field" value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="all">Všechny typy</option>
+            {equipmentTypes.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => {
+              setTargetUserId(allUsers[0]?.uid);
+              setCurrentEq({ id: 'new_' + Date.now(), typeId: equipmentTypes[0]?.id, ownership: 'jsdh' });
+              setShowEditModal(true);
+            }}
+          >
+            + Přidat vybavení členovi
+          </button>
+        </div>
+      </div>
+      
+      <div style={{ borderRadius: '8px', border: '1px solid #eee' }}>
+        <table className="responsive-table" style={{ width: '100%', fontSize: '0.85rem' }}>
+          <thead style={{ background: '#f5f5f5' }}>
+            <tr>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Uživatel</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Typ vybavení</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Vlastnictví</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Detaily (Vel/Ks)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Evid. čísla</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Roky (Výr/Naf)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Akce</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Žádné vybavení neodpovídá filtru.</td></tr>
+            ) : filtered.map((item, i) => {
+              const eqType = equipmentTypes.find(t => t.id === item.typeId) || { name: 'Neznámý' };
+              
+              return (
+                <tr key={item.id} style={{ background: i % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
+                  <td data-label="Uživatel" style={{ padding: '0.75rem', fontWeight: 600 }}>{item._userName}</td>
+                  <td data-label="Typ vybavení" style={{ padding: '0.75rem', color: '#1565C0', fontWeight: 600 }}>{eqType.name}</td>
+                  <td data-label="Vlastnictví" style={{ padding: '0.75rem' }}>
+                    {item.ownership === 'vlastni' ? <span style={{ color: '#1565C0', background: '#E3F2FD', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Vlastní</span> : <span style={{ color: '#2E7D32', background: '#E8F5E9', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>JSDH</span>}
+                  </td>
+                  <td data-label="Detaily" style={{ padding: '0.75rem' }}>
+                    {item.size && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Vel:</span> {item.size}</div>}
+                    {item.amount > 0 && <div><span style={{ color: '#888' }}>Ks:</span> {item.amount}</div>}
+                  </td>
+                  <td data-label="Evid. čísla" style={{ padding: '0.75rem' }}>
+                    {item.inventoryNumber && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Evid:</span> {item.inventoryNumber}</div>}
+                    {item.serialNumber && <div><span style={{ color: '#888' }}>S/N:</span> {item.serialNumber}</div>}
+                  </td>
+                  <td data-label="Roky" style={{ padding: '0.75rem' }}>
+                    {item.manufactureYear && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Výr:</span> {item.manufactureYear}</div>}
+                    {item.issueYear && <div><span style={{ color: '#888' }}>Naf:</span> {item.issueYear}</div>}
+                  </td>
+                  <td data-label="Akce" style={{ padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                      <button onClick={() => { setTargetUserId(item._userId); setCurrentEq(item); setShowEditModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }} title="Upravit">✏️</button>
+                      <button onClick={() => handleDelete(item.id, item._userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }} title="Smazat">🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Edit Modal */}
+      {showEditModal && currentEq && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#333' }}>
+              {currentEq.id && !currentEq.id.startsWith('new_') ? 'Upravit vybavení' : 'Přidat vybavení členovi'}
+            </h3>
+            
+            <form onSubmit={handleSaveEquipment}>
+              {currentEq.id && currentEq.id.startsWith('new_') && (
+                <div className="input-group">
+                  <label className="input-label">Vyberte člena</label>
+                  <select className="input-field" value={targetUserId || ''} onChange={e => setTargetUserId(e.target.value)} required>
+                    <option value="" disabled>Zvolte člena</option>
+                    {allUsers.filter(u => !u.disabled).map(u => (
+                      <option key={u.uid} value={u.uid}>{u.firstName} {u.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            
+              <div className="input-group">
+                <label className="input-label">Druh vybavení</label>
+                <select 
+                  className="input-field" 
+                  value={currentEq.typeId || ''} 
+                  onChange={e => setCurrentEq({ ...currentEq, typeId: e.target.value })}
+                  disabled={currentEq.id && !currentEq.id.startsWith('new_')}
+                >
+                  {equipmentTypes.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(() => {
+                const eqType = equipmentTypes.find(t => t.id === currentEq.typeId) || equipmentTypes[0];
+                if (!eqType) return null;
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+                    <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                      <label className="input-label">Původ (Vlastnictví)</label>
+                      <select className="input-field" value={currentEq.ownership || 'jsdh'} onChange={e => setCurrentEq({...currentEq, ownership: e.target.value})}>
+                        <option value="jsdh">Fasované (JSDH)</option>
+                        <option value="vlastni">Vlastní</option>
+                      </select>
+                    </div>
+
+                    {eqType.hasSize && (
+                      <div className="input-group">
+                        <label className="input-label">Velikost</label>
+                        <input className="input-field" value={currentEq.size || ''} onChange={e => setCurrentEq({...currentEq, size: e.target.value})} placeholder="Např. XL, 42" />
+                      </div>
+                    )}
+                    {eqType.hasAmount && (
+                      <div className="input-group">
+                        <label className="input-label">Počet kusů</label>
+                        <input type="number" min="1" className="input-field" value={currentEq.amount || 1} onChange={e => setCurrentEq({...currentEq, amount: parseInt(e.target.value) || 1})} />
+                      </div>
+                    )}
+                    {eqType.hasInventoryNumber && (
+                      <div className="input-group">
+                        <label className="input-label">Evidenční číslo (JSDH)</label>
+                        <input className="input-field" value={currentEq.inventoryNumber || ''} onChange={e => setCurrentEq({...currentEq, inventoryNumber: e.target.value})} placeholder="Např. 123-45" />
+                      </div>
+                    )}
+                    {eqType.hasSerialNumber && (
+                      <div className="input-group">
+                        <label className="input-label">Výrobní číslo (S/N)</label>
+                        <input className="input-field" value={currentEq.serialNumber || ''} onChange={e => setCurrentEq({...currentEq, serialNumber: e.target.value})} placeholder="Např. AB123456" />
+                      </div>
+                    )}
+                    {eqType.hasManufactureYear && (
+                      <div className="input-group">
+                        <label className="input-label">Rok výroby</label>
+                        <input type="number" className="input-field" value={currentEq.manufactureYear || ''} onChange={e => setCurrentEq({...currentEq, manufactureYear: parseInt(e.target.value) || ''})} placeholder="Např. 2021" />
+                      </div>
+                    )}
+                    {eqType.hasIssueYear && (
+                      <div className="input-group">
+                        <label className="input-label">Rok nafasování</label>
+                        <input type="number" className="input-field" value={currentEq.issueYear || ''} onChange={e => setCurrentEq({...currentEq, issueYear: parseInt(e.target.value) || ''})} placeholder="Např. 2023" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit položku</button>
+                <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setShowEditModal(false)}>Zrušit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
