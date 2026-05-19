@@ -79,6 +79,7 @@ export default function ShiftCalendarPage() {
   // Activity popup state (for Option B - indicator dots)
   const [activityPopup, setActivityPopup] = useState(null); // { day } - only stores the day, activities derived from live data
   const [collapsedWeeks, setCollapsedWeeks] = useState({}); // { 'd-0': true, 'n-1': false }
+  const [zalohaAssignModal, setZalohaAssignModal] = useState(null); // { day, slotKey, section }
 
   const groupWeeks = (daysArray) => {
     const weeks = [];
@@ -287,8 +288,30 @@ export default function ShiftCalendarPage() {
       }
     };
 
-    // Case 1: Clicking on own slot -> remove self
-    if (currentAssignee && currentAssignee.uid === currentUser.uid) {
+    // --- ZALOHA / STAZ LOGIC ---
+    if (section === 'zalohaStaz') {
+      const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
+      
+      if (!isAdmin) {
+        showToast('error', 'Na pozice u Stáže/Zálohy může přiřazovat pouze velitel. Použijte tlačítko "Mám zájem".');
+        return;
+      }
+
+      if (currentAssignee) {
+        // Admin clicking occupied slot
+        const confirmed = await showConfirm('Uvolnit pozici', `Chcete odebrat uživatele ${currentAssignee.name} z této pozice? (Zůstane v seznamu zájemců)`);
+        if (!confirmed) return;
+        newData[section] = { ...newData[section], [slotKey]: deleteField() };
+      } else {
+        // Admin clicking empty slot
+        setZalohaAssignModal({ day, slotKey, section });
+        return; // wait for modal
+      }
+    } 
+    // --- DAY / NIGHT SHIFT LOGIC ---
+    else {
+      // Case 1: Clicking on own slot -> remove self
+      if (currentAssignee && currentAssignee.uid === currentUser.uid) {
       const confirmed = await showConfirm('Zrušit službu', 'Opravdu chcete zrušit svou službu?');
       if (!confirmed) return;
       newData[section] = { ...newData[section], [slotKey]: deleteField() };
@@ -357,6 +380,7 @@ export default function ShiftCalendarPage() {
       // Reset hours to default for the new entry
       cleanupHours(currentUser.uid);
     }
+    } // End of Day/Night Shift logic
 
     try {
       const docRef = doc(db, 'shifts', currentDocId);
@@ -366,20 +390,27 @@ export default function ShiftCalendarPage() {
       const shiftLabel = section === 'dayShift' ? 'denní' : section === 'nightShift' ? 'noční' : 'záloha/stáž';
       const slotLabel = getSlotLabel(slotKey);
       const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-      const wasRemoved = currentAssignee && currentAssignee.uid === currentUser.uid;
-      const wasKicked = currentAssignee && currentAssignee.uid !== currentUser.uid;
-      if (wasKicked) {
-        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-          'REMOVED_USER_FROM_SHIFT', 'shifts',
-          `Odebral ${currentAssignee.name} z pozice ${slotLabel} – ${shiftLabel} sloužba ${dateLabel}`);
-      } else if (wasRemoved) {
-        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-          'LEFT_SHIFT', 'shifts',
-          `Odhlásil se z ${shiftLabel} služby ${dateLabel} (${slotLabel})`);
+      
+      if (section === 'zalohaStaz') {
+          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+            'ADMIN_REMOVED_USER_FROM_STAZ', 'shifts',
+            `Odebral uživatele z pozice ${slotLabel} – ${shiftLabel} sloužba ${dateLabel}`);
       } else {
-        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-          'JOINED_SHIFT', 'shifts',
-          `Přihlásil se na ${shiftLabel} službu ${dateLabel} – pozice: ${slotLabel}`);
+          const wasRemoved = currentAssignee && currentAssignee.uid === currentUser.uid;
+          const wasKicked = currentAssignee && currentAssignee.uid !== currentUser.uid;
+          if (wasKicked) {
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+              'REMOVED_USER_FROM_SHIFT', 'shifts',
+              `Odebral ${currentAssignee.name} z pozice ${slotLabel} – ${shiftLabel} sloužba ${dateLabel}`);
+          } else if (wasRemoved) {
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+              'LEFT_SHIFT', 'shifts',
+              `Odhlásil se z ${shiftLabel} služby ${dateLabel} (${slotLabel})`);
+          } else {
+            logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+              'JOINED_SHIFT', 'shifts',
+              `Přihlásil se na ${shiftLabel} službu ${dateLabel} – pozice: ${slotLabel}`);
+          }
       }
 
       showToast('success', 'Služba uložena.');
@@ -387,6 +418,111 @@ export default function ShiftCalendarPage() {
       console.error("Error updating shift:", err);
       showToast('error', 'Chyba při ukládání služby.');
     }
+  };
+
+  const handleZalohaInterestedClick = async (day) => {
+    if (!userData || !userData.approved) return;
+
+    const dayData = shiftsData[day] || {};
+    const sectionData = dayData.zalohaStaz || { interested: [] };
+    const interested = sectionData.interested || [];
+    
+    const isInterested = interested.some(u => u.uid === currentUser.uid);
+
+    let newInterested;
+    let newData = { ...dayData };
+    if (!newData.zalohaStaz) newData.zalohaStaz = {};
+
+    if (isInterested) {
+      // Zrušit zájem
+      const confirmed = await showConfirm('Zrušit zájem', 'Opravdu chcete zrušit svůj zájem o tuto Stáž/Zálohu? Budete odebráni i z případné přiřazené pozice.');
+      if (!confirmed) return;
+      newInterested = interested.filter(u => u.uid !== currentUser.uid);
+      
+      // Remove from any assigned slot
+      const slots = Object.keys(newData.zalohaStaz).filter(k => k !== 'config' && k !== 'interested');
+      for (const s of slots) {
+          if (newData.zalohaStaz[s] && newData.zalohaStaz[s].uid === currentUser.uid) {
+              newData.zalohaStaz[s] = deleteField();
+          }
+      }
+    } else {
+      // Mám zájem
+      newInterested = [...interested, {
+        uid: currentUser.uid,
+        name: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''}`,
+        qualifiedVelitel: isQualifiedFor('velitel'),
+        qualifiedStrojnik: isQualifiedFor('strojnik')
+      }];
+    }
+    
+    newData.zalohaStaz.interested = newInterested;
+
+    try {
+      const docRef = doc(db, 'shifts', currentDocId);
+      await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
+      showToast('success', isInterested ? 'Zájem zrušen.' : 'Přidáni do seznamu zájemců.');
+    } catch (err) {
+      console.error("Error updating interested:", err);
+      showToast('error', 'Chyba při ukládání.');
+    }
+  };
+
+  const handleZalohaAssignUser = async (targetUser) => {
+      if (!zalohaAssignModal) return;
+      
+      const { day, slotKey, section } = zalohaAssignModal;
+      const dayData = shiftsData[day] || {};
+      let newData = { ...dayData };
+      
+      // check qualification if strict
+      const baseType = getSlotBaseType(slotKey);
+      if (baseType === 'strojnik' && !targetUser.qualifiedStrojnik) {
+          showToast('error', 'Pro pozici Strojník musí mít uživatel příslušnou kvalifikaci.');
+          return;
+      }
+      
+      let qualified = true;
+      if (baseType === 'velitel' && !targetUser.qualifiedVelitel) {
+          const proceed = await showConfirm(
+            '⚠️ Chybí kvalifikace',
+            `Uživatel nemá kvalifikaci pro Velitele. Bude označen žlutě. Pokračovat?`
+          );
+          if (!proceed) return;
+          qualified = false;
+      }
+
+      if (!newData[section]) newData[section] = {};
+      
+      // Remove user from any other slot in this shift to prevent duplicates
+      const slots = Object.keys(newData[section]).filter(k => k !== 'config' && k !== 'interested');
+      for (const s of slots) {
+          if (newData[section][s] && newData[section][s].uid === targetUser.uid) {
+              newData[section][s] = deleteField();
+          }
+      }
+
+      newData[section][slotKey] = {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          qualified
+      };
+
+      try {
+        const docRef = doc(db, 'shifts', currentDocId);
+        await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
+        
+        const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+            'ADMIN_ASSIGNED_USER_TO_STAZ', 'shifts',
+            `Přiřadil ${targetUser.name} na pozici ${getSlotLabel(slotKey)} – stáž ${dateLabel}`);
+            
+        showToast('success', 'Uživatel přiřazen na pozici.');
+        setZalohaAssignModal(null);
+      } catch (err) {
+        console.error("Error updating shift:", err);
+        showToast('error', 'Chyba při ukládání služby.');
+      }
   };
 
   // Get only days that have dayShift enabled
@@ -402,15 +538,16 @@ export default function ShiftCalendarPage() {
 
   // Remove an empty day shift
   const handleRemoveDayShift = async (date) => {
-    // Double check it's empty
     const dayData = shiftsData[date] || {};
     const currentShift = dayData.dayShift || {};
-    if (Object.keys(currentShift).length > 0) {
-      showToast('error', 'Nelze odebrat denní službu, která má přiřazené lidi.');
-      return;
+    
+    const takenSlots = Object.keys(currentShift);
+    let warningMsg = `Opravdu chcete zrušit denní službu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`;
+    if (takenSlots.length > 0) {
+      warningMsg = `POZOR: Tato denní služba má obsazené pozice! Opravdu chcete směnu ZRUŠIT a odebrat lidi?`;
     }
 
-    const confirmed = await showConfirm('Odebrat denní službu', `Opravdu chcete zrušit denní službu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`);
+    const confirmed = await showConfirm('Odebrat denní službu', warningMsg);
     if (!confirmed) return;
 
     try {
@@ -439,13 +576,13 @@ export default function ShiftCalendarPage() {
     const currentShift = dayData.zalohaStaz || {};
     
     // Check if any slots are taken (excluding the config)
-    const takenSlots = Object.keys(currentShift).filter(k => k !== 'config');
+    const takenSlots = Object.keys(currentShift).filter(k => k !== 'config' && k !== 'interested');
+    let warningMsg = `Opravdu chcete zrušit stáž/zálohu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`;
     if (takenSlots.length > 0) {
-      showToast('error', 'Nelze odebrat stáž/zálohu, která má přiřazené lidi.');
-      return;
+      warningMsg = `POZOR: Tato stáž/záloha má obsazené pozice! Opravdu chcete směnu ZRUŠIT a odebrat lidi?`;
     }
 
-    const confirmed = await showConfirm('Odebrat stáž/zálohu', `Opravdu chcete zrušit stáž/zálohu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`);
+    const confirmed = await showConfirm('Odebrat stáž/zálohu', warningMsg);
     if (!confirmed) return;
 
     try {
@@ -999,10 +1136,12 @@ export default function ShiftCalendarPage() {
                         sectionData={shiftsData[day.date]?.zalohaStaz || {}}
                         section="zalohaStaz"
                         onSlotClick={handleSlotClick}
+                        onZalohaInterestedClick={handleZalohaInterestedClick}
                         currentUser={currentUser}
                         onRemoveZaloha={handleRemoveZaloha}
                         trainings={dayTrainings}
                         events={dayEvents}
+                        isAdmin={userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r))}
                       />
                       {hasActivities && (
                         <InlineActivities
@@ -1116,6 +1255,7 @@ export default function ShiftCalendarPage() {
                         onRemoveDayShift={handleRemoveDayShift}
                         trainings={dayTrainings}
                         events={dayEvents}
+                        isAdmin={userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r))}
                       />
                       {hasActivities && (
                         <InlineActivities
@@ -1276,6 +1416,64 @@ export default function ShiftCalendarPage() {
           showToast={showToast}
         />
       )}
+
+      {/* Zaloha Assign Modal */}
+      {zalohaAssignModal && (() => {
+          const { day, section } = zalohaAssignModal;
+          const sectionData = shiftsData[day]?.[section] || {};
+          const assignedUids = Object.keys(sectionData)
+            .filter(k => k !== 'config' && k !== 'interested')
+            .map(k => sectionData[k]?.uid)
+            .filter(Boolean);
+            
+          const interestedPool = (sectionData.interested || []).filter(u => !assignedUids.includes(u.uid));
+
+          return (
+            <div className="modal-overlay" onClick={() => setZalohaAssignModal(null)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+                <div className="modal-header">
+                  <h3 className="modal-title">Přiřadit uživatele</h3>
+                  <button className="modal-close" onClick={() => setZalohaAssignModal(null)}>✕</button>
+                </div>
+                <div className="modal-body">
+                  <p style={{ marginBottom: '1rem', color: '#555' }}>Vyberte zájemce pro obsazení této pozice:</p>
+                  
+                  {interestedPool.length === 0 ? (
+                    <div style={{ padding: '1rem', background: '#f5f5f5', borderRadius: '8px', textAlign: 'center', color: '#888' }}>
+                      Žádní volní zájemci v tuto chvíli.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {interestedPool.map(user => (
+                        <button
+                          key={user.uid}
+                          onClick={() => handleZalohaAssignUser(user)}
+                          style={{
+                            padding: '0.75rem',
+                            background: 'white',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '8px',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#1976D2'; e.currentTarget.style.background = '#F5F9FF'; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.background = 'white'; }}
+                        >
+                          <span style={{ fontWeight: 600, color: '#333' }}>{user.name}</span>
+                          <span style={{ fontSize: '1.2rem' }}>+</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+      })()}
     </div>
   );
 }
@@ -1592,14 +1790,14 @@ const SLOT_ICONS = {
 };
 
 // Single Row Component
-function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift, onRemoveZaloha, trainings, events, onActivityClick }) {
+function ShiftRow({ day, sectionData, section, onSlotClick, onZalohaInterestedClick, currentUser, onRemoveDayShift, onRemoveZaloha, trainings, events, onActivityClick, isAdmin }) {
   const navigate = useNavigate();
   // Check if shift is empty (no users assigned)
   const isEmpty = section === 'zalohaStaz'
-    ? Object.keys(sectionData || {}).filter(k => k !== 'config').length === 0
+    ? Object.keys(sectionData || {}).filter(k => k !== 'config' && k !== 'interested').length === 0
     : !sectionData || Object.keys(sectionData).length === 0;
   
-  const canRemove = (section === 'dayShift' && onRemoveDayShift && isEmpty) || (section === 'zalohaStaz' && onRemoveZaloha && isEmpty);
+  const canRemove = (section === 'dayShift' && onRemoveDayShift && (isEmpty || isAdmin)) || (section === 'zalohaStaz' && onRemoveZaloha && (isEmpty || isAdmin));
 
   // Dynamic Slot Visibility Logic
   let visibleSlots = [];
@@ -1628,6 +1826,16 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
     return false;
   });
   }
+
+  // Zajemci logic for zalohaStaz
+  const assignedUids = Object.keys(sectionData || {})
+    .filter(k => k !== 'config' && k !== 'interested')
+    .map(k => sectionData[k]?.uid)
+    .filter(Boolean);
+
+  const interestedPool = (sectionData?.interested || []).filter(u => !assignedUids.includes(u.uid));
+  const isCurrentlyInterested = (sectionData?.interested || []).some(u => u.uid === currentUser?.uid);
+  const isAssignedToThis = assignedUids.includes(currentUser?.uid);
 
   return (
     <div style={{
@@ -1723,6 +1931,47 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
             />
           );
         })}
+        
+        {/* ZAjemci Pool rendering */}
+        {section === 'zalohaStaz' && (
+          <div style={{ width: '100%', marginTop: '0.5rem', borderTop: '1px dashed #e0e0e0', paddingTop: '0.5rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <button
+                onClick={() => onZalohaInterestedClick(day.date)}
+                style={{
+                  background: isCurrentlyInterested || isAssignedToThis ? '#FFEBEE' : '#E3F2FD',
+                  color: isCurrentlyInterested || isAssignedToThis ? '#D32F2F' : '#1565C0',
+                  border: isCurrentlyInterested || isAssignedToThis ? '1px solid #FFCDD2' : '1px solid #BBDEFB',
+                  padding: '0.4rem 0.75rem',
+                  borderRadius: '20px',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
+              >
+                  {isCurrentlyInterested || isAssignedToThis ? '✕ Zrušit zájem' : '✋ Mám zájem'}
+              </button>
+              
+              {interestedPool.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#777', marginRight: '0.25rem' }}>Zájemci:</span>
+                  {interestedPool.map(u => (
+                    <span key={u.uid} style={{
+                      background: '#f5f5f5', color: '#555', border: '1px solid #e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem'
+                    }}>
+                      {u.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+          </div>
+        )}
       </div>
     </div>
   );
