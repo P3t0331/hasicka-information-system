@@ -2,7 +2,7 @@ import React from 'react';
 
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
 
-export default function ActivitiesTab({ eventsData, trainingsData, currentDate }) {
+export default function ActivitiesTab({ eventsData, trainingsData }) {
     // Get all participants with stats
     const userMap = new Map();
     [...eventsData, ...trainingsData].forEach(activity => {

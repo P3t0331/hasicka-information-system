@@ -210,123 +210,7 @@ export default function ShiftsTab({
         }
     };
 
-    // Edit Modal Component
-    const EditHoursModal = ({ day, onClose }) => {
-        const dayData = shiftsData[day] || {};
-        const usersMap = new Map();
 
-        try {
-            ['dayShift', 'nightShift'].forEach(shiftType => {
-                const shift = dayData[shiftType] || {};
-                Object.keys(shift).forEach(slot => {
-                    const user = shift[slot];
-                    if (user && user.uid) {
-                        if (!usersMap.has(user.uid)) {
-                            usersMap.set(user.uid, { ...user, shifts: [shiftType] });
-                        } else {
-                            const existing = usersMap.get(user.uid);
-                            if (!existing.shifts.includes(shiftType)) {
-                                existing.shifts.push(shiftType);
-                            }
-                        }
-                    }
-                });
-            });
-
-            if (dayData.hours) {
-                Object.keys(dayData.hours).forEach(uid => {
-                    if (!usersMap.has(uid)) {
-                        const userFromList = users.find(u => u.uid === uid);
-                        const name = userFromList ? userFromList.name : 'Neznámý uživatel';
-                        usersMap.set(uid, { uid, name, shifts: [] });
-                    }
-                });
-            }
-        } catch (err) {
-            console.error("Error processing modal users:", err);
-        }
-
-        const uniqueUsers = Array.from(usersMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-
-        return (
-            <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-            }} onClick={onClose}>
-                <div style={{
-                    background: 'white', padding: '1.5rem', borderRadius: '8px', width: '90%', maxWidth: '600px'
-                }} onClick={e => e.stopPropagation()}>
-                    <h3 style={{ margin: '0 0 1rem 0' }}>Upravit hodiny - {day}. {MONTHS_CZ[currentDate.getMonth()]}</h3>
-
-                    {uniqueUsers.length === 0 ? (
-                        <p>Žádné směny v tento den.</p>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '500px', overflowY: 'auto' }}>
-                            {uniqueUsers.map(user => {
-                                const split = getSplitHoursForUser(day, user.uid);
-                                const hasDay = user.shifts.includes('dayShift');
-                                const hasNight = user.shifts.includes('nightShift');
-
-                                return (
-                                    <div key={user.uid} style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '6px' }}>
-                                        <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.1rem' }}>{user.name}</div>
-
-                                        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                                            {/* Night Control */}
-                                            <div style={{ flex: 1, minWidth: '220px', opacity: hasNight ? 1 : 0.6 }}>
-                                                <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    🌙 Noční sm. {(!hasNight && split.night === 0) && '(neobsazeno)'}
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <button
-                                                        className="btn btn-secondary btn-sm"
-                                                        disabled={split.night <= 0}
-                                                        onClick={() => handleHourEdit(day, user.uid, 'night', Math.max(0, split.night - 1))}
-                                                    >-</button>
-                                                    <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.night}h</span>
-                                                    <button
-                                                        className="btn btn-secondary btn-sm"
-                                                        disabled={!hasNight}
-                                                        title={!hasNight ? "Nelze přidat hodiny bez směny" : ""}
-                                                        onClick={() => handleHourEdit(day, user.uid, 'night', split.night + 1)}
-                                                    >+</button>
-                                                </div>
-                                            </div>
-
-                                            {/* Day Control */}
-                                            <div style={{ flex: 1, minWidth: '220px', opacity: hasDay ? 1 : 0.6 }}>
-                                                <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    ☀️ Denní sm. {(!hasDay && split.day === 0) && '(neobsazeno)'}
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <button
-                                                        className="btn btn-secondary btn-sm"
-                                                        disabled={split.day <= 0}
-                                                        onClick={() => handleHourEdit(day, user.uid, 'day', Math.max(0, split.day - 1))}
-                                                    >-</button>
-                                                    <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.day}h</span>
-                                                    <button
-                                                        className="btn btn-secondary btn-sm"
-                                                        disabled={!hasDay}
-                                                        title={!hasDay ? "Nelze přidat hodiny bez změny" : ""}
-                                                        onClick={() => handleHourEdit(day, user.uid, 'day', split.day + 1)}
-                                                    >+</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-                        <button className="btn btn-primary" onClick={onClose}>Hotovo</button>
-                    </div>
-                </div>
-            </div>
-        );
-    };
 
     const maxUserHours = Math.max(...users.map(u => getTotalHoursForUser(u.uid)), 1);
 
@@ -627,8 +511,142 @@ export default function ShiftsTab({
             </div>
 
             {editingCell && (
-                <EditHoursModal day={editingCell} onClose={() => setEditingCell(null)} />
+                <EditHoursModal
+                    day={editingCell}
+                    onClose={() => setEditingCell(null)}
+                    shiftsData={shiftsData}
+                    currentDate={currentDate}
+                    users={users}
+                    getSplitHoursForUser={getSplitHoursForUser}
+                    handleHourEdit={handleHourEdit}
+                />
             )}
         </>
     );
 }
+
+// Edit Modal Component declared outside of render to prevent recreation
+const EditHoursModal = ({
+    day,
+    onClose,
+    shiftsData,
+    currentDate,
+    users,
+    getSplitHoursForUser,
+    handleHourEdit
+}) => {
+    const dayData = shiftsData[day] || {};
+    const usersMap = new Map();
+
+    try {
+        ['dayShift', 'nightShift'].forEach(shiftType => {
+            const shift = dayData[shiftType] || {};
+            Object.keys(shift).forEach(slot => {
+                const user = shift[slot];
+                if (user && user.uid) {
+                    if (!usersMap.has(user.uid)) {
+                        usersMap.set(user.uid, { ...user, shifts: [shiftType] });
+                    } else {
+                        const existing = usersMap.get(user.uid);
+                        if (!existing.shifts.includes(shiftType)) {
+                            existing.shifts.push(shiftType);
+                        }
+                    }
+                }
+            });
+        });
+
+        if (dayData.hours) {
+            Object.keys(dayData.hours).forEach(uid => {
+                if (!usersMap.has(uid)) {
+                    const userFromList = users.find(u => u.uid === uid);
+                    const name = userFromList ? userFromList.name : 'Neznámý uživatel';
+                    usersMap.set(uid, { uid, name, shifts: [] });
+                }
+            });
+        }
+    } catch (err) {
+        console.error("Error processing modal users:", err);
+    }
+
+    const uniqueUsers = Array.from(usersMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+    return (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }} onClick={onClose}>
+            <div style={{
+                background: 'white', padding: '1.5rem', borderRadius: '8px', width: '90%', maxWidth: '600px'
+            }} onClick={e => e.stopPropagation()}>
+                <h3 style={{ margin: '0 0 1rem 0' }}>Upravit hodiny - {day}. {MONTHS_CZ[currentDate.getMonth()]}</h3>
+
+                {uniqueUsers.length === 0 ? (
+                    <p>Žádné směny v tento den.</p>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '500px', overflowY: 'auto' }}>
+                        {uniqueUsers.map(user => {
+                            const split = getSplitHoursForUser(day, user.uid);
+                            const hasDay = user.shifts.includes('dayShift');
+                            const hasNight = user.shifts.includes('nightShift');
+
+                            return (
+                                <div key={user.uid} style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '6px' }}>
+                                    <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.1rem' }}>{user.name}</div>
+
+                                    <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                                        {/* Night Control */}
+                                        <div style={{ flex: 1, minWidth: '220px', opacity: hasNight ? 1 : 0.6 }}>
+                                            <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                🌙 Noční sm. {(!hasNight && split.night === 0) && '(neobsazeno)'}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <button
+                                                    className="btn btn-secondary btn-sm"
+                                                    disabled={split.night <= 0}
+                                                    onClick={() => handleHourEdit(day, user.uid, 'night', Math.max(0, split.night - 1))}
+                                                >-</button>
+                                                <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.night}h</span>
+                                                <button
+                                                    className="btn btn-secondary btn-sm"
+                                                    disabled={!hasNight}
+                                                    title={!hasNight ? "Nelze přidat hodiny bez směny" : ""}
+                                                    onClick={() => handleHourEdit(day, user.uid, 'night', split.night + 1)}
+                                                >+</button>
+                                            </div>
+                                        </div>
+
+                                        {/* Day Control */}
+                                        <div style={{ flex: 1, minWidth: '220px', opacity: hasDay ? 1 : 0.6 }}>
+                                            <div style={{ fontSize: '0.75rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                ☀️ Denní sm. {(!hasDay && split.day === 0) && '(neobsazeno)'}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <button
+                                                    className="btn btn-secondary btn-sm"
+                                                    disabled={split.day <= 0}
+                                                    onClick={() => handleHourEdit(day, user.uid, 'day', Math.max(0, split.day - 1))}
+                                                >-</button>
+                                                <span style={{ fontWeight: 700, minWidth: '30px', textAlign: 'center', fontSize: '1.1rem' }}>{split.day}h</span>
+                                                <button
+                                                    className="btn btn-secondary btn-sm"
+                                                    disabled={!hasDay}
+                                                    title={!hasDay ? "Nelze přidat hodiny bez změny" : ""}
+                                                    onClick={() => handleHourEdit(day, user.uid, 'day', split.day + 1)}
+                                                >+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
+                    <button className="btn btn-primary" onClick={onClose}>Hotovo</button>
+                </div>
+            </div>
+        </div>
+    );
+};

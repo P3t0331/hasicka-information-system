@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, onSnapshot, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, onSnapshot, collection } from 'firebase/firestore';
 import StatCard from '../components/statistics/StatCard';
 import ActivitiesTab from '../components/statistics/ActivitiesTab';
 import AbsencesTab from '../components/statistics/AbsencesTab';
@@ -19,15 +19,12 @@ export default function StatisticsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [shiftsData, setShiftsData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [editingCell, setEditingCell] = useState(null); // { day, uid }
-  const [editValue, setEditValue] = useState('');
 
   // New state for tabs and additional data
   const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences'
   const [eventsData, setEventsData] = useState([]);
   const [trainingsData, setTrainingsData] = useState([]);
   const [absencesData, setAbsencesData] = useState([]);
-  const [allUsers, setAllUsers] = useState([]); // All users who participated in anything
 
   const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
   const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Velitel', 'VD'].includes(r));
@@ -39,7 +36,6 @@ export default function StatisticsPage() {
   const currentDocId = getMonthDocId(currentDate);
 
   useEffect(() => {
-    setLoading(true);
     const docRef = doc(db, 'shifts', currentDocId);
 
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
@@ -97,6 +93,7 @@ export default function StatisticsPage() {
   }, [currentDocId, currentDate]);
 
   const handleMonthChange = (offset) => {
+    setLoading(true);
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
     setCurrentDate(newDate);
   };
@@ -234,7 +231,6 @@ export default function StatisticsPage() {
         <ActivitiesTab
           eventsData={eventsData}
           trainingsData={trainingsData}
-          currentDate={currentDate}
         />
       )}
       {/* Absences Tab */}

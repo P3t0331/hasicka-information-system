@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useContext, useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
@@ -48,7 +49,7 @@ export function AuthProvider({ children }) {
               throw error;
             }
             // If we are here, Auth exists but Profile is missing -> PROCEED to overwrite/recreate
-          } catch (loginError) {
+          } catch {
             // If login fails (wrong password) or profile exists, throw original error
             throw error;
           }

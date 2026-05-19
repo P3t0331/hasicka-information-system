@@ -1,0 +1,341 @@
+import React from 'react';
+import { ROLE_OPTIONS, CERTIFICATION_OPTIONS } from './constants';
+
+export default function UsersTab({
+  allUsers,
+  pendingUsers,
+  stats,
+  currentUser,
+  userRoles,
+  approveUser,
+  deactivateUser,
+  deleteUser,
+  toggleUserRole,
+  toggleUserCertification,
+  updateRegistrationNumber,
+  rejectPendingUser
+}) {
+  const currentUserIsAdmin = userRoles.includes('Admin');
+
+  return (
+    <>
+      {/* Stats Dashboard */}
+      <div className="card mb-5" style={{ padding: '1.5rem' }}>
+        <h3 className="mb-3" style={{ fontSize: '1.2rem' }}>Přehled stavu jednotky</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+
+          {/* Roles Stats */}
+          <div>
+            <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '0.75rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>FUNKCE (ROLE)</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {ROLE_OPTIONS.filter(r => r !== 'Admin').map(role => (
+                <div key={role} style={{
+                  background: '#e3f2fd', color: '#1565c0', padding: '0.4rem 0.8rem', borderRadius: '8px',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600
+                }}>
+                  <span>{role}</span>
+                  <span style={{ background: 'white', padding: '0 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{stats.roles[role] || 0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Certs Stats */}
+          <div>
+            <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '0.75rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>KVALIFIKACE</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {CERTIFICATION_OPTIONS.map(cert => (
+                <div key={cert} style={{
+                  background: '#fff3e0', color: '#e65100', padding: '0.4rem 0.8rem', borderRadius: '8px',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600
+                }}>
+                  <span>{cert}</span>
+                  <span style={{ background: 'white', padding: '0 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{stats.certs[cert] || 0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Pending Approvals */}
+      {pendingUsers.length > 0 && (
+        <div className="mb-5 animation-fade-in">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-gold)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+              boxShadow: '0 4px 10px rgba(255, 193, 7, 0.3)'
+            }}>⚠️</div>
+            <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.4rem' }}>Žádosti o registraci</h3>
+          </div>
+          <div style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {pendingUsers.map(user => (
+              <div key={user.uid} className="card" style={{
+                padding: '0',
+                border: 'none',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                transition: 'transform 0.2s',
+                position: 'relative'
+              }}>
+                <div style={{
+                  padding: '1.5rem',
+                  borderLeft: '5px solid var(--accent-gold)',
+                  background: 'linear-gradient(to right, #fff, #fbfbfb)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <div>
+                      <strong style={{ fontSize: '1.2rem', display: 'block', color: 'var(--text-primary)' }}>{user.firstName} {user.lastName}</strong>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.email}</span>
+                    </div>
+                    <div style={{
+                      background: '#FFF8E1', color: '#FFA000', padding: '0.25rem 0.6rem',
+                      borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase'
+                    }}>
+                      Nový
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Požadované role</div>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {(user.roles || [user.role]).map(r => (
+                        <span key={r} style={{
+                          fontSize: '0.8rem', background: '#eee', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444'
+                        }}>
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', borderTop: '1px solid #eee' }}>
+                  <button
+                    style={{
+                      flex: 1, padding: '1rem', border: 'none', background: 'white',
+                      color: '#d32f2f', fontWeight: 600, cursor: 'pointer',
+                      transition: 'background 0.2s',
+                      borderRight: '1px solid #eee'
+                    }}
+                    className="hover-bg-red-50"
+                    onClick={() => rejectPendingUser(user)}
+                  >
+                    🚫 ZAMÍTNOUT
+                  </button>
+                  <button
+                    style={{
+                      flex: 1, padding: '1rem', border: 'none', background: 'white',
+                      color: '#2e7d32', fontWeight: 600, cursor: 'pointer',
+                      transition: 'background 0.2s'
+                    }}
+                    className="hover-bg-green-50"
+                    onClick={() => approveUser(user.uid)}
+                  >
+                    ✅ SCHVÁLIT
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Users / Role Management */}
+      <div className="card" style={{ overflow: 'hidden', padding: 0, border: 'none', background: 'transparent', boxShadow: 'none' }}>
+        <div style={{ padding: '1rem', background: '#fff', borderBottom: '1px solid #eee', borderRadius: '12px 12px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ margin: 0 }}>Všichni uživatelé</h3>
+        </div>
+
+        <div style={{ background: '#fff', borderRadius: '0 0 12px 12px', overflowX: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+          <table className="responsive-table">
+            <thead>
+              <tr>
+                <th style={{ width: '25%' }}>Jméno & Email</th>
+                <th style={{ width: '15%' }}>Evidenční číslo</th>
+                <th style={{ width: '25%' }}>Funkce (Role)</th>
+                <th style={{ width: '25%' }}>Kvalifikace (Školení)</th>
+                <th style={{ textAlign: 'right' }}>Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allUsers.map(user => {
+                const roles = user.roles || [user.role || 'Hasič'];
+                const certs = user.certifications || [];
+                const isDisabled = user.disabled;
+                const isAdmin = roles.includes('Admin');
+                const isSelf = user.uid === currentUser.uid;
+
+                return (
+                  <tr key={user.uid} className="hover-row" style={{
+                    background: isDisabled ? '#fafafa' : 'white',
+                    opacity: isDisabled ? 0.8 : 1
+                  }}>
+                    {/* COL 1: User Info */}
+                    <td data-label="Uživatel">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-end', width: '100%' }}>
+                        <div style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{
+                            width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+                            background: isAdmin ? 'var(--primary-red)' : (isDisabled ? '#ccc' : '#2196F3'),
+                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem'
+                          }}>
+                            {user.firstName ? user.firstName[0] : ''}{user.lastName ? user.lastName[0] : ''}
+                          </div>
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontWeight: 600, color: isDisabled ? '#999' : 'var(--text-primary)', textDecoration: isDisabled ? 'line-through' : 'none' }}>
+                              {user.firstName} {user.lastName}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: '#777', wordBreak: 'break-all' }}>{user.email}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* COL 1.5: REGISTRATION NUMBER */}
+                    <td data-label="Evidenční číslo">
+                      <input 
+                         type="text" 
+                         className="input-field"
+                         style={{ padding: '0.4rem', fontSize: '0.9rem', width: '100%', maxWidth: '60px', textAlign: 'center' }}
+                         placeholder="Číslo"
+                         defaultValue={user.registrationNumber || ''}
+                         onBlur={(e) => updateRegistrationNumber(user.uid, e.target.value, user.registrationNumber || '')}
+                         disabled={isDisabled} 
+                      />
+                    </td>
+
+                    {/* COL 2: ROLES */}
+                    <td data-label="Funkce" className="mobile-col">
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        {ROLE_OPTIONS.map(roleOption => {
+                          const isAssigned = roles.includes(roleOption);
+                          const isRoleAdmin = roleOption === 'Admin';
+                          const isProtectedRole = ['VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(roleOption);
+
+                          // Admin role: never editable via UI
+                          // VJ/Zástupce VJ: only Admin can change
+                          const disabled = isDisabled || isRoleAdmin || (isProtectedRole && !currentUserIsAdmin);
+                          const tooltip = isRoleAdmin
+                            ? "Roli Admina nelze měnit zde"
+                            : (isProtectedRole && !currentUserIsAdmin)
+                              ? "Tuto roli může měnit pouze Admin"
+                              : "";
+
+                          return (
+                            <label
+                              key={roleOption}
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', padding: '0.2rem 0.6rem', borderRadius: '99px',
+                                border: isAssigned ? `1px solid ${isRoleAdmin ? '#d32f2f' : (isProtectedRole ? '#F57C00' : '#1976D2')}` : '1px solid #e0e0e0',
+                                background: isAssigned ? (isRoleAdmin ? '#ffebee' : (isProtectedRole ? '#FFF3E0' : '#e3f2fd')) : 'transparent',
+                                color: isAssigned ? (isRoleAdmin ? '#c62828' : (isProtectedRole ? '#E65100' : '#1565c0')) : '#777',
+                                fontSize: '0.75rem', fontWeight: 600,
+                                cursor: disabled ? 'default' : 'pointer',
+                                opacity: disabled && !isAssigned ? 0.5 : 1,
+                                transition: 'all 0.2s'
+                              }}
+                              title={tooltip}
+                            >
+                              <input
+                                type="checkbox"
+                                style={{ display: 'none' }}
+                                disabled={disabled}
+                                checked={isAssigned}
+                                onChange={() => toggleUserRole(user.uid, roles, roleOption)}
+                              />
+                              {roleOption}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </td>
+
+                    {/* COL 3: CERTIFICATIONS */}
+                    <td data-label="Kvalifikace" className="mobile-col">
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        {CERTIFICATION_OPTIONS.map(certOption => {
+                          const isAssigned = certs.includes(certOption);
+                          const disabled = isDisabled;
+
+                          return (
+                            <label
+                              key={certOption}
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', padding: '0.2rem 0.6rem', borderRadius: '4px',
+                                border: isAssigned ? '1px solid #F57C00' : '1px solid #e0e0e0',
+                                background: isAssigned ? '#fff3e0' : 'transparent',
+                                color: isAssigned ? '#e65100' : '#777',
+                                fontSize: '0.75rem', fontWeight: 600,
+                                cursor: disabled ? 'default' : 'pointer',
+                                opacity: disabled && !isAssigned ? 0.5 : 1,
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                style={{ display: 'none' }}
+                                disabled={disabled}
+                                checked={isAssigned}
+                                onChange={() => toggleUserCertification(user.uid, certs, certOption)}
+                              />
+                              {certOption}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </td>
+
+                    {/* COL 4: ACTIONS */}
+                    <td data-label="Akce">
+                      {!isAdmin && !isSelf && (
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => deactivateUser(user.uid, !isDisabled)}
+                            style={{
+                              border: 'none', cursor: 'pointer',
+                              padding: '0.5rem 0.8rem', borderRadius: '6px',
+                              color: isDisabled ? '#2e7d32' : '#c62828',
+                              background: isDisabled ? '#E8F5E9' : '#FFEBEE',
+                              fontWeight: 600, fontSize: '0.8rem',
+                              transition: 'background 0.2s'
+                            }}
+                            title={isDisabled ? "Aktivovat účet" : "Deaktivovat účet"}
+                          >
+                            {isDisabled ? 'AKTIVOVAT' : 'DEAKTIVOVAT'}
+                          </button>
+
+                          {isDisabled && (
+                            <button
+                              onClick={() => deleteUser(user.uid)}
+                              style={{
+                                border: 'none', cursor: 'pointer',
+                                padding: '0.5rem 0.8rem', borderRadius: '6px',
+                                color: '#fff',
+                                background: '#d32f2f',
+                                fontWeight: 600, fontSize: '0.8rem',
+                                transition: 'background 0.2s',
+                                boxShadow: '0 2px 4px rgba(211, 47, 47, 0.2)'
+                              }}
+                              title="Trvale smazat uživatele"
+                            >
+                              SMAZAT
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {(isAdmin || isSelf) && <span style={{ color: '#ccc', fontSize: '0.8rem' }}>---</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}

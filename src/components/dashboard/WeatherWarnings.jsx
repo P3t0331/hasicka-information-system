@@ -1,4 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+const getSeverityColor = (severity) => {
+    // Map severity to colors
+    const s = (severity || '').toLowerCase();
+    if (s.includes('extreme') || s.includes('extrém')) return '#D32F2F'; // Red
+    if (s.includes('severe') || s.includes('siln')) return '#E64A19'; // Deep Orange
+    if (s.includes('moderate') || s.includes('střed')) return '#F57C00'; // Orange
+    return '#FBC02D'; // Default Yellow
+};
 
 export default function WeatherWarnings() {
     const [warnings, setWarnings] = useState([]);
@@ -8,7 +17,51 @@ export default function WeatherWarnings() {
     
     const nextUpdateRef = useRef(null);
 
-    const fetchWeather = async () => {
+    const processWeatherData = useCallback((data) => {
+        if (!data) return;
+
+        // Process Warnings (Alerts)
+        let alertsList = [];
+        if (data.alerts) {
+            if (Array.isArray(data.alerts)) {
+                alertsList = data.alerts;
+            } else if (data.alerts.alert) {
+                alertsList = Array.isArray(data.alerts.alert) ? data.alerts.alert : [data.alerts.alert];
+            }
+        }
+
+        // Filter alerts relevant for Brno
+        const relevantAlerts = alertsList.filter(alert => {
+            const text = ((alert.areas || '') + ' ' + (alert.headline || '')).toLowerCase();
+
+            // 1. Explicit Brno mention
+            if (text.includes('brno')) return true;
+
+            // 2. Region mention with validation (Jihomoravský / South Moravian)
+            if (text.includes('jihomoravsk') || text.includes('south moravian')) {
+                // If it contains a list of specific areas in parentheses (e.g. "... (Blansko, Vyškov)"), verify Brno is inside
+                // If parens exist but "brno" is missing, we assume it's for other districts only.
+                if (text.includes('(') && !text.includes('brno')) return false;
+                return true;
+            }
+
+            return false;
+        });
+
+        const newWarnings = relevantAlerts.map(alert => ({
+            event: alert.event || 'Výstraha',
+            severity: alert.severity || 'Moderate',
+            description: alert.desc || '',
+            instruction: alert.instruction || '',
+            onset: alert.effective ? new Date(alert.effective).toLocaleString('cs-CZ') : '',
+            expires: alert.expires ? new Date(alert.expires).toLocaleString('cs-CZ') : '',
+            color: getSeverityColor(alert.severity)
+        }));
+
+        setWarnings(newWarnings);
+    }, []);
+
+    const fetchWeather = useCallback(async () => {
         try {
             const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in ms
             const cachedData = localStorage.getItem('weatherWarningsCache');
@@ -53,7 +106,7 @@ export default function WeatherWarnings() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [processWeatherData]);
 
     useEffect(() => {
         fetchWeather();
@@ -76,7 +129,7 @@ export default function WeatherWarnings() {
         }, 1000);
         
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchWeather]);
 
     const loadDemoData = () => {
         setError(null);
@@ -90,59 +143,6 @@ export default function WeatherWarnings() {
                 color: '#F57C00'
             }
         ]);
-    };
-
-    const processWeatherData = (data) => {
-        if (!data) return;
-
-        // Process Warnings (Alerts)
-        let alertsList = [];
-        if (data.alerts) {
-            if (Array.isArray(data.alerts)) {
-                alertsList = data.alerts;
-            } else if (data.alerts.alert) {
-                alertsList = Array.isArray(data.alerts.alert) ? data.alerts.alert : [data.alerts.alert];
-            }
-        }
-
-        // Filter alerts relevant for Brno
-        const relevantAlerts = alertsList.filter(alert => {
-            const text = ((alert.areas || '') + ' ' + (alert.headline || '')).toLowerCase();
-
-            // 1. Explicit Brno mention
-            if (text.includes('brno')) return true;
-
-            // 2. Region mention with validation (Jihomoravský / South Moravian)
-            if (text.includes('jihomoravsk') || text.includes('south moravian')) {
-                // If it contains a list of specific areas in parentheses (e.g. "... (Blansko, Vyškov)"), verify Brno is inside
-                // If parens exist but "brno" is missing, we assume it's for other districts only.
-                if (text.includes('(') && !text.includes('brno')) return false;
-                return true;
-            }
-
-            return false;
-        });
-
-        const newWarnings = relevantAlerts.map(alert => ({
-            event: alert.event || 'Výstraha',
-            severity: alert.severity || 'Moderate',
-            description: alert.desc || '',
-            instruction: alert.instruction || '',
-            onset: alert.effective ? new Date(alert.effective).toLocaleString('cs-CZ') : '',
-            expires: alert.expires ? new Date(alert.expires).toLocaleString('cs-CZ') : '',
-            color: getSeverityColor(alert.severity)
-        }));
-
-        setWarnings(newWarnings);
-    };
-
-    const getSeverityColor = (severity) => {
-        // Map severity to colors
-        const s = (severity || '').toLowerCase();
-        if (s.includes('extreme') || s.includes('extrém')) return '#D32F2F'; // Red
-        if (s.includes('severe') || s.includes('siln')) return '#E64A19'; // Deep Orange
-        if (s.includes('moderate') || s.includes('střed')) return '#F57C00'; // Orange
-        return '#FBC02D'; // Default Yellow
     };
 
     // "I do not want to see weather, only if there are or not alerts."

@@ -2,6 +2,25 @@ import React from 'react';
 import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+// Navigation Items Component for reuse
+const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
+  <>
+    <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Domů</Link>
+    <Link to="/profile" className={`nav-link ${isActive('/profile') ? 'active' : ''}`}>Profil</Link>
+    <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>Služby</Link>
+    <NavLink to="/skoleni" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Školení</NavLink>
+    <NavLink to="/akce" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Akce</NavLink>
+    <NavLink to="/statistiky" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Statistiky</NavLink>
+    <NavLink to="/clenove" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Členové</NavLink>
+    {isAdminOrVJ && (
+      <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>Administrace</Link>
+    )}
+    <button className="nav-btn" onClick={handleLogout} style={mobile ? { marginTop: 'auto', width: '100%' } : {}}>
+      Odhlásit
+    </button>
+  </>
+);
+
 export default function Layout() {
   const { logout, userData } = useAuth();
   const location = useLocation();
@@ -41,25 +60,6 @@ export default function Layout() {
     }
   }
 
-  // Navigation Items Component for reuse
-  const NavItems = ({ mobile = false }) => (
-    <>
-      <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Domů</Link>
-      <Link to="/profile" className={`nav-link ${isActive('/profile') ? 'active' : ''}`}>Profil</Link>
-      <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>Služby</Link>
-      <NavLink to="/skoleni" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Školení</NavLink>
-      <NavLink to="/akce" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Akce</NavLink>
-      <NavLink to="/statistiky" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Statistiky</NavLink>
-      <NavLink to="/clenove" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Členové</NavLink>
-      {isAdminOrVJ && (
-        <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>Administrace</Link>
-      )}
-      <button className="nav-btn" onClick={handleLogout} style={mobile ? { marginTop: 'auto', width: '100%' } : {}}>
-        Odhlásit
-      </button>
-    </>
-  );
-
   return (
     <div className="page-layout">
       <nav className="navbar">
@@ -71,7 +71,7 @@ export default function Layout() {
 
           {/* Desktop Navigation */}
           <div className="desktop-nav">
-            <NavItems />
+            <NavItems isActive={isActive} isAdminOrVJ={isAdminOrVJ} handleLogout={handleLogout} />
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -88,7 +88,7 @@ export default function Layout() {
       {/* Mobile Menu Overlay */}
       <div className={`mobile-menu-overlay ${isMenuOpen ? 'open' : ''}`}>
         <div className="mobile-nav-content">
-          <NavItems mobile={true} />
+          <NavItems mobile={true} isActive={isActive} isAdminOrVJ={isAdminOrVJ} handleLogout={handleLogout} />
         </div>
       </div>
 

@@ -1,0 +1,162 @@
+﻿
+C:\Users\petko\Desktop\hasici-system\src\components\Layout.jsx
+  74:14  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  72 |           {/* Desktop Navigation */}
+  73 |           <div className="desktop-nav">
+> 74 |             <NavItems />
+     |              ^^^^^^^^ This component is created during render
+  75 |           </div>
+  76 |
+  77 |           {/* Mobile Hamburger Button */}
+
+  43 |
+  44 |   // Navigation Items Component for reuse
+> 45 |   const NavItems = ({ mobile = false }) => (
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 46 |     <>
+     | ^^^^^^
+> 47 |       <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Dom┼»</Link>
+     ΓÇª
+     | ^^^^^^
+> 60 |     </>
+     | ^^^^^^
+> 61 |   );
+     | ^^^^ The component is created during render here
+  62 |
+  63 |   return (
+  64 |     <div className="page-layout">                       react-hooks/static-components
+  91:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  89 |       <div className={`mobile-menu-overlay ${isMenuOpen ? 'open' : ''}`}>
+  90 |         <div className="mobile-nav-content">
+> 91 |           <NavItems mobile={true} />
+     |            ^^^^^^^^ This component is created during render
+  92 |         </div>
+  93 |       </div>
+  94 |
+
+  43 |
+  44 |   // Navigation Items Component for reuse
+> 45 |   const NavItems = ({ mobile = false }) => (
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 46 |     <>
+     | ^^^^^^
+> 47 |       <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Dom┼»</Link>
+     ΓÇª
+     | ^^^^^^
+> 60 |     </>
+     | ^^^^^^
+> 61 |   );
+     | ^^^^ The component is created during render here
+  62 |
+  63 |   return (
+  64 |     <div className="page-layout">  react-hooks/static-components
+
+C:\Users\petko\Desktop\hasici-system\src\components\PrivateRoute.jsx
+  6:34  error  'logout' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\petko\Desktop\hasici-system\src\components\dashboard\WeatherWarnings.jsx
+  79:8  warning  React Hook useEffect has a missing dependency: 'fetchWeather'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\petko\Desktop\hasici-system\src\components\statistics\ActivitiesTab.jsx
+  5:68  error  'currentDate' is defined but never used  no-unused-vars
+
+C:\Users\petko\Desktop\hasici-system\src\components\statistics\ShiftsTab.jsx
+  630:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  628 |
+  629 |             {editingCell && (
+> 630 |                 <EditHoursModal day={editingCell} onClose={() => setEditingCell(null)} />
+      |                  ^^^^^^^^^^^^^^ This component is created during render
+  631 |             )}
+  632 |         </>
+  633 |     );
+
+  212 |
+  213 |     // Edit Modal Component
+> 214 |     const EditHoursModal = ({ day, onClose }) => {
+      |                            ^^^^^^^^^^^^^^^^^^^^^^^
+> 215 |         const dayData = shiftsData[day] || {};
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 216 |         const usersMap = new Map();
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 328 |         );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 329 |     };
+      | ^^^^^^ The component is created during render here
+  330 |
+  331 |     const maxUserHours = Math.max(...users.map(u => getTotalHoursForUser(u.uid)), 1);
+  332 |  react-hooks/static-components
+
+C:\Users\petko\Desktop\hasici-system\src\contexts\AuthContext.jsx
+  14:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  51:20  error  'loginError' is defined but never used                                                                                          no-unused-vars
+
+C:\Users\petko\Desktop\hasici-system\src\pages\DashboardPage.jsx
+   13:12  error    'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                 no-unused-vars
+   25:12  error    'recentActivity' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                          no-unused-vars
+   25:28  error    'setRecentActivity' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                       no-unused-vars
+   35:15  error    'currentYear' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                             no-unused-vars
+   36:15  error    'currentMonth' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                            no-unused-vars
+  323:8   warning  React Hook useEffect has a missing dependency: 'sessionLastAppVisit'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\petko\Desktop\hasici-system\src\pages\MembersPage.jsx
+  180:43  error  'equipmentTypes' is defined but never used  no-unused-vars
+
+C:\Users\petko\Desktop\hasici-system\src\pages\ProfilePage.jsx
+    5:38  error  'getDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+   13:19  error  'setLoading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+   23:10  error  'monthlyHours' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  110:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  108 |   useEffect(() => {
+  109 |     if (currentUser && userData) {
+> 110 |       setEditForm({
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  111 |         firstName: userData.firstName,
+  112 |         lastName: userData.lastName,
+  113 |         phone: userData.phone,  react-hooks/set-state-in-effect
+
+C:\Users\petko\Desktop\hasici-system\src\pages\StatisticsPage.jsx
+   4:27  error  'setDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+   4:47  error  'getDocs' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+   4:56  error  'query' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+   4:63  error  'where' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  22:10  error  'editingCell' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  22:23  error  'setEditingCell' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+  23:10  error  'editValue' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  23:21  error  'setEditValue' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  30:10  error  'allUsers' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+  30:20  error  'setAllUsers' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  42:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  40 |
+  41 |   useEffect(() => {
+> 42 |     setLoading(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  43 |     const docRef = doc(db, 'shifts', currentDocId);
+  44 |
+  45 |     const unsubscribe = onSnapshot(docRef, (docSnap) => {  react-hooks/set-state-in-effect
+
+Γ£û 30 problems (28 errors, 2 warnings)
+
