@@ -186,12 +186,48 @@ export default function AdminPage() {
 
   function handleRemoveEq(id) {
     const eqType = equipmentTypes.find(t => t.id === id);
-    requestConfirm('Opravdu smazat tento druh vybavení ze systému? Uživatelská data zůstanou, ale nepůjdou editovat.', () => {
+    requestConfirm(`⚠️ POZOR: Opravdu smazat druh vybavení "${eqType?.name || id}"? Tímto krokem NENÁVRATNĚ SMAŽETE veškeré zaevidované vybavení tohoto typu všem členům z jejich profilů!`, async () => {
+      // 1. Remove from settings
       const newTypes = equipmentTypes.filter(t => t.id !== id);
       saveEquipmentTypes(newTypes);
+      
+      // 2. Remove from all users
+      const usersToUpdate = allUsers.filter(u => {
+        const hasLegacy = u.equipment && u.equipment[id];
+        const hasNew = u.equipmentList && u.equipmentList.some(eq => eq.typeId === id);
+        return hasLegacy || hasNew;
+      });
+
+      let removedCount = 0;
+      for (const u of usersToUpdate) {
+        const userRef = doc(db, "users", u.uid);
+        const updates = {};
+        
+        if (u.equipmentList) {
+          updates.equipmentList = u.equipmentList.filter(eq => eq.typeId !== id);
+        }
+        
+        if (u.equipment && u.equipment[id]) {
+          const newLegacyEq = { ...u.equipment };
+          delete newLegacyEq[id];
+          updates.equipment = newLegacyEq;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          try {
+            await updateDoc(userRef, updates);
+            removedCount++;
+          } catch(e) {
+            console.error(`Failed to delete equipment ${id} for user ${u.uid}`, e);
+          }
+        }
+      }
+
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_REMOVED_EQUIPMENT_TYPE', 'admin',
-        `Smazal druh vybavení: "${eqType?.name || id}"`);
+        `Smazal druh vybavení: "${eqType?.name || id}" a odebral jej ${removedCount} uživatelům.`);
+        
+      showNotification('success', `Druh vybavení byl úspěšně smazán a odebrán ${removedCount} uživatelům.`);
     });
   }
 
@@ -859,7 +895,7 @@ export default function AdminPage() {
                         <td style={{ textAlign: 'center', padding: '0.4rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                             <button onClick={() => { setNewEq(eq); setShowEqModal(true); }} style={{ background: 'none', border: 'none', color: '#1976D2', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Upravit">✏️</button>
-                            <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">🗑️</button>
+                            <button onClick={() => handleRemoveEq(eq.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '0.2rem 0.4rem', borderRadius: '4px' }} title="Smazat">×</button>
                           </div>
                         </td>
                       </tr>
@@ -1076,6 +1112,8 @@ export default function AdminPage() {
           equipmentTypes={equipmentTypes} 
           currentUser={currentUser} 
           userData={userData}
+          showNotification={showNotification}
+          requestConfirm={requestConfirm}
         />
       )}
 
@@ -1403,7 +1441,7 @@ function LogsTab({
 // Thin hook shim so LogsTab can use db without prop drilling
 function useDbInstance() { return { db }; }
 
-function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData }) {
+function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData, showNotification, requestConfirm }) {
   const [filterUser, setFilterUser] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [showEditModal, setShowEditModal] = useState(false);
@@ -1418,24 +1456,6 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData 
     list.forEach(item => {
       allItems.push({ ...item, _userId: user.uid, _userName: `${user.firstName} ${user.lastName}` });
     });
-    
-    // Collect legacy if equipmentList is missing
-    if (!user.equipmentList && user.equipment) {
-      Object.entries(user.equipment).forEach(([key, d]) => {
-        if (d && (d.size || (d.amount && d.amount > 0))) {
-          allItems.push({
-            id: `legacy_${user.uid}_${key}`,
-            typeId: key,
-            size: d.size,
-            amount: d.amount,
-            ownership: d.ownership || 'jsdh',
-            _userId: user.uid,
-            _userName: `${user.firstName} ${user.lastName}`,
-            isLegacy: true
-          });
-        }
-      });
-    }
   });
   
   // Filter
@@ -1452,23 +1472,10 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData 
     try {
       const userRef = doc(db, "users", targetUserId);
       const targetUser = allUsers.find(u => u.uid === targetUserId);
-      const currentList = targetUser.equipmentList || [];
+      const baseList = targetUser.equipmentList || [];
       let newList = [];
       let isNew = false;
       
-      const legacyEq = targetUser.equipment || {};
-      const legacyItems = Object.entries(legacyEq)
-        .filter(([key, d]) => d && (d.size || (d.amount && d.amount > 0)))
-        .map(([key, d]) => ({
-          id: `legacy_${key}`,
-          typeId: key,
-          size: d.size,
-          amount: d.amount,
-          ownership: d.ownership || 'jsdh'
-        }));
-        
-      const baseList = currentList.length === 0 && legacyItems.length > 0 ? legacyItems : currentList;
-
       if (currentEq.id && !currentEq.id.startsWith('new_')) {
         newList = baseList.map(item => item.id === currentEq.id ? currentEq : item);
       } else {
@@ -1482,7 +1489,7 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData 
       
       const eqType = equipmentTypes.find(t => t.id === currentEq.typeId);
       
-      await updateDoc(userRef, { equipmentList: newList, equipment: {} });
+      await updateDoc(userRef, { equipmentList: newList });
       
       const actionCreatorName = `${userData.firstName} ${userData.lastName}`;
       logAction(db, currentUser.uid, actionCreatorName,
@@ -1490,30 +1497,35 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData 
         `${isNew ? 'Přidal' : 'Upravil'} vybavení (${eqType?.name}) uživateli ${targetUser.firstName} ${targetUser.lastName}`);
         
       setShowEditModal(false);
+      showNotification('success', 'Záznam vybavení byl úspěšně uložen.');
     } catch (err) {
       console.error(err);
-      alert('Chyba při ukládání');
+      showNotification('error', 'Chyba při ukládání vybavení.');
     }
   }
   
-  async function handleDelete(itemId, userId) {
-    if (!window.confirm('Opravdu smazat tuto položku vybavení?')) return;
-    try {
-      const targetUser = allUsers.find(u => u.uid === userId);
-      const userRef = doc(db, "users", userId);
-      
-      const currentList = targetUser.equipmentList || [];
-      const newList = currentList.filter(item => item.id !== itemId);
-      
-      await updateDoc(userRef, { equipmentList: newList, equipment: {} }); // Clear legacy as we migrate on first write
-      
-      const actionCreatorName = `${userData.firstName} ${userData.lastName}`;
-      logAction(db, currentUser.uid, actionCreatorName,
-        'ADMIN_UPDATED_EQUIPMENT', 'admin',
-        `Smazal záznam vybavení uživateli ${targetUser.firstName} ${targetUser.lastName}`);
-    } catch (err) {
-      console.error(err);
-    }
+  function handleDelete(itemId, userId) {
+    requestConfirm('Opravdu smazat tuto položku vybavení?', async () => {
+      try {
+        const targetUser = allUsers.find(u => u.uid === userId);
+        const userRef = doc(db, "users", userId);
+        
+        const currentList = targetUser.equipmentList || [];
+        const newList = currentList.filter(item => item.id !== itemId);
+        
+        await updateDoc(userRef, { equipmentList: newList });
+        
+        const actionCreatorName = `${userData.firstName} ${userData.lastName}`;
+        logAction(db, currentUser.uid, actionCreatorName,
+          'ADMIN_UPDATED_EQUIPMENT', 'admin',
+          `Smazal záznam vybavení uživateli ${targetUser.firstName} ${targetUser.lastName}`);
+          
+        showNotification('success', 'Záznam vybavení byl úspěšně smazán.');
+      } catch (err) {
+        console.error(err);
+        showNotification('error', 'Chyba při mazání vybavení.');
+      }
+    });
   }
   
   return (
@@ -1581,7 +1593,7 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData 
                   </td>
                   <td data-label="Detaily" style={{ padding: '0.75rem' }}>
                     {item.size && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Vel:</span> {item.size}</div>}
-                    {item.amount > 0 && <div><span style={{ color: '#888' }}>Ks:</span> {item.amount}</div>}
+                    {eqType.hasAmount && <div><span style={{ color: '#888' }}>Ks:</span> {item.amount || 1}</div>}
                   </td>
                   <td data-label="Evid. čísla" style={{ padding: '0.75rem' }}>
                     {item.inventoryNumber && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Evid:</span> {item.inventoryNumber}</div>}
@@ -1594,7 +1606,7 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData 
                   <td data-label="Akce" style={{ padding: '0.75rem', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                       <button onClick={() => { setTargetUserId(item._userId); setCurrentEq(item); setShowEditModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }} title="Upravit">✏️</button>
-                      <button onClick={() => handleDelete(item.id, item._userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }} title="Smazat">🗑️</button>
+                      <button onClick={() => handleDelete(item.id, item._userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }} title="Smazat">×</button>
                     </div>
                   </td>
                 </tr>

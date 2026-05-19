@@ -242,6 +242,19 @@ function MemberCard({ member, roleLabels, equipmentTypes }) {
                         gap: '0.5rem',
                         flexWrap: 'wrap'
                     }}>
+                        {member.registrationNumber && (
+                            <span style={{
+                                background: 'rgba(255, 193, 7, 0.15)',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '12px',
+                                fontSize: '0.7rem',
+                                fontWeight: 600,
+                                color: '#FFD54F',
+                                border: '1px solid rgba(255, 193, 7, 0.3)'
+                            }}>
+                                Ev. č. {member.registrationNumber}
+                            </span>
+                        )}
                         {userRoles.map(role => (
                             <span key={role} style={{
                                 background: 'rgba(255,255,255,0.15)',
@@ -381,56 +394,7 @@ function MemberCard({ member, roleLabels, equipmentTypes }) {
                         </div>
                     )}
 
-                    {/* Equipment */}
-                    {member.equipment && Object.keys(member.equipment).length > 0 && equipmentTypes && equipmentTypes.length > 0 && (
-                        <div style={{
-                            marginTop: '0.5rem',
-                            paddingTop: '1rem',
-                            borderTop: '1px solid #eee'
-                        }}>
-                            <div style={{
-                                fontSize: '0.75rem',
-                                color: '#888',
-                                marginBottom: '0.5rem',
-                                fontWeight: 600
-                            }}>
-                                🧰 Vybavení
-                            </div>
-                            <div style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '0.5rem'
-                            }}>
-                                {equipmentTypes.map(eq => {
-                                    const eqData = member.equipment[eq.id];
-                                    if (!eqData || (!eqData.size && (!eqData.amount || eqData.amount === 0))) return null;
 
-                                    return (
-                                        <div key={eq.id} style={{
-                                            background: '#f5f5f5',
-                                            padding: '0.4rem 0.6rem',
-                                            borderRadius: '6px',
-                                            fontSize: '0.8rem',
-                                            border: '1px solid #e0e0e0',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '0.2rem',
-                                            flex: '1 1 calc(50% - 0.5rem)',
-                                            minWidth: '120px'
-                                        }}>
-                                            <div style={{ fontWeight: 600, color: '#333' }}>
-                                                {eq.name} {eqData.ownership === 'vlastni' ? '(Vlastní)' : ''}
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
-                                                {eq.hasSize && eqData.size && <span>Vel: <strong>{eqData.size}</strong></span>}
-                                                {eq.hasAmount && eqData.amount > 0 && <span>Ks: <strong>{eqData.amount}</strong></span>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

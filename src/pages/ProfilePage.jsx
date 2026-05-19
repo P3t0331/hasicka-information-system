@@ -26,6 +26,19 @@ export default function ProfilePage() {
   const [showEqModal, setShowEqModal] = useState(false);
   const [currentEq, setCurrentEq] = useState(null);
 
+  // Notifications and Modals
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [notification, setNotification] = useState(null);
+
+  function showNotification(type, message) {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 4000);
+  }
+
+  function requestConfirm(message, onConfirm) {
+    setConfirmModal({ message, onConfirm });
+  }
+
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "settings", "equipmentTypes"), (docSnap) => {
       if (docSnap.exists()) {
@@ -136,8 +149,10 @@ export default function ProfilePage() {
       }
 
       setIsEditing(false);
+      showNotification('success', 'Profil byl úspěšně aktualizován.');
     } catch (error) {
       console.error("Error updating profile:", error);
+      showNotification('error', 'Chyba při ukládání profilu.');
     }
   }
 
@@ -147,23 +162,9 @@ export default function ProfilePage() {
 
     try {
       const userRef = doc(db, "users", currentUser.uid);
-      const currentList = userData.equipmentList || [];
+      const baseList = userData.equipmentList || [];
       let newList = [];
       let isNew = false;
-      
-      // If saving for the first time, migrate legacy data if exists
-      const legacyEq = userData.equipment || {};
-      const legacyItems = Object.entries(legacyEq)
-        .filter(([key, d]) => d && (d.size || (d.amount && d.amount > 0)))
-        .map(([key, d]) => ({
-          id: `legacy_${key}`,
-          typeId: key,
-          size: d.size,
-          amount: d.amount,
-          ownership: d.ownership || 'jsdh'
-        }));
-        
-      const baseList = currentList.length === 0 && legacyItems.length > 0 ? legacyItems : currentList;
 
       if (currentEq.id) {
         // Edit existing
@@ -177,8 +178,7 @@ export default function ProfilePage() {
       const eqType = equipmentTypes.find(t => t.id === currentEq.typeId);
       
       await updateDoc(userRef, {
-        equipmentList: newList,
-        equipment: {} // clear legacy to prevent duplicates if migrated
+        equipmentList: newList
       });
 
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
@@ -187,39 +187,34 @@ export default function ProfilePage() {
 
       setShowEqModal(false);
       setCurrentEq(null);
+      showNotification('success', 'Vybavení bylo uloženo.');
     } catch (error) {
       console.error("Error saving equipment:", error);
+      showNotification('error', 'Chyba při ukládání vybavení.');
     }
   }
   
-  async function handleDeleteEquipment(eqId) {
-    if (!window.confirm('Opravdu smazat toto vybavení?')) return;
-    try {
-      const userRef = doc(db, "users", currentUser.uid);
-      const currentList = userData.equipmentList || [];
-      const newList = currentList.filter(item => item.id !== eqId);
-      
-      await updateDoc(userRef, { equipmentList: newList });
-      
-      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-        'UPDATED_EQUIPMENT', 'profile',
-        `Smazal záznam vybavení.`);
-    } catch (error) {
-      console.error("Error deleting equipment:", error);
-    }
+  function handleDeleteEquipment(eqId) {
+    requestConfirm('Opravdu smazat toto vybavení ze svého profilu?', async () => {
+      try {
+        const userRef = doc(db, "users", currentUser.uid);
+        const currentList = userData.equipmentList || [];
+        const newList = currentList.filter(item => item.id !== eqId);
+        
+        await updateDoc(userRef, { equipmentList: newList });
+        
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'UPDATED_EQUIPMENT', 'profile',
+          `Smazal záznam vybavení.`);
+        showNotification('success', 'Vybavení bylo odstraněno.');
+      } catch (error) {
+        console.error("Error deleting equipment:", error);
+        showNotification('error', 'Chyba při odstraňování vybavení.');
+      }
+    });
   }
 
-  const legacyEq = userData?.equipment || {};
-  const legacyItems = Object.entries(legacyEq)
-    .filter(([key, d]) => d && (d.size || (d.amount && d.amount > 0)))
-    .map(([key, d]) => ({
-      id: `legacy_${key}`,
-      typeId: key,
-      size: d.size,
-      amount: d.amount,
-      ownership: d.ownership || 'jsdh'
-    }));
-  const allEquipment = userData?.equipmentList?.length > 0 ? userData.equipmentList : (userData?.equipmentList ? [] : legacyItems);
+  const allEquipment = userData?.equipmentList || [];
 
 
   if (loading) return <div>Načítání...</div>;
@@ -250,6 +245,41 @@ export default function ProfilePage() {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
+      {/* Notifications */}
+      {notification && (
+        <div style={{
+          position: 'fixed', top: '20px', right: '20px', zIndex: 1000,
+          padding: '1rem 2rem', borderRadius: '8px',
+          background: notification.type === 'success' ? '#E8F5E9' : '#FFEBEE',
+          color: notification.type === 'success' ? '#2E7D32' : '#C62828',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <strong>{notification.type === 'success' ? '✓' : '⚠'}</strong>
+          {notification.message}
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }} onClick={() => setConfirmModal(null)}>
+          <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%', animation: 'fadeIn 0.2s' }}>
+            <h3 className="mb-2">Potvrzení akce</h3>
+            <p className="mb-4">{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary" onClick={() => setConfirmModal(null)}>Zrušit</button>
+              <button className="btn btn-primary" onClick={() => {
+                confirmModal.onConfirm();
+                setConfirmModal(null);
+              }}>Potvrdit</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 1. HERO HEADER */}
       <div style={{
@@ -428,7 +458,7 @@ export default function ProfilePage() {
                         
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.85rem', color: '#555' }}>
                           {eqType.hasSize && item.size && <div><span style={{ color: '#999' }}>Velikost:</span> <strong>{item.size}</strong></div>}
-                          {eqType.hasAmount && item.amount > 0 && <div><span style={{ color: '#999' }}>Ks:</span> <strong>{item.amount}</strong></div>}
+                          {eqType.hasAmount && <div><span style={{ color: '#999' }}>Ks:</span> <strong>{item.amount || 1}</strong></div>}
                           {eqType.hasInventoryNumber && item.inventoryNumber && <div><span style={{ color: '#999' }}>Evid. č.:</span> <strong>{item.inventoryNumber}</strong></div>}
                           {eqType.hasSerialNumber && item.serialNumber && <div><span style={{ color: '#999' }}>S/N:</span> <strong>{item.serialNumber}</strong></div>}
                           {eqType.hasManufactureYear && item.manufactureYear && <div><span style={{ color: '#999' }}>Vyrobeno:</span> <strong>{item.manufactureYear}</strong></div>}
@@ -437,7 +467,7 @@ export default function ProfilePage() {
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, width: '100%', justifyContent: 'flex-end', borderTop: '1px solid #f0f0f0', paddingTop: '0.5rem', marginTop: '0.5rem' }} className="mobile-only-border-top">
                         <button onClick={() => { setCurrentEq(item); setShowEqModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#1976D2' }}>✏️</button>
-                        <button onClick={() => handleDeleteEquipment(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }}>🗑️</button>
+                        <button onClick={() => handleDeleteEquipment(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }}>×</button>
                       </div>
                       
                       <style dangerouslySetInnerHTML={{__html: `
