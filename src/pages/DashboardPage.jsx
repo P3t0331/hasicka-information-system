@@ -6,7 +6,7 @@ import { doc, onSnapshot, collection } from 'firebase/firestore';
 import WeatherWarnings from '../components/dashboard/WeatherWarnings';
 
 export default function DashboardPage() {
-    const { currentUser, userData } = useAuth();
+    const { currentUser, userData, sessionLastAppVisit, updateSessionVisitTime } = useAuth();
     const navigate = useNavigate();
     const [allShifts, setAllShifts] = useState([]);
     const [upcomingActivities, setUpcomingActivities] = useState([]);
@@ -18,11 +18,15 @@ export default function DashboardPage() {
         hoursWorked: 0,
         eventsAttended: 0,
         trainingsAttended: 0,
-        daysAbsent: 0
+        daysAbsent: 0,
+        zalohaHoursWorked: 0
     });
     const [absences, setAbsences] = useState([]);
     const [recentActivity, setRecentActivity] = useState([]);
     const [isLinksOpen, setIsLinksOpen] = useState(false);
+    
+    // For the new Záloha/Stáž notification banner
+    const [newZalohaShifts, setNewZalohaShifts] = useState([]);
 
     useEffect(() => {
         if (!currentUser) return;
@@ -45,6 +49,10 @@ export default function DashboardPage() {
         let shiftsMap = {
             [currentDocId]: [],
             [nextDocId]: []
+        };
+        let rawDocs = {
+            [currentDocId]: null,
+            [nextDocId]: null
         };
 
         const processMonthData = (docId, data) => {
@@ -91,9 +99,58 @@ export default function DashboardPage() {
                         .map(u => u.name || 'Neznámý');
                     monthShifts.push({ date: dateStr, type: 'noční', start: '18:00', end: '05:00', colleagues });
                 }
+
+                // Check Zaloha/Staz
+                const zalohaShift = dayData.zalohaStaz || {};
+                const zalohaUsers = Object.values(zalohaShift).filter(v => v.uid); // exclude config
+                const isZalohaMsg = zalohaUsers.some(u => u.uid === currentUser.uid);
+                if (isZalohaMsg) {
+                    const colleagues = zalohaUsers
+                        .filter(u => u.uid !== currentUser.uid)
+                        .map(u => u.name || 'Neznámý');
+                    monthShifts.push({ date: dateStr, type: 'stáž/záloha', start: zalohaShift.config?.timeFrom || '07:00', end: zalohaShift.config?.timeTo || '19:00', colleagues });
+                }
             });
 
             return monthShifts;
+        };
+
+        const checkNewZalohaShifts = () => {
+            if (!sessionLastAppVisit) return;
+            const todayResetted = new Date();
+            todayResetted.setHours(0, 0, 0, 0);
+            const newShifts = [];
+
+            // Helper to scan a map
+            const scanMap = (docId, data) => {
+                const [yearStr, monthStr] = docId.split('-');
+                const year = parseInt(yearStr);
+                const monthIndex = parseInt(monthStr) - 1;
+                const daysMap = data?.days || {};
+
+                Object.keys(daysMap).forEach(dayKey => {
+                    const dayNum = parseInt(dayKey);
+                    const shiftDate = new Date(year, monthIndex, dayNum);
+                    if (shiftDate < todayResetted) return;
+
+                    const zalohaShift = daysMap[dayKey].zalohaStaz;
+                    if (zalohaShift && zalohaShift.config?.createdAt) {
+                        if (zalohaShift.config.createdAt > sessionLastAppVisit) {
+                            newShifts.push({
+                                date: `${dayNum}. ${monthStr}.`,
+                                timeFrom: zalohaShift.config.timeFrom,
+                                timeTo: zalohaShift.config.timeTo
+                            });
+                        }
+                    }
+                });
+            };
+
+            // We need to scan raw data, so we'll store raw data in a map as well
+            if (rawDocs[currentDocId]) scanMap(currentDocId, rawDocs[currentDocId]);
+            if (rawDocs[nextDocId]) scanMap(nextDocId, rawDocs[nextDocId]);
+
+            setNewZalohaShifts(newShifts);
         };
 
         const updateAllShifts = () => {
@@ -113,21 +170,29 @@ export default function DashboardPage() {
         // Listen to Current Month
         const unsub1 = onSnapshot(doc(db, 'shifts', currentDocId), (docSnap) => {
             if (docSnap.exists()) {
-                shiftsMap[currentDocId] = processMonthData(currentDocId, docSnap.data());
+                const data = docSnap.data();
+                rawDocs[currentDocId] = data;
+                shiftsMap[currentDocId] = processMonthData(currentDocId, data);
             } else {
+                rawDocs[currentDocId] = null;
                 shiftsMap[currentDocId] = [];
             }
             updateAllShifts();
+            checkNewZalohaShifts();
         });
 
         // Listen to Next Month
         const unsub2 = onSnapshot(doc(db, 'shifts', nextDocId), (docSnap) => {
             if (docSnap.exists()) {
-                shiftsMap[nextDocId] = processMonthData(nextDocId, docSnap.data());
+                const data = docSnap.data();
+                rawDocs[nextDocId] = data;
+                shiftsMap[nextDocId] = processMonthData(nextDocId, data);
             } else {
+                rawDocs[nextDocId] = null;
                 shiftsMap[nextDocId] = [];
             }
             updateAllShifts();
+            checkNewZalohaShifts();
         });
 
         // 2. Fetch Trainings & Events
@@ -189,6 +254,7 @@ export default function DashboardPage() {
             const statsUnsub = onSnapshot(currentMonthShiftsRef, (docSnap) => {
                 let shiftsWorked = 0;
                 let hoursWorked = 0;
+                let zalohaHoursWorked = 0;
 
                 if (docSnap.exists()) {
                     const days = docSnap.data().days || {};
@@ -201,9 +267,11 @@ export default function DashboardPage() {
                             const dayData = days[dayKey];
                             const dayShift = dayData.dayShift || {};
                             const nightShift = dayData.nightShift || {};
+                            const zalohaStaz = dayData.zalohaStaz || {};
 
                             const inDay = Object.values(dayShift).some(u => u.uid === currentUser.uid);
                             const inNight = Object.values(nightShift).some(u => u.uid === currentUser.uid);
+                            const inZaloha = Object.values(zalohaStaz).some(u => u && u.uid === currentUser.uid);
 
                             if (inDay) {
                                 shiftsWorked++;
@@ -215,6 +283,18 @@ export default function DashboardPage() {
                                 const hours = dayData.hours?.[currentUser.uid]?.night || 11;
                                 hoursWorked += hours;
                             }
+                            if (inZaloha) {
+                                // Default to 12 hours if parse fails
+                                let zHours = 12;
+                                if (zalohaStaz.config?.timeFrom && zalohaStaz.config?.timeTo) {
+                                    const [h1, m1] = zalohaStaz.config.timeFrom.split(':').map(Number);
+                                    const [h2, m2] = zalohaStaz.config.timeTo.split(':').map(Number);
+                                    let diff = (h2 + m2/60) - (h1 + m1/60);
+                                    if (diff < 0) diff += 24; // spans midnight
+                                    zHours = diff;
+                                }
+                                zalohaHoursWorked += zHours;
+                            }
                         }
                     });
                 }
@@ -222,7 +302,8 @@ export default function DashboardPage() {
                 setMonthlyStats(prev => ({
                     ...prev,
                     shiftsWorked,
-                    hoursWorked
+                    hoursWorked,
+                    zalohaHoursWorked
                 }));
             });
 
@@ -330,6 +411,52 @@ export default function DashboardPage() {
 
             {/* Weather Warnings */}
             <WeatherWarnings />
+
+            {/* New Záloha Notification Banner */}
+            {newZalohaShifts.length > 0 && (
+                <div style={{
+                    background: 'linear-gradient(135deg, #FF9800, #F57C00)',
+                    color: 'white',
+                    padding: '1.25rem',
+                    borderRadius: '12px',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    boxShadow: '0 4px 15px rgba(245, 124, 0, 0.3)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+                        <div>
+                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Nová důležitá služba (Záloha/Stáž)</h3>
+                            <div style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '0.2rem' }}>
+                                Byla vypsána nová stáž od vaší poslední návštěvy:
+                                {newZalohaShifts.map((s, i) => (
+                                    <span key={i} style={{ display: 'block', fontWeight: 600, marginTop: '0.2rem' }}>
+                                        • {s.date} ({s.timeFrom} - {s.timeTo})
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => { updateSessionVisitTime(); navigate('/shifts'); }}
+                        style={{
+                            background: 'white',
+                            color: '#F57C00',
+                            border: 'none',
+                            padding: '0.75rem',
+                            borderRadius: '8px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            alignSelf: 'flex-start',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        Přejít na služby
+                    </button>
+                </div>
+            )}
 
             {/* Quick Links / Important Links */}
             <section style={{ marginBottom: '2rem' }}>
@@ -455,7 +582,12 @@ export default function DashboardPage() {
                     <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
                         <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>⏱️</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FF9800' }}>{monthlyStats.hoursWorked}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hodin</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hodin (Běžné)</div>
+                    </div>
+                    <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>🛡️</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1565C0' }}>{monthlyStats.zalohaHoursWorked}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hodin (Stáž)</div>
                     </div>
                     <div className="dashboard-card" style={{ padding: '1rem', textAlign: 'center' }}>
                         <div style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>🚩</div>

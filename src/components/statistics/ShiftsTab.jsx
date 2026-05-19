@@ -43,10 +43,10 @@ export default function ShiftsTab({
     const getAllUsers = () => {
         const users = new Map();
         Object.values(shiftsData).forEach(dayData => {
-            ['dayShift', 'nightShift'].forEach(shiftType => {
+            ['dayShift', 'nightShift', 'zalohaStaz'].forEach(shiftType => {
                 const shift = dayData[shiftType] || {};
                 Object.values(shift).forEach(user => {
-                    if (user && user.uid) {
+                    if (user && user.uid) { // this excludes config since it has no uid
                         users.set(user.uid, user.name);
                     }
                 });
@@ -74,19 +74,36 @@ export default function ShiftsTab({
             const hasNightShift = Object.values(nightShift).some(u => u && u.uid === uid);
             const dayShift = dayData.dayShift || {};
             const hasDayShift = Object.values(dayShift).some(u => u && u.uid === uid);
+            
+            const zalohaStaz = dayData.zalohaStaz || {};
+            const hasZaloha = Object.values(zalohaStaz).some(u => u && u.uid === uid);
 
             const dayHours = explicitDay !== undefined ? explicitDay : (hasDayShift ? DEFAULT_DAY_HOURS : 0);
             const nightHours = explicitNight !== undefined ? explicitNight : (hasNightShift ? DEFAULT_NIGHT_HOURS : 0);
+            
+            let zalohaHours = 0;
+            if (hasZaloha) {
+                let zHours = 12;
+                if (zalohaStaz.config?.timeFrom && zalohaStaz.config?.timeTo) {
+                    const [h1, m1] = zalohaStaz.config.timeFrom.split(':').map(Number);
+                    const [h2, m2] = zalohaStaz.config.timeTo.split(':').map(Number);
+                    let diff = (h2 + m2/60) - (h1 + m1/60);
+                    if (diff < 0) diff += 24; // spans midnight
+                    zHours = diff;
+                }
+                zalohaHours = zHours;
+            }
 
             return {
                 day: dayHours,
                 night: nightHours,
-                total: dayHours + nightHours,
+                zaloha: zalohaHours,
+                total: dayHours + nightHours, // zaloha not included in regular total
                 isExplicit: !!h
             };
         } catch (err) {
             console.error("Error calculating split hours:", err);
-            return { day: 0, night: 0, total: 0, isExplicit: false };
+            return { day: 0, night: 0, zaloha: 0, total: 0, isExplicit: false };
         }
     };
 
@@ -105,6 +122,10 @@ export default function ShiftsTab({
         if (dayData.dayShift && Object.keys(dayData.dayShift).length > 0) {
             const crew = Object.values(dayData.dayShift).map(u => u?.name?.split(' ')[0]).filter(Boolean).join(', ');
             if (crew) parts.push(`Denní: ${crew}`);
+        }
+        if (dayData.zalohaStaz) {
+            const crew = Object.values(dayData.zalohaStaz).filter(u => u && u.uid).map(u => u?.name?.split(' ')[0]).filter(Boolean).join(', ');
+            if (crew) parts.push(`Stáž: ${crew}`);
         }
 
         return parts.join(' | ') || '-';
@@ -131,23 +152,31 @@ export default function ShiftsTab({
         return days.reduce((acc, day) => {
             if (isDateInFuture(day.date)) return acc;
             const split = getSplitHoursForUser(day.date, uid);
-            return { day: acc.day + split.day, night: acc.night + split.night, total: acc.total + split.total };
-        }, { day: 0, night: 0, total: 0 });
+            return { day: acc.day + split.day, night: acc.night + split.night, zaloha: acc.zaloha + split.zaloha, total: acc.total + split.total };
+        }, { day: 0, night: 0, zaloha: 0, total: 0 });
     };
 
     const getTotalHoursForDay = (day) => {
         return users.reduce((sum, user) => sum + getHoursForUser(day, user.uid), 0);
     };
+    
+    const getTotalZalohaHoursForDay = (day) => {
+        return users.reduce((sum, user) => sum + getSplitHoursForUser(day, user.uid).zaloha, 0);
+    };
 
     const getGrandTotal = () => {
         return users.reduce((sum, user) => sum + getTotalHoursForUser(user.uid), 0);
+    };
+    
+    const getGrandZalohaTotal = () => {
+        return users.reduce((sum, user) => sum + getSplitTotalHoursForUser(user.uid).zaloha, 0);
     };
 
     const getGrandSplitTotal = () => {
         return users.reduce((acc, user) => {
             const split = getSplitTotalHoursForUser(user.uid);
-            return { day: acc.day + split.day, night: acc.night + split.night, total: acc.total + split.total };
-        }, { day: 0, night: 0, total: 0 });
+            return { day: acc.day + split.day, night: acc.night + split.night, zaloha: acc.zaloha + split.zaloha, total: acc.total + split.total };
+        }, { day: 0, night: 0, zaloha: 0, total: 0 });
     };
 
     const handleHourEdit = async (day, uid, type, value) => {
@@ -420,7 +449,7 @@ export default function ShiftsTab({
                                             <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#333' }}>{hours}h</span>
                                         </div>
 
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                             {split.day > 0 && (
                                                 <span style={{
                                                     fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
@@ -437,11 +466,60 @@ export default function ShiftsTab({
                                                     🌙 {split.night}
                                                 </span>
                                             )}
+                                            {split.zaloha > 0 && (
+                                                <span style={{
+                                                    fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
+                                                    background: '#E3F2FD', color: '#1565C0', fontWeight: 600
+                                                }}>
+                                                    🛡️ {split.zaloha}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 );
                             })}
                     </div>
+                </div>
+            </div>
+
+            {/* Separate Stáž/Záloha Members List */}
+            <div className="card" style={{ padding: '0', overflow: 'hidden', marginBottom: '3rem' }}>
+                <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: 'linear-gradient(135deg, #1976D2, #0D47A1)' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'white' }}>🛡️ Přehled členů na Stážích/Zálohách</h3>
+                </div>
+                <div style={{
+                    padding: '1rem',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                    gap: '1rem',
+                    maxHeight: '300px',
+                    overflowY: 'auto'
+                }}>
+                    {users
+                        .filter(user => getSplitTotalHoursForUser(user.uid).zaloha > 0)
+                        .sort((a, b) => getSplitTotalHoursForUser(b.uid).zaloha - getSplitTotalHoursForUser(a.uid).zaloha)
+                        .map(user => {
+                            const zalohaHours = getSplitTotalHoursForUser(user.uid).zaloha;
+                            const isMe = user.uid === currentUser?.uid;
+
+                            return (
+                                <div key={'zaloha-' + user.uid} style={{
+                                    padding: '1rem', borderRadius: '10px',
+                                    border: isMe ? '2px solid #81C784' : '1px solid #BBDEFB',
+                                    background: isMe ? '#F1F8E9' : '#F8BBD0',
+                                    backgroundColor: isMe ? '#F1F8E9' : '#f5fafe',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <span style={{ fontWeight: 600, color: '#333' }}>{isMe && '⭐ '}{user.name}</span>
+                                        <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#1565C0' }}>{zalohaHours}h</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    {users.every(u => getSplitTotalHoursForUser(u.uid).zaloha === 0) && (
+                        <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
+                    )}
                 </div>
             </div>
 
@@ -491,10 +569,19 @@ export default function ShiftsTab({
                                             )}
                                         </td>
                                         <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                                            {totalHours > 0 ? (
-                                                <span style={{ fontWeight: 700, color: '#2E7D32', background: '#E8F5E9', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
-                                                    {totalHours}h
-                                                </span>
+                                            {totalHours > 0 || getTotalZalohaHoursForDay(day.date) > 0 ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                                    {totalHours > 0 && (
+                                                        <span style={{ fontWeight: 700, color: '#2E7D32', background: '#E8F5E9', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                                                            {totalHours}h
+                                                        </span>
+                                                    )}
+                                                    {getTotalZalohaHoursForDay(day.date) > 0 && (
+                                                        <span style={{ fontWeight: 700, color: '#1565C0', background: '#E3F2FD', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem', marginTop: totalHours > 0 ? '2px' : '0' }}>
+                                                            🛡️ {getTotalZalohaHoursForDay(day.date)}h
+                                                        </span>
+                                                    )}
+                                                </div>
                                             ) : '-'}
                                         </td>
                                         {isAdmin && (
@@ -526,6 +613,11 @@ export default function ShiftsTab({
                                     <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
                                         (☀️ {getGrandSplitTotal().day} + 🌙 {getGrandSplitTotal().night})
                                     </div>
+                                    {getGrandZalohaTotal() > 0 && (
+                                        <div style={{ fontSize: '0.85rem', color: '#90CAF9', fontWeight: 600, marginTop: '0.2rem' }}>
+                                            + {getGrandZalohaTotal()}h (Stáž)
+                                        </div>
+                                    )}
                                 </td>
                                 {isAdmin && <td></td>}
                             </tr>

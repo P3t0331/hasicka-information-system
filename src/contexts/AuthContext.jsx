@@ -6,7 +6,7 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
-import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, setDoc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { logAction } from "../utils/logger";
 
 const AuthContext = React.createContext();
@@ -18,6 +18,7 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [sessionLastAppVisit, setSessionLastAppVisit] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Flag to prevent auto-logout during registration/reclamation
@@ -169,6 +170,12 @@ export function AuthProvider({ children }) {
             return;
           }
 
+          // Save the last visit for notifications before we overwrite it
+          setSessionLastAppVisit(initialData.lastAppVisit || new Date(0).toISOString());
+          
+          // Update lastAppVisit in DB for the NEXT time they visit
+          updateDoc(docRef, { lastAppVisit: new Date().toISOString() }).catch(console.error);
+
           // Valid user - set up real-time listener for profile updates
           setCurrentUser(user);
           setUserData(initialData);
@@ -207,9 +214,15 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const updateSessionVisitTime = () => {
+    setSessionLastAppVisit(new Date().toISOString());
+  };
+
   const value = {
     currentUser,
     userData,
+    sessionLastAppVisit,
+    updateSessionVisitTime,
     signup,
     login,
     logout

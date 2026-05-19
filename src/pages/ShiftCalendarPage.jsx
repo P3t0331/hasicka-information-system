@@ -28,6 +28,21 @@ const SLOT_LABELS = {
   hasic5: 'Hasič 5',
 };
 
+const getSlotLabel = (slotKey) => {
+  if (SLOT_LABELS[slotKey]) return SLOT_LABELS[slotKey];
+  if (slotKey.startsWith('velitel')) return 'Velitel ' + slotKey.replace('velitel', '');
+  if (slotKey.startsWith('strojnik')) return 'Strojník ' + slotKey.replace('strojnik', '');
+  if (slotKey.startsWith('hasic')) return 'Hasič ' + slotKey.replace('hasic', '');
+  return slotKey;
+};
+
+const getSlotBaseType = (slotKey) => {
+  if (slotKey.startsWith('velitel')) return 'velitel';
+  if (slotKey.startsWith('strojnik')) return 'strojnik';
+  if (slotKey.startsWith('hasic')) return 'hasic';
+  return slotKey;
+};
+
 export default function ShiftCalendarPage() {
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
@@ -37,6 +52,9 @@ export default function ShiftCalendarPage() {
 
   // For adding new day shifts
   const [newDayShiftDate, setNewDayShiftDate] = useState('');
+
+  // For adding new Zaloha/Staz
+  const [zalohaModal, setZalohaModal] = useState(null);
 
   // Toast notification state
   const [toast, setToast] = useState(null); // { type: 'error'|'warning'|'success'|'info', message: string }
@@ -208,8 +226,9 @@ export default function ShiftCalendarPage() {
   };
 
   const isQualifiedFor = (slotType) => {
-    if (slotType === 'velitel') return userRoles.some(r => ['VD', 'VJ', 'Zástupce VJ', 'Admin'].includes(r));
-    if (slotType === 'strojnik') return userRoles.some(r => ['Strojník', 'Admin'].includes(r));
+    const base = getSlotBaseType(slotType);
+    if (base === 'velitel') return userRoles.some(r => ['VD', 'VJ', 'Zástupce VJ', 'Admin'].includes(r));
+    if (base === 'strojnik') return userRoles.some(r => ['Strojník', 'Admin'].includes(r));
     return true; // Everyone is qualified for Hasič
   };
 
@@ -314,18 +333,18 @@ export default function ShiftCalendarPage() {
       // Check if user already has a slot in this shift
       const existingUserSlot = SLOT_TYPES.find(s => sectionData[s]?.uid === currentUser.uid);
       if (existingUserSlot) {
-        showToast('warning', `Již máte službu na této směně (${SLOT_LABELS[existingUserSlot]}). Nejprve se odhlaste.`);
+        showToast('warning', `Již máte službu na této směně (${getSlotLabel(existingUserSlot)}). Nejprve se odhlaste.`);
         return;
       }
 
       // Strojník is STRICT - must be qualified
-      if (slotKey === 'strojnik' && !isQualifiedFor(slotKey)) {
-        showToast('error', 'Pro pozici Strojník musíte mít kvalifikaci Strojník.');
+      if (getSlotBaseType(slotKey) === 'strojnik' && !isQualifiedFor(slotKey)) {
+        showToast('error', 'Pro pozici Strojník musíte mít příslušnou kvalifikaci.');
         return;
       }
 
       // Velitel can have unqualified (yellow) with warning
-      if (slotKey === 'velitel' && !isQualifiedFor(slotKey)) {
+      if (getSlotBaseType(slotKey) === 'velitel' && !isQualifiedFor(slotKey)) {
         const proceed = await showConfirm(
           '⚠️ Chybí kvalifikace',
           'Nemáte kvalifikaci pro Velitele. Budete označeni žlutě a kvalifikovaný VD vás může nahradit. Pokračovat?'
@@ -344,8 +363,8 @@ export default function ShiftCalendarPage() {
       await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
 
       // Determine what happened for logging
-      const shiftLabel = section === 'dayShift' ? 'denní' : 'noční';
-      const slotLabel = { velitel: 'Velitel', strojnik: 'Strojník', hasic1: 'Hasič 1', hasic2: 'Hasič 2', hasic3: 'Hasič 3', hasic4: 'Hasič 4', hasic5: 'Hasič 5' }[slotKey] || slotKey;
+      const shiftLabel = section === 'dayShift' ? 'denní' : section === 'nightShift' ? 'noční' : 'záloha/stáž';
+      const slotLabel = getSlotLabel(slotKey);
       const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
       const wasRemoved = currentAssignee && currentAssignee.uid === currentUser.uid;
       const wasKicked = currentAssignee && currentAssignee.uid !== currentUser.uid;
@@ -370,10 +389,15 @@ export default function ShiftCalendarPage() {
     }
   };
 
-  // Get only days that have dayShift enabled (have dayShift object with any keys or explicitly enabled)
+  // Get only days that have dayShift enabled
   const enabledDayShifts = days.filter(day => {
     const dayData = shiftsData[day.date];
     return dayData && (dayData.dayShiftEnabled || (dayData.dayShift && Object.keys(dayData.dayShift).length > 0));
+  });
+
+  const enabledZalohaShifts = days.filter(day => {
+    const dayData = shiftsData[day.date];
+    return dayData && dayData.zalohaStaz;
   });
 
   // Remove an empty day shift
@@ -406,6 +430,39 @@ export default function ShiftCalendarPage() {
       showToast('success', 'Denní služba odebrána.');
     } catch (err) {
       console.error("Error removing day shift:", err);
+      showToast('error', 'Chyba při odebírání služby.');
+    }
+  };
+
+  const handleRemoveZaloha = async (date) => {
+    const dayData = shiftsData[date] || {};
+    const currentShift = dayData.zalohaStaz || {};
+    
+    // Check if any slots are taken (excluding the config)
+    const takenSlots = Object.keys(currentShift).filter(k => k !== 'config');
+    if (takenSlots.length > 0) {
+      showToast('error', 'Nelze odebrat stáž/zálohu, která má přiřazené lidi.');
+      return;
+    }
+
+    const confirmed = await showConfirm('Odebrat stáž/zálohu', `Opravdu chcete zrušit stáž/zálohu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`);
+    if (!confirmed) return;
+
+    try {
+      const docRef = doc(db, 'shifts', currentDocId);
+      await setDoc(docRef, {
+        days: {
+          [date]: {
+            zalohaStaz: deleteField()
+          }
+        }
+      }, { merge: true });
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_REMOVED_SHIFT', 'admin',
+        `Zrušil stáž/zálohu pro den ${date}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`);
+      showToast('success', 'Stáž/záloha odebrána.');
+    } catch (err) {
+      console.error("Error removing zaloha shift:", err);
       showToast('error', 'Chyba při odebírání služby.');
     }
   };
@@ -833,6 +890,160 @@ export default function ShiftCalendarPage() {
           showToast={showToast}
         />
       )}
+
+      {/* Add Zaloha Modal */}
+      {zalohaModal && (
+        <AddZalohaModal
+          date={zalohaModal.date}
+          onClose={() => setZalohaModal(null)}
+          onSubmit={async (config) => {
+            // Check if zaloha already exists
+            if (enabledZalohaShifts.some(d => d.date === zalohaModal.date)) {
+              showToast('warning', 'Záloha/Stáž pro tento den již existuje.');
+              return;
+            }
+
+            try {
+              const docRef = doc(db, 'shifts', currentDocId);
+              await setDoc(docRef, {
+                days: {
+                  [zalohaModal.date]: {
+                    zalohaStaz: {
+                      config: {
+                        ...config,
+                        createdAt: new Date().toISOString()
+                      }
+                    }
+                  }
+                }
+              }, { merge: true });
+              logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+                'ADMIN_ADDED_SHIFT', 'admin',
+                `Vytvořil zálohu/stáž pro den ${zalohaModal.date}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()} (${config.timeFrom}-${config.timeTo})`);
+              showToast('success', `Záloha/Stáž vytvořena.`);
+              setZalohaModal(null);
+            } catch (err) {
+              console.error("Error adding zaloha shift:", err);
+              showToast('error', 'Chyba při vytváření zálohy/stáže.');
+            }
+          }}
+        />
+      )}
+
+      {/* ZÁLOHA / STÁŽ SECTION */}
+      <section style={{ marginBottom: '2rem' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #1976D2, #0D47A1)',
+          color: 'white',
+          padding: '0.75rem 1rem',
+          borderRadius: '8px 8px 0 0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🛡️ ZÁLOHA / STÁŽ</h3>
+          <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+            {enabledZalohaShifts.length} služeb
+          </span>
+        </div>
+
+        <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+          {enabledZalohaShifts.length > 0 && groupWeeks(enabledZalohaShifts).map((week, index) => {
+            const firstDay = week[0];
+            const lastDay = week[week.length - 1];
+            const weekId = `zaloha-week-${index}`;
+            const isCollapsed = collapsedWeeks[weekId];
+            const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
+
+            return (
+              <div key={weekId} style={{ borderBottom: index < groupWeeks(enabledZalohaShifts).length - 1 ? '1px solid #eee' : 'none' }}>
+                <div
+                  onClick={() => toggleWeek(weekId)}
+                  style={{
+                    padding: '0.6rem 1rem',
+                    background: '#fafafa',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.85rem',
+                    color: '#555',
+                    fontWeight: 600,
+                    userSelect: 'none',
+                    borderBottom: !isCollapsed ? '1px dashed #eee' : 'none'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    📅 <span style={{ color: '#333' }}>{weekLabel}</span>
+                  </span>
+                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#888' }}>▼</span>
+                </div>
+
+                {!isCollapsed && week.map(day => {
+                  const dayTrainings = trainingsData.filter(t => parseInt(t.date.split('-')[2]) === day.date);
+                  const dayEvents = eventsData.filter(e => parseInt(e.date.split('-')[2]) === day.date);
+                  const hasActivities = dayTrainings.length > 0 || dayEvents.length > 0;
+                  const config = shiftsData[day.date]?.zalohaStaz?.config;
+
+                  return (
+                    <React.Fragment key={`zaloha-${day.date}`}>
+                      {config && (
+                        <div style={{ background: '#E3F2FD', padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#1565C0', fontWeight: 600, borderBottom: '1px solid #BBDEFB' }}>
+                          ⏰ {config.timeFrom} – {config.timeTo}
+                        </div>
+                      )}
+                      <ShiftRow
+                        day={day}
+                        sectionData={shiftsData[day.date]?.zalohaStaz || {}}
+                        section="zalohaStaz"
+                        onSlotClick={handleSlotClick}
+                        currentUser={currentUser}
+                        onRemoveZaloha={handleRemoveZaloha}
+                        trainings={dayTrainings}
+                        events={dayEvents}
+                      />
+                      {hasActivities && (
+                        <InlineActivities
+                          trainings={dayTrainings}
+                          events={dayEvents}
+                          currentUser={currentUser}
+                          userData={userData}
+                          showToast={showToast}
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            );
+          })}
+
+          {/* Add Zaloha Form (Only for Admins) */}
+          {userRoles.some(r => ['VD', 'VJ', 'Zástupce VJ', 'Admin'].includes(r)) && (
+            <div style={{ padding: '1rem', background: '#E3F2FD', borderTop: '1px solid #eee', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label style={{ fontWeight: 500, color: '#1565C0' }}>Přidat Záloha / Stáž:</label>
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setZalohaModal({ date: parseInt(e.target.value) });
+                    e.target.value = "";
+                  }
+                }}
+                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #90CAF9', minWidth: '180px' }}
+              >
+                <option value="">-- Vyberte den --</option>
+                {days.filter(d => !enabledZalohaShifts.some(e => e.date === d.date)).map(day => (
+                  <option key={`opt-z-${day.date}`} value={day.date}>
+                    {day.date}. ({day.dayName})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* DAY SHIFTS SECTION */}
       <section style={{ marginBottom: '2rem' }}>
@@ -1381,14 +1592,24 @@ const SLOT_ICONS = {
 };
 
 // Single Row Component
-function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift, trainings, events, onActivityClick }) {
+function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemoveDayShift, onRemoveZaloha, trainings, events, onActivityClick }) {
   const navigate = useNavigate();
   // Check if shift is empty (no users assigned)
-  const isEmpty = !sectionData || Object.keys(sectionData).length === 0;
-  const canRemove = section === 'dayShift' && onRemoveDayShift && isEmpty;
+  const isEmpty = section === 'zalohaStaz'
+    ? Object.keys(sectionData || {}).filter(k => k !== 'config').length === 0
+    : !sectionData || Object.keys(sectionData).length === 0;
+  
+  const canRemove = (section === 'dayShift' && onRemoveDayShift && isEmpty) || (section === 'zalohaStaz' && onRemoveZaloha && isEmpty);
 
   // Dynamic Slot Visibility Logic
-  const visibleSlots = SLOT_TYPES.filter(type => {
+  let visibleSlots = [];
+  if (section === 'zalohaStaz' && sectionData.config) {
+    const { velitelCount = 1, strojnikCount = 1, hasicCount = 2 } = sectionData.config;
+    for (let i = 1; i <= velitelCount; i++) visibleSlots.push(i === 1 ? 'velitel' : `velitel${i}`);
+    for (let i = 1; i <= strojnikCount; i++) visibleSlots.push(i === 1 ? 'strojnik' : `strojnik${i}`);
+    for (let i = 1; i <= hasicCount; i++) visibleSlots.push(`hasic${i}`);
+  } else {
+    visibleSlots = SLOT_TYPES.filter(type => {
     // Always show core slots
     if (['velitel', 'strojnik', 'hasic1', 'hasic2', 'hasic3'].includes(type)) return true;
 
@@ -1406,6 +1627,7 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
 
     return false;
   });
+  }
 
   return (
     <div style={{
@@ -1444,7 +1666,11 @@ function ShiftRow({ day, sectionData, section, onSlotClick, currentUser, onRemov
 
         {canRemove && (
           <button
-            onClick={(e) => { e.stopPropagation(); onRemoveDayShift(day.date); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (section === 'dayShift') onRemoveDayShift(day.date);
+              else if (section === 'zalohaStaz') onRemoveZaloha(day.date);
+            }}
             title="Odebrat prázdnou službu"
             style={{
               position: 'absolute',
@@ -1829,6 +2055,80 @@ function AddAbsenceModal({ currentDate, existingAbsences = [], onSubmit, onClose
             >
               Uložit
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function AddZalohaModal({ date, onClose, onSubmit }) {
+  const [timeFrom, setTimeFrom] = useState('07:00');
+  const [timeTo, setTimeTo] = useState('19:00');
+  const [velitelCount, setVelitelCount] = useState(1);
+  const [strojnikCount, setStrojnikCount] = useState(1);
+  const [hasicCount, setHasicCount] = useState(2);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      timeFrom,
+      timeTo,
+      velitelCount,
+      strojnikCount,
+      hasicCount
+    });
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%', padding: '1.5rem', borderRadius: '12px', background: 'white' }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#1565C0', textAlign: 'center' }}>
+          🛡️ Záloha / Stáž ({date}.)
+        </h3>
+        
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', color: '#555', fontWeight: 600 }}>Čas OD:</label>
+              <input 
+                type="time" 
+                value={timeFrom} 
+                onChange={e => setTimeFrom(e.target.value)}
+                required
+                style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', border: '2px solid #BBDEFB', fontSize: '1rem', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', color: '#555', fontWeight: 600 }}>Čas DO:</label>
+              <input 
+                type="time" 
+                value={timeTo} 
+                onChange={e => setTimeTo(e.target.value)}
+                required
+                style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', border: '2px solid #BBDEFB', fontSize: '1rem', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+             <div>
+               <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.75rem', color: '#555', fontWeight: 600, textAlign: 'center' }}>Velitel (1-2)</label>
+               <input type="number" min="1" max="2" value={velitelCount} onChange={e => setVelitelCount(parseInt(e.target.value)||1)} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #ddd', textAlign: 'center', boxSizing: 'border-box' }} />
+             </div>
+             <div>
+               <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.75rem', color: '#555', fontWeight: 600, textAlign: 'center' }}>Strojník (1-2)</label>
+               <input type="number" min="1" max="2" value={strojnikCount} onChange={e => setStrojnikCount(parseInt(e.target.value)||1)} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #ddd', textAlign: 'center', boxSizing: 'border-box' }} />
+             </div>
+             <div>
+               <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.75rem', color: '#555', fontWeight: 600, textAlign: 'center' }}>Hasič (2-5)</label>
+               <input type="number" min="2" max="5" value={hasicCount} onChange={e => setHasicCount(parseInt(e.target.value)||2)} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #ddd', textAlign: 'center', boxSizing: 'border-box' }} />
+             </div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.85rem', borderRadius: '10px', border: '2px solid #BBDEFB', background: 'white', color: '#1565C0', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Zrušit</button>
+            <button type="submit" style={{ flex: 1, padding: '0.85rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #1976D2, #1565C0)', color: 'white', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)' }}>Vytvořit</button>
           </div>
         </form>
       </div>
