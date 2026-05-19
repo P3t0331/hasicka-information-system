@@ -458,6 +458,7 @@ export default function ProfilePage() {
                         </div>
                         
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.85rem', color: '#555' }}>
+                          {eqType.hasBrand && item.brand && <div><span style={{ color: '#999' }}>Značka:</span> <strong>{item.brand}</strong></div>}
                           {eqType.hasSize && item.size && <div><span style={{ color: '#999' }}>Velikost:</span> <strong>{item.size}</strong></div>}
                           {eqType.hasAmount && <div><span style={{ color: '#999' }}>Ks:</span> <strong>{item.amount || 1}</strong></div>}
                           {eqType.hasInventoryNumber && item.inventoryNumber && <div><span style={{ color: '#999' }}>Evid. č.:</span> <strong>{item.inventoryNumber}</strong></div>}
@@ -565,6 +566,13 @@ export default function ProfilePage() {
                         <option value="vlastni">Vlastní</option>
                       </select>
                     </div>
+
+                    {eqType.hasBrand && (
+                      <div className="input-group">
+                        <label className="input-label">Značka / Výrobce</label>
+                        <input className="input-field" value={currentEq.brand || ''} onChange={e => setCurrentEq({...currentEq, brand: e.target.value})} placeholder="Např. Rosenbauer" />
+                      </div>
+                    )}
 
                     {eqType.hasSize && (
                       <div className="input-group">

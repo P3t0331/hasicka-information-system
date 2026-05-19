@@ -31,7 +31,7 @@ export default function AdminPage() {
   const [equipmentTypes, setEquipmentTypes] = useState([]);
   const [showEqModal, setShowEqModal] = useState(false);
   const [newEq, setNewEq] = useState({ 
-    name: '', hasSize: false, hasAmount: true, 
+    name: '', hasBrand: false, hasSize: false, hasAmount: true, 
     hasInventoryNumber: false, hasSerialNumber: false, 
     hasManufactureYear: false, hasIssueYear: false 
   });
@@ -178,7 +178,7 @@ export default function AdminPage() {
     }
 
     setNewEq({ 
-      id: null, name: '', hasSize: false, hasAmount: true, 
+      id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true, 
       hasInventoryNumber: false, hasSerialNumber: false, 
       hasManufactureYear: false, hasIssueYear: false 
     });
@@ -234,6 +234,7 @@ export default function AdminPage() {
 
   function handleAddEqLog(eqObj) {
     const fields = [];
+    if (eqObj.hasBrand) fields.push('značka');
     if (eqObj.hasSize) fields.push('velikost');
     if (eqObj.hasAmount) fields.push('počet');
     if (eqObj.hasInventoryNumber) fields.push('evid. číslo');
@@ -614,6 +615,10 @@ export default function AdminPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={newEq.hasBrand} onChange={e => setNewEq({...newEq, hasBrand: e.target.checked})} />
+                  Značka
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
                   <input type="checkbox" checked={newEq.hasSize} onChange={e => setNewEq({...newEq, hasSize: e.target.checked})} />
                   Velikost
                 </label>
@@ -856,7 +861,7 @@ export default function AdminPage() {
               <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#888' }}>Definujte typy vybavení, které mohou členové evidovat na svém profilu.</p>
             </div>
             <button className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => {
-              setNewEq({ id: null, name: '', hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false });
+              setNewEq({ id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false });
               setShowEqModal(true);
             }}>+ Přidat</button>
           </div>
@@ -876,6 +881,7 @@ export default function AdminPage() {
                 <tbody>
                   {equipmentTypes.map((eq, i) => {
                     const tracked = [];
+                    if (eq.hasBrand) tracked.push('Značka');
                     if (eq.hasSize) tracked.push('Velikost');
                     if (eq.hasAmount) tracked.push('Počet');
                     if (eq.hasInventoryNumber) tracked.push('Evid. číslo');
@@ -1180,6 +1186,12 @@ const ACTION_LABELS = {
   ADMIN_ADDED_DAY_SHIFT:     'Přidána denní služba',
   ADMIN_REMOVED_DAY_SHIFT:   'Zrušena denní služba',
   ADMIN_UPDATED_SHIFT_HOURS: 'Úprava hodin služby',
+  ADMIN_ASSIGNED_USER_TO_STAZ: 'Přiřazení na stáž/zálohu',
+  ADMIN_REMOVED_USER_FROM_STAZ: 'Odebrání ze stáže/zálohy',
+  ADMIN_ADDED_SHIFT:         'Vytvořena stáž/záloha',
+  ADMIN_REMOVED_SHIFT:       'Zrušena stáž/záloha',
+  INTERESTED_IN_STAZ:        'Projeven zájem o stáž/zálohu',
+  CANCELLED_INTEREST_IN_STAZ: 'Zrušen zájem o stáž/zálohu',
 };
 
 function formatRelativeTime(ts) {
@@ -1573,6 +1585,7 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData,
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Uživatel</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Typ vybavení</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Vlastnictví</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Značka</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Detaily (Vel/Ks)</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Evid. čísla</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Roky (Výr/Naf)</th>
@@ -1591,6 +1604,9 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData,
                   <td data-label="Typ vybavení" style={{ padding: '0.75rem', color: '#1565C0', fontWeight: 600 }}>{eqType.name}</td>
                   <td data-label="Vlastnictví" style={{ padding: '0.75rem' }}>
                     {item.ownership === 'vlastni' ? <span style={{ color: '#1565C0', background: '#E3F2FD', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Vlastní</span> : <span style={{ color: '#2E7D32', background: '#E8F5E9', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>JSDH</span>}
+                  </td>
+                  <td data-label="Značka" style={{ padding: '0.75rem', color: '#555' }}>
+                    {item.brand || <span style={{ color: '#ccc' }}>—</span>}
                   </td>
                   <td data-label="Detaily" style={{ padding: '0.75rem' }}>
                     {item.size && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Vel:</span> {item.size}</div>}
@@ -1668,6 +1684,13 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData,
                         <option value="vlastni">Vlastní</option>
                       </select>
                     </div>
+
+                    {eqType.hasBrand && (
+                      <div className="input-group">
+                        <label className="input-label">Značka / Výrobce</label>
+                        <input className="input-field" value={currentEq.brand || ''} onChange={e => setCurrentEq({...currentEq, brand: e.target.value})} placeholder="Např. Rosenbauer" />
+                      </div>
+                    )}
 
                     {eqType.hasSize && (
                       <div className="input-group">

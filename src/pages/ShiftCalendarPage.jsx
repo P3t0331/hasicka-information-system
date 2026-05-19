@@ -461,6 +461,18 @@ export default function ShiftCalendarPage() {
     try {
       const docRef = doc(db, 'shifts', currentDocId);
       await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
+      
+      const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+      if (isInterested) {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'CANCELLED_INTEREST_IN_STAZ', 'shifts',
+          `Zrušil zájem o stáž/zálohu dne ${dateLabel}`);
+      } else {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'INTERESTED_IN_STAZ', 'shifts',
+          `Projevil zájem o stáž/zálohu dne ${dateLabel}`);
+      }
+      
       showToast('success', isInterested ? 'Zájem zrušen.' : 'Přidáni do seznamu zájemců.');
     } catch (err) {
       console.error("Error updating interested:", err);
