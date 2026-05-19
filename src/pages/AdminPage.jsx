@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc, orderBy, limit, onSnapshot } from 'firebase/firestore';
@@ -1617,9 +1618,12 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData,
       </div>
       
       {/* Edit Modal */}
-      {showEditModal && currentEq && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+      {showEditModal && currentEq && createPortal(
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }} onClick={() => setShowEditModal(false)}>
+          <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%', animation: 'fadeIn 0.2s', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#333' }}>
               {currentEq.id && !currentEq.id.startsWith('new_') ? 'Upravit vybavení' : 'Přidat vybavení členovi'}
             </h3>
@@ -1711,7 +1715,8 @@ function DetailedInventoryTab({ allUsers, equipmentTypes, currentUser, userData,
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, onSnapshot, getDoc } from 'firebase/firestore';
@@ -526,9 +527,12 @@ export default function ProfilePage() {
       </div>
 
       {/* EQUIPMENT MODAL */}
-      {showEqModal && currentEq && (
-        <div className="modal-overlay" onClick={() => setShowEqModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+      {showEqModal && currentEq && createPortal(
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }} onClick={() => setShowEqModal(false)}>
+          <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%', animation: 'fadeIn 0.2s', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#333' }}>
               {currentEq.id ? 'Upravit vybavení' : 'Přidat vybavení'}
             </h3>
@@ -603,12 +607,13 @@ export default function ProfilePage() {
               })()}
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit položku</button>
-                <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={() => setShowEqModal(false)}>Zrušit</button>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowEqModal(false)}>Zrušit</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>{currentEq.id ? 'Uložit' : 'Přidat'}</button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
