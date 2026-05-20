@@ -54,7 +54,7 @@ export default function MaintenanceLogPage() {
             )}
 
             <MonthlyLogTable
-                title="🔧 Údržba VPPO a PT u ZJ"
+                title="🔧 Údržba VPPO a PT"
                 accentColor={ACCENT}
                 currentDate={currentDate}
                 entries={visibleEntries}
