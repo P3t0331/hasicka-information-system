@@ -101,9 +101,18 @@ export default function EditMemberEquipmentModal({
                   <input
                     type="number"
                     min="1"
+                    inputMode="numeric"
                     className="input-field"
-                    value={currentEq.amount || 1}
-                    onChange={e => setCurrentEq({ ...currentEq, amount: parseInt(e.target.value) || 1 })}
+                    value={currentEq.amount ?? ''}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setCurrentEq({ ...currentEq, amount: v === '' ? '' : (parseInt(v) || '') });
+                    }}
+                    onBlur={() => {
+                      if (!currentEq.amount || currentEq.amount < 1) {
+                        setCurrentEq({ ...currentEq, amount: 1 });
+                      }
+                    }}
                   />
                 </div>
               )}

@@ -59,7 +59,22 @@ export default function EquipmentModal({ onClose, currentEq, setCurrentEq, equip
                                 {eqType.hasAmount && (
                                     <div className="input-group">
                                         <label className="input-label">Počet kusů</label>
-                                        <input type="number" min="1" className="input-field" value={currentEq.amount || 1} onChange={e => setCurrentEq({ ...currentEq, amount: parseInt(e.target.value) || 1 })} />
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            inputMode="numeric"
+                                            className="input-field"
+                                            value={currentEq.amount ?? ''}
+                                            onChange={e => {
+                                                const v = e.target.value;
+                                                setCurrentEq({ ...currentEq, amount: v === '' ? '' : (parseInt(v) || '') });
+                                            }}
+                                            onBlur={() => {
+                                                if (!currentEq.amount || currentEq.amount < 1) {
+                                                    setCurrentEq({ ...currentEq, amount: 1 });
+                                                }
+                                            }}
+                                        />
                                     </div>
                                 )}
                                 {eqType.hasInventoryNumber && (
