@@ -11,10 +11,12 @@ export const CERTIFICATION_OPTIONS = [
 
 // ======== CATEGORY CONFIGURATION ========
 export const CATEGORY_CONFIG = {
-  shifts:     { label: 'Směny',       color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9', icon: '📅' },
-  activities: { label: 'Aktivity',     color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7', icon: '🎓' },
-  profile:    { label: 'Profil',       color: '#6A1B9A', bg: '#F3E5F5', border: '#CE93D8', icon: '👤' },
-  admin:      { label: 'Administrace', color: '#B71C1C', bg: '#FFEBEE', border: '#EF9A9A', icon: '🛡️' },
+  shifts:      { label: 'Směny',       color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9', icon: '📅' },
+  activities:  { label: 'Aktivity',    color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7', icon: '🎓' },
+  maintenance: { label: 'Údržba',      color: '#E65100', bg: '#FFE0B2', border: '#FFB74D', icon: '🔧' },
+  cleaning:    { label: 'Úklid',       color: '#006064', bg: '#B2EBF2', border: '#4DD0E1', icon: '🧹' },
+  profile:     { label: 'Profil',      color: '#6A1B9A', bg: '#F3E5F5', border: '#CE93D8', icon: '👤' },
+  admin:       { label: 'Administrace', color: '#B71C1C', bg: '#FFEBEE', border: '#EF9A9A', icon: '🛡️' },
 };
 
 export const ACTION_LABELS = {
@@ -56,6 +58,12 @@ export const ACTION_LABELS = {
   ADMIN_REMOVED_SHIFT:       'Zrušena stáž/záloha',
   INTERESTED_IN_STAZ:        'Projeven zájem o stáž/zálohu',
   CANCELLED_INTEREST_IN_STAZ: 'Zrušen zájem o stáž/zálohu',
+  MAINTENANCE_ADDED:         'Přidán záznam údržby',
+  MAINTENANCE_UPDATED:       'Upraven záznam údržby',
+  MAINTENANCE_DELETED:       'Smazán záznam údržby',
+  CLEANING_ADDED:            'Přidán záznam úklidu',
+  CLEANING_UPDATED:          'Upraven záznam úklidu',
+  CLEANING_DELETED:          'Smazán záznam úklidu',
 };
 
 export function formatRelativeTime(ts) {

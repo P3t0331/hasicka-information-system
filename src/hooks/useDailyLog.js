@@ -113,7 +113,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
                     updatedBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` }
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-                    `${logCategory.toUpperCase()}_UPDATED`, 'logs',
+                    `${logCategory.toUpperCase()}_UPDATED`, logCategory,
                     `Upravil záznam ${logLabel}: „${baseData.description}“ (${baseData.date})`);
                 showToast('success', 'Záznam upraven.');
             } else {
@@ -123,7 +123,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
                     createdAt: new Date().toISOString()
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-                    `${logCategory.toUpperCase()}_ADDED`, 'logs',
+                    `${logCategory.toUpperCase()}_ADDED`, logCategory,
                     `Přidal záznam ${logLabel}: „${baseData.description}“ (${baseData.date})`);
                 showToast('success', 'Záznam přidán.');
             }
@@ -144,7 +144,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
         try {
             await deleteDoc(doc(db, collectionName, deleteModal.id));
             logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-                `${logCategory.toUpperCase()}_DELETED`, 'logs',
+                `${logCategory.toUpperCase()}_DELETED`, logCategory,
                 `Smazal záznam ${logLabel}: „${deleteModal.description}“ (${deleteModal.date})`);
             showToast('success', 'Smazáno.');
         } catch (err) {

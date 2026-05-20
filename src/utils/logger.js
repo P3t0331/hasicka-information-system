@@ -8,7 +8,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
  * @param {string} uid - UID of the acting user
  * @param {string} userName - Full name of the acting user
  * @param {string} action - Machine-readable action key (e.g. "JOINED_SHIFT")
- * @param {string} category - "shifts" | "activities" | "profile" | "admin"
+ * @param {string} category - "shifts" | "activities" | "maintenance" | "cleaning" | "profile" | "admin"
  * @param {string} detail - Human-readable Czech description of what happened
  */
 export const logAction = async (db, uid, userName, action, category, detail) => {
