@@ -10,6 +10,8 @@ const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
     <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>Služby</Link>
     <NavLink to="/skoleni" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Školení</NavLink>
     <NavLink to="/akce" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Akce</NavLink>
+    <NavLink to="/udrzba" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Údržba</NavLink>
+    <NavLink to="/uklid" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Úklid</NavLink>
     <NavLink to="/statistiky" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Statistiky</NavLink>
     <NavLink to="/clenove" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Členové</NavLink>
     {isAdminOrVJ && (

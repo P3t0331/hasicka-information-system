@@ -10,6 +10,8 @@ import AdminPage from './pages/AdminPage';
 import TrainingsPage from './pages/TrainingsPage';
 import EventsPage from './pages/EventsPage';
 import MembersPage from './pages/MembersPage';
+import MaintenanceLogPage from './pages/MaintenanceLogPage';
+import CleaningLogPage from './pages/CleaningLogPage';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -32,6 +34,8 @@ function App() {
               <Route path="/shifts" element={<ShiftCalendarPage />} />
               <Route path="/skoleni" element={<TrainingsPage />} />
               <Route path="/akce" element={<EventsPage />} />
+              <Route path="/udrzba" element={<MaintenanceLogPage />} />
+              <Route path="/uklid" element={<CleaningLogPage />} />
               <Route path="/statistiky" element={<StatisticsPage />} />
               <Route path="/clenove" element={<MembersPage />} />
               <Route path="/admin" element={<AdminPage />} />

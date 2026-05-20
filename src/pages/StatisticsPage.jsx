@@ -6,6 +6,7 @@ import StatCard from '../components/statistics/StatCard';
 import ActivitiesTab from '../components/statistics/ActivitiesTab';
 import AbsencesTab from '../components/statistics/AbsencesTab';
 import ShiftsTab from '../components/statistics/ShiftsTab';
+import LogStatsTab from '../components/statistics/LogStatsTab';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -21,10 +22,12 @@ export default function StatisticsPage() {
   const [loading, setLoading] = useState(true);
 
   // New state for tabs and additional data
-  const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences'
+  const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences' | 'maintenance' | 'cleaning'
   const [eventsData, setEventsData] = useState([]);
   const [trainingsData, setTrainingsData] = useState([]);
   const [absencesData, setAbsencesData] = useState([]);
+  const [maintenanceMonth, setMaintenanceMonth] = useState([]);
+  const [cleaningMonth, setCleaningMonth] = useState([]);
 
   const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
   const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Velitel', 'VD'].includes(r));
@@ -88,10 +91,24 @@ export default function StatisticsPage() {
       }
     });
 
+    // Fetch Maintenance logs
+    const maintenanceUnsub = onSnapshot(collection(db, 'maintenanceLogs'), (snapshot) => {
+      const all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setMaintenanceMonth(all.filter(e => e.date >= monthStart && e.date <= monthEnd));
+    });
+
+    // Fetch Cleaning logs
+    const cleaningUnsub = onSnapshot(collection(db, 'cleaningLogs'), (snapshot) => {
+      const all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setCleaningMonth(all.filter(e => e.date >= monthStart && e.date <= monthEnd));
+    });
+
     return () => {
       eventsUnsub();
       trainingsUnsub();
       absencesUnsub();
+      maintenanceUnsub();
+      cleaningUnsub();
     };
   }, [currentDocId, currentDate]);
 
@@ -216,6 +233,40 @@ export default function StatisticsPage() {
         >
           🚫 Nepřítomnost
         </button>
+        <button
+          onClick={() => setActiveTab('maintenance')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            background: activeTab === 'maintenance' ? '#FF6F00' : 'transparent',
+            color: activeTab === 'maintenance' ? 'white' : '#666',
+            fontWeight: activeTab === 'maintenance' ? 700 : 500,
+            borderRadius: '8px 8px 0 0',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s'
+          }}
+        >
+          🔧 Údržba
+        </button>
+        <button
+          onClick={() => setActiveTab('cleaning')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            background: activeTab === 'cleaning' ? '#00838F' : 'transparent',
+            color: activeTab === 'cleaning' ? 'white' : '#666',
+            fontWeight: activeTab === 'cleaning' ? 700 : 500,
+            borderRadius: '8px 8px 0 0',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s'
+          }}
+        >
+          🧹 Úklid
+        </button>
       </div>
 
       {activeTab === 'shifts' && (
@@ -241,6 +292,28 @@ export default function StatisticsPage() {
         <AbsencesTab
           absencesData={absencesData}
           currentDate={currentDate}
+        />
+      )}
+
+      {/* Maintenance Tab */}
+      {activeTab === 'maintenance' && (
+        <LogStatsTab
+          entries={maintenanceMonth}
+          currentDate={currentDate}
+          accent={{ from: '#FF6F00', to: '#E65100' }}
+          emoji="🔧"
+          label="údržby"
+        />
+      )}
+
+      {/* Cleaning Tab */}
+      {activeTab === 'cleaning' && (
+        <LogStatsTab
+          entries={cleaningMonth}
+          currentDate={currentDate}
+          accent={{ from: '#00838F', to: '#006064' }}
+          emoji="🧹"
+          label="úklidu"
         />
       )}
 

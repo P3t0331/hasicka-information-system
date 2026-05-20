@@ -38,3 +38,34 @@ export function getWearRowStyle(wear) {
   if (wear === 5) return { background: '#FFEBEE', borderLeft: '4px solid #D32F2F' };
   return null;
 }
+
+export const DAYS_CZ_FULL = [
+  'neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'
+];
+
+export const LOG_PRESETS_MAINTENANCE = [
+  'Mytí CAS-30',
+  'Mytí OA Toyota',
+  'Mytí DA',
+  'Kontrola IDP',
+  'Nachystání IDP na plnění',
+  'Dovezení IDP z plnění',
+  'Přemotání lan a označení objímek na hadice',
+  'Přezutí PNEU na letní',
+  'Přezutí PNEU na zimní',
+  'Nachystání kapesních RDST a matry',
+  'Odvoz radiostanic na Lídickou',
+  'Údržba motorové stříkačky',
+  'Drobná oprava techniky'
+];
+
+export const LOG_PRESETS_CLEANING = [
+  'Vysátí a vytření podlah v obytné části',
+  'Desinfekce dřezu, umyvadel, sprchy a WC',
+  'Úklid garáže',
+  'Úklid kuchyňky',
+  'Úklid šaten',
+  'Mytí oken',
+  'Vynesení odpadků',
+  'Úklid dílny'
+];
