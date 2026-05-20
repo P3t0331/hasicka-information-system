@@ -75,7 +75,7 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                 <KpiCard
                     icon="🏆"
                     value={topContributor ? topContributor.name.split(' ')[0] : '—'}
-                    label={topContributor ? `Top přispěvatel (${topContributor.hours.toFixed(1).replace(/\.0$/, '')}h)` : 'Top přispěvatel'}
+                    label={topContributor ? `Top přispěvatel (${topContributor.hours.toFixed(1).replace(/\.0$/, '')} osobohodin)` : 'Top přispěvatel'}
                     gradient="linear-gradient(135deg, #F57C00, #E65100)"
                     smallValue
                 />
@@ -127,7 +127,7 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                                     <div style={{ fontWeight: 700, fontSize: '1rem', color: '#333' }}>
                                         {u.hours.toFixed(2).replace(/\.?0+$/, '')}h
                                     </div>
-                                    <div style={{ fontSize: '0.65rem', color: '#999' }}>{u.count}× účast</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#999' }}>osobohodin · {u.count}× účast</div>
                                 </div>
                             </div>
                         );
