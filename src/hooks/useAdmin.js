@@ -19,7 +19,7 @@ export default function useAdmin() {
   const [newEq, setNewEq] = useState({
     id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true,
     hasInventoryNumber: false, hasSerialNumber: false,
-    hasManufactureYear: false, hasIssueYear: false
+    hasManufactureYear: false, hasIssueYear: false, hasWear: false
   });
 
   // Tab & Logs
@@ -157,6 +157,7 @@ export default function useAdmin() {
       if (newEq.hasSerialNumber) fields.push('výrobní číslo');
       if (newEq.hasManufactureYear) fields.push('rok výroby');
       if (newEq.hasIssueYear) fields.push('rok nafasování');
+      if (newEq.hasWear) fields.push('stav opotřebení');
       
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ADDED_EQUIPMENT_TYPE', 'admin',
@@ -166,7 +167,7 @@ export default function useAdmin() {
     setNewEq({
       id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true,
       hasInventoryNumber: false, hasSerialNumber: false,
-      hasManufactureYear: false, hasIssueYear: false
+      hasManufactureYear: false, hasIssueYear: false, hasWear: false
     });
     setShowEqModal(false);
   }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { WEAR_OPTIONS, getWearStyle } from '../../utils/constants';
 
 export default function EquipmentSection({ equipmentTypes, allEquipment, setCurrentEq, setShowEqModal, handleDeleteEquipment }) {
     return (
@@ -28,15 +29,21 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     allEquipment.map(item => {
                         const eqType = equipmentTypes.find(t => t.id === item.typeId);
                         if (!eqType) return null;
+                        const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);
 
                         return (
                             <div key={item.id} style={{ padding: '1rem', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div style={{ flex: '1 1 200px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                                         <span style={{ fontWeight: 700, color: '#222', fontSize: '1rem' }}>{eqType.name}</span>
                                         <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: item.ownership === 'vlastni' ? '#E3F2FD' : '#E8F5E9', color: item.ownership === 'vlastni' ? '#1565C0' : '#2E7D32', fontWeight: 600 }}>
                                             {item.ownership === 'vlastni' ? 'Vlastní' : 'JSDH'}
                                         </span>
+                                        {wearOption && eqType.hasWear && (
+                                            <span style={{ ...getWearStyle(item.wear), fontSize: '0.75rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 600 }}>
+                                                {wearOption.label}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.85rem', color: '#555' }}>

@@ -46,6 +46,7 @@ export default function EquipmentTypesTab({
                 if (eq.hasSerialNumber) tracked.push('Výrobní číslo');
                 if (eq.hasManufactureYear) tracked.push('Rok výroby');
                 if (eq.hasIssueYear) tracked.push('Rok nafasování');
+                if (eq.hasWear) tracked.push('Stav opotřebení');
                 
                 return (
                   <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>

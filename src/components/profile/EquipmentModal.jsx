@@ -1,5 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { WEAR_OPTIONS } from '../../utils/constants';
 
 export default function EquipmentModal({ onClose, currentEq, setCurrentEq, equipmentTypes, handleSaveEquipment }) {
     if (!currentEq) return null;
@@ -99,6 +100,24 @@ export default function EquipmentModal({ onClose, currentEq, setCurrentEq, equip
                                     <div className="input-group">
                                         <label className="input-label">Rok nafasování</label>
                                         <input type="number" className="input-field" value={currentEq.issueYear || ''} onChange={e => setCurrentEq({ ...currentEq, issueYear: parseInt(e.target.value) || '' })} placeholder="Např. 2023" />
+                                    </div>
+                                )}
+                                {eqType.hasWear && (
+                                    <div className="input-group">
+                                        <label className="input-label">Stav opotřebení</label>
+                                        <select
+                                            className="input-field"
+                                            value={currentEq.wear ?? ''}
+                                            onChange={e => {
+                                                const v = e.target.value;
+                                                setCurrentEq({ ...currentEq, wear: v === '' ? null : parseInt(v) });
+                                            }}
+                                        >
+                                            <option value="">— Neuvedeno —</option>
+                                            {WEAR_OPTIONS.map(o => (
+                                                <option key={o.value} value={o.value}>{o.label}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
                             </div>

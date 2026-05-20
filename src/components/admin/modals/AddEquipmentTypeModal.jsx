@@ -59,6 +59,10 @@ export default function AddEquipmentTypeModal({
               <input type="checkbox" checked={newEq.hasIssueYear} onChange={e => setNewEq({ ...newEq, hasIssueYear: e.target.checked })} />
               Rok nafasování
             </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input type="checkbox" checked={!!newEq.hasWear} onChange={e => setNewEq({ ...newEq, hasWear: e.target.checked })} />
+              Stav opotřebení
+            </label>
           </div>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={onClose}>Zrušit</button>

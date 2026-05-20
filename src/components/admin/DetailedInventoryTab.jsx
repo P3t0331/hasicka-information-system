@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import EditMemberEquipmentModal from './modals/EditMemberEquipmentModal';
+import { WEAR_OPTIONS, getWearStyle, getWearRowStyle } from '../../utils/constants';
 
 export default function DetailedInventoryTab({
   allUsers,
@@ -9,6 +10,7 @@ export default function DetailedInventoryTab({
 }) {
   const [filterUser, setFilterUser] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [filterWear, setFilterWear] = useState('all');
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEq, setCurrentEq] = useState(null);
   const [targetUserId, setTargetUserId] = useState(null);
@@ -26,6 +28,13 @@ export default function DetailedInventoryTab({
   const filtered = allItems.filter(item => {
     if (filterUser !== 'all' && item._userId !== filterUser) return false;
     if (filterType !== 'all' && item.typeId !== filterType) return false;
+    if (filterWear !== 'all') {
+      if (filterWear === 'none') {
+        if (item.wear) return false;
+      } else if (item.wear !== parseInt(filterWear)) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -65,6 +74,16 @@ export default function DetailedInventoryTab({
             ))}
           </select>
         </div>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label className="input-label">Filtr dle stavu opotřebení</label>
+          <select className="input-field" value={filterWear} onChange={e => setFilterWear(e.target.value)}>
+            <option value="all">Všechny stavy</option>
+            <option value="none">Bez stavu</option>
+            {WEAR_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <button
             className="btn btn-primary"
@@ -87,21 +106,26 @@ export default function DetailedInventoryTab({
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Detaily (Vel/Ks)</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Evid. čísla</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Roky (Výr/Naf)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Stav</th>
               <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Akce</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
                   Žádné vybavení neodpovídá filtru.
                 </td>
               </tr>
             ) : filtered.map((item, i) => {
               const eqType = equipmentTypes.find(t => t.id === item.typeId) || { name: 'Neznámý' };
+              const showWear = !!eqType.hasWear;
+              const wearRowStyle = showWear ? getWearRowStyle(item.wear) : null;
+              const wearBadgeStyle = getWearStyle(item.wear);
+              const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);
 
               return (
-                <tr key={item.id} style={{ background: i % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
+                <tr key={item.id} style={{ background: i % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0', ...(wearRowStyle || {}) }}>
                   <td data-label="Uživatel" style={{ padding: '0.75rem', fontWeight: 600 }}>{item._userName}</td>
                   <td data-label="Typ vybavení" style={{ padding: '0.75rem', color: '#1565C0', fontWeight: 600 }}>{eqType.name}</td>
                   <td data-label="Vlastnictví" style={{ padding: '0.75rem' }}>
@@ -125,6 +149,15 @@ export default function DetailedInventoryTab({
                   <td data-label="Roky" style={{ padding: '0.75rem' }}>
                     {item.manufactureYear && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Výr:</span> {item.manufactureYear}</div>}
                     {item.issueYear && <div><span style={{ color: '#888' }}>Naf:</span> {item.issueYear}</div>}
+                  </td>
+                  <td data-label="Stav" style={{ padding: '0.75rem' }}>
+                    {showWear && wearOption ? (
+                      <span style={{ ...wearBadgeStyle, padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {wearOption.label}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#ccc' }}>—</span>
+                    )}
                   </td>
                   <td data-label="Akce" style={{ padding: '0.75rem', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>

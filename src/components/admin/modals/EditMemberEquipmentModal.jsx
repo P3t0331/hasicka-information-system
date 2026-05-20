@@ -1,5 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { WEAR_OPTIONS } from '../../../utils/constants';
 
 export default function EditMemberEquipmentModal({
   currentEq,
@@ -164,6 +165,25 @@ export default function EditMemberEquipmentModal({
                     onChange={e => setCurrentEq({ ...currentEq, issueYear: parseInt(e.target.value) || '' })}
                     placeholder="Např. 2023"
                   />
+                </div>
+              )}
+
+              {eqType.hasWear && (
+                <div className="input-group">
+                  <label className="input-label">Stav opotřebení</label>
+                  <select
+                    className="input-field"
+                    value={currentEq.wear ?? ''}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setCurrentEq({ ...currentEq, wear: v === '' ? null : parseInt(v) });
+                    }}
+                  >
+                    <option value="">— Neuvedeno —</option>
+                    {WEAR_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </div>
               )}
             </div>

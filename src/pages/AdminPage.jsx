@@ -198,7 +198,7 @@ export default function AdminPage() {
         <EquipmentTypesTab
           equipmentTypes={equipmentTypes}
           onAddClick={() => {
-            setNewEq({ id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false });
+            setNewEq({ id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false, hasWear: false });
             setShowEqModal(true);
           }}
           onEditClick={(eq) => {
