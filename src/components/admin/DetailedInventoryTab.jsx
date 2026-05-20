@@ -107,13 +107,14 @@ export default function DetailedInventoryTab({
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Evid. čísla</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Roky (Výr/Naf)</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Stav</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Polep</th>
               <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Akce</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
                   Žádné vybavení neodpovídá filtru.
                 </td>
               </tr>
@@ -154,6 +155,20 @@ export default function DetailedInventoryTab({
                     {showWear && wearOption ? (
                       <span style={{ ...wearBadgeStyle, padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
                         {wearOption.label}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#ccc' }}>—</span>
+                    )}
+                  </td>
+                  <td data-label="Polep" style={{ padding: '0.75rem' }}>
+                    {eqType.hasPolep && item.polep != null ? (
+                      <span style={{
+                        background: item.polep ? '#E8F5E9' : '#FFEBEE',
+                        color: item.polep ? '#2E7D32' : '#C62828',
+                        padding: '0.15rem 0.5rem', borderRadius: '4px',
+                        fontSize: '0.8rem', fontWeight: 600
+                      }}>
+                        {item.polep ? 'ANO' : 'NE'}
                       </span>
                     ) : (
                       <span style={{ color: '#ccc' }}>—</span>

@@ -39,6 +39,7 @@ export default function AdminPage() {
     isAdminOrVJ,
     handleAddEq,
     handleRemoveEq,
+    reorderEquipmentTypes,
     approveUser,
     rejectPendingUser,
     deactivateUser,
@@ -198,7 +199,7 @@ export default function AdminPage() {
         <EquipmentTypesTab
           equipmentTypes={equipmentTypes}
           onAddClick={() => {
-            setNewEq({ id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false, hasWear: false });
+            setNewEq({ id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true, hasInventoryNumber: false, hasSerialNumber: false, hasManufactureYear: false, hasIssueYear: false, hasWear: false, hasPolep: false });
             setShowEqModal(true);
           }}
           onEditClick={(eq) => {
@@ -206,6 +207,7 @@ export default function AdminPage() {
             setShowEqModal(true);
           }}
           onRemoveClick={handleRemoveEq}
+          onReorderSave={reorderEquipmentTypes}
         />
       )}
 

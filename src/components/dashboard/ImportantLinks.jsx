@@ -98,9 +98,9 @@ export default function ImportantLinks() {
                             </div>
                         </a>
 
-                        <a 
-                            href="https://drive.google.com/drive/folders/1CCvV1OuTlbsjLtfQSzU6WpZynDLRTqqt?usp=drive_link" 
-                            target="_blank" 
+                        <a
+                            href="https://drive.google.com/drive/folders/1CCvV1OuTlbsjLtfQSzU6WpZynDLRTqqt?usp=drive_link"
+                            target="_blank"
                             rel="noopener noreferrer"
                             style={{ display: 'flex', alignItems: 'center', padding: '1rem', textDecoration: 'none', color: '#333', background: '#f8f9fa', borderRadius: '12px', border: '1px solid #eee' }}
                         >
@@ -108,6 +108,19 @@ export default function ImportantLinks() {
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: '1rem' }}>Google Disk</div>
                                 <div style={{ fontSize: '0.8rem', color: '#666' }}>Fotky a sdílené dokumenty</div>
+                            </div>
+                        </a>
+
+                        <a
+                            href="https://rescue.euroncap.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'flex', alignItems: 'center', padding: '1rem', textDecoration: 'none', color: '#333', background: '#f8f9fa', borderRadius: '12px', border: '1px solid #eee' }}
+                        >
+                            <span style={{ fontSize: '1.75rem', marginRight: '1rem' }}>🚗</span>
+                            <div>
+                                <div style={{ fontWeight: 700, fontSize: '1rem' }}>Karty vozidel</div>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>Euro NCAP Rescue – záchranné karty</div>
                             </div>
                         </a>
                     </div>

@@ -54,6 +54,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                                         {eqType.hasSerialNumber && item.serialNumber && <div><span style={{ color: '#999' }}>S/N:</span> <strong>{item.serialNumber}</strong></div>}
                                         {eqType.hasManufactureYear && item.manufactureYear && <div><span style={{ color: '#999' }}>Vyrobeno:</span> <strong>{item.manufactureYear}</strong></div>}
                                         {eqType.hasIssueYear && item.issueYear && <div><span style={{ color: '#999' }}>Nafasováno:</span> <strong>{item.issueYear}</strong></div>}
+                                        {eqType.hasPolep && item.polep != null && <div><span style={{ color: '#999' }}>Polep:</span> <strong>{item.polep ? 'ANO' : 'NE'}</strong></div>}
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, width: '100%', justifyContent: 'flex-end', borderTop: '1px solid #f0f0f0', paddingTop: '0.5rem', marginTop: '0.5rem' }} className="mobile-only-border-top">

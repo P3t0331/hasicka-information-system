@@ -19,7 +19,7 @@ export default function useAdmin() {
   const [newEq, setNewEq] = useState({
     id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true,
     hasInventoryNumber: false, hasSerialNumber: false,
-    hasManufactureYear: false, hasIssueYear: false, hasWear: false
+    hasManufactureYear: false, hasIssueYear: false, hasWear: false, hasPolep: false
   });
 
   // Tab & Logs
@@ -158,6 +158,7 @@ export default function useAdmin() {
       if (newEq.hasManufactureYear) fields.push('rok výroby');
       if (newEq.hasIssueYear) fields.push('rok nafasování');
       if (newEq.hasWear) fields.push('stav opotřebení');
+      if (newEq.hasPolep) fields.push('polep');
       
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ADDED_EQUIPMENT_TYPE', 'admin',
@@ -167,9 +168,16 @@ export default function useAdmin() {
     setNewEq({
       id: null, name: '', hasBrand: false, hasSize: false, hasAmount: true,
       hasInventoryNumber: false, hasSerialNumber: false,
-      hasManufactureYear: false, hasIssueYear: false, hasWear: false
+      hasManufactureYear: false, hasIssueYear: false, hasWear: false, hasPolep: false
     });
     setShowEqModal(false);
+  }
+
+  function reorderEquipmentTypes(newTypes) {
+    saveEquipmentTypes(newTypes);
+    logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+      'ADMIN_UPDATED_EQUIPMENT_TYPE', 'admin',
+      `Změnil pořadí druhů vybavení: ${newTypes.map(t => t.name).join(', ')}`);
   }
 
   function handleRemoveEq(id) {
@@ -657,6 +665,7 @@ export default function useAdmin() {
     fetchAdminData,
     handleAddEq,
     handleRemoveEq,
+    reorderEquipmentTypes,
     approveUser,
     rejectPendingUser,
     deactivateUser,

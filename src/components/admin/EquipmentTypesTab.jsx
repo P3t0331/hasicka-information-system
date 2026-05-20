@@ -1,25 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ReorderEquipmentTypesModal from './modals/ReorderEquipmentTypesModal';
 
 export default function EquipmentTypesTab({
   equipmentTypes,
   onAddClick,
   onEditClick,
-  onRemoveClick
+  onRemoveClick,
+  onReorderSave
 }) {
+  const [showReorder, setShowReorder] = useState(false);
+
   return (
     <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Druhy vybavení</h3>
           <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#888' }}>Definujte typy vybavení, které mohou členové evidovat na svém profilu.</p>
         </div>
-        <button
-          className="btn btn-primary"
-          style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }}
-          onClick={onAddClick}
-        >
-          + Přidat
-        </button>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {equipmentTypes.length > 1 && (
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }}
+              onClick={() => setShowReorder(true)}
+            >
+              🔀 Změnit pořadí
+            </button>
+          )}
+          <button
+            className="btn btn-primary"
+            style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }}
+            onClick={onAddClick}
+          >
+            + Přidat
+          </button>
+        </div>
       </div>
 
       {equipmentTypes.length === 0 ? (
@@ -47,7 +62,8 @@ export default function EquipmentTypesTab({
                 if (eq.hasManufactureYear) tracked.push('Rok výroby');
                 if (eq.hasIssueYear) tracked.push('Rok nafasování');
                 if (eq.hasWear) tracked.push('Stav opotřebení');
-                
+                if (eq.hasPolep) tracked.push('Polep');
+
                 return (
                   <tr key={eq.id} style={{ borderBottom: '1px solid #f0f0f0', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
                     <td data-label="Název" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333' }}>{eq.name}</td>
@@ -82,6 +98,17 @@ export default function EquipmentTypesTab({
             </tbody>
           </table>
         </div>
+      )}
+
+      {showReorder && (
+        <ReorderEquipmentTypesModal
+          equipmentTypes={equipmentTypes}
+          onClose={() => setShowReorder(false)}
+          onSave={(newTypes) => {
+            onReorderSave(newTypes);
+            setShowReorder(false);
+          }}
+        />
       )}
     </div>
   );

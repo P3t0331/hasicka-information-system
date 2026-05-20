@@ -186,6 +186,23 @@ export default function EditMemberEquipmentModal({
                   </select>
                 </div>
               )}
+              {eqType.hasPolep && (
+                <div className="input-group">
+                  <label className="input-label">Polep</label>
+                  <select
+                    className="input-field"
+                    value={currentEq.polep === true ? 'ano' : currentEq.polep === false ? 'ne' : ''}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setCurrentEq({ ...currentEq, polep: v === 'ano' ? true : v === 'ne' ? false : null });
+                    }}
+                  >
+                    <option value="">— Neuvedeno —</option>
+                    <option value="ano">ANO</option>
+                    <option value="ne">NE</option>
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
