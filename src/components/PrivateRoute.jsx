@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ForcePasswordChange from './auth/ForcePasswordChange';
 
 export default function PrivateRoute({ children }) {
   const { currentUser, userData, loading } = useAuth();
@@ -17,6 +18,10 @@ export default function PrivateRoute({ children }) {
 
   if (!currentUser) {
     return <Navigate to="/login" />;
+  }
+
+  if (userData?.mustChangePassword) {
+    return <ForcePasswordChange />;
   }
 
   // Access enforced by AuthContext (auto-logout if !approved)

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ROLE_OPTIONS, CERTIFICATION_OPTIONS } from './constants';
+import CreateUserModal from './modals/CreateUserModal';
 
 export default function UsersTab({
   allUsers,
@@ -13,12 +14,35 @@ export default function UsersTab({
   toggleUserRole,
   toggleUserCertification,
   updateRegistrationNumber,
-  rejectPendingUser
+  rejectPendingUser,
+  createUserForOther,
+  loading
 }) {
   const currentUserIsAdmin = userRoles.includes('Admin');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [revealedPasswords, setRevealedPasswords] = useState(new Set());
+
+  const toggleReveal = (uid) => {
+    setRevealedPasswords(prev => {
+      const next = new Set(prev);
+      next.has(uid) ? next.delete(uid) : next.add(uid);
+      return next;
+    });
+  };
 
   return (
     <>
+      {showCreateModal && (
+        <CreateUserModal
+          loading={loading}
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={async (data) => {
+            const ok = await createUserForOther(data);
+            if (ok) setShowCreateModal(false);
+          }}
+        />
+      )}
+
       {/* Stats Dashboard */}
       <div className="card mb-5" style={{ padding: '1.5rem' }}>
         <h3 className="mb-3" style={{ fontSize: '1.2rem' }}>Přehled stavu jednotky</h3>
@@ -58,6 +82,24 @@ export default function UsersTab({
 
         </div>
       </div>
+
+      {/* Create User Button (Admin only) */}
+      {currentUserIsAdmin && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.6rem 1.2rem', borderRadius: '10px', border: 'none',
+              background: 'linear-gradient(135deg, #1565C0, #0D47A1)',
+              color: 'white', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(21, 101, 192, 0.3)'
+            }}
+          >
+            ➕ Vytvořit účet pro člena
+          </button>
+        </div>
+      )}
 
       {/* Pending Approvals */}
       {pendingUsers.length > 0 && (
@@ -190,6 +232,26 @@ export default function UsersTab({
                               {user.firstName} {user.lastName}
                             </div>
                             <div style={{ fontSize: '0.8rem', color: '#777', wordBreak: 'break-all' }}>{user.email}</div>
+                            {user.mustChangePassword && user.tempPassword && currentUserIsAdmin && (
+                              <div style={{
+                                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                                marginTop: '0.3rem', padding: '0.2rem 0.5rem',
+                                background: '#FFF3E0', border: '1px solid #FFB300',
+                                borderRadius: '6px', fontSize: '0.75rem'
+                              }}>
+                                <span style={{ color: '#E65100', fontWeight: 600 }}>⏳ Dočasné heslo:</span>
+                                <span style={{ fontFamily: 'monospace', color: '#333', letterSpacing: revealedPasswords.has(user.uid) ? '0' : '0.1em' }}>
+                                  {revealedPasswords.has(user.uid) ? user.tempPassword : '••••••••'}
+                                </span>
+                                <button
+                                  onClick={() => toggleReveal(user.uid)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: '0.85rem', lineHeight: 1 }}
+                                  title={revealedPasswords.has(user.uid) ? 'Skrýt' : 'Zobrazit'}
+                                >
+                                  {revealedPasswords.has(user.uid) ? '🙈' : '👁️'}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

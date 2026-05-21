@@ -49,7 +49,9 @@ export default function AdminPage() {
     toggleUserCertification,
     updateRegistrationNumber,
     onSaveEquipment,
-    onDeleteEquipment
+    onDeleteEquipment,
+    createUserForOther,
+    loading
   } = useAdmin();
 
   if (!userData) return <div className="p-4 text-center">Načítání profilu...</div>;
@@ -194,6 +196,8 @@ export default function AdminPage() {
           toggleUserCertification={toggleUserCertification}
           updateRegistrationNumber={updateRegistrationNumber}
           rejectPendingUser={rejectPendingUser}
+          createUserForOther={createUserForOther}
+          loading={loading}
         />
       )}
 

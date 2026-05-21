@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
+import { db, auth } from '../firebase';
 import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
@@ -562,6 +564,56 @@ export default function useAdmin() {
     }
   }
 
+  async function createUserForOther({ firstName, lastName, email, phone, password, roles }) {
+    setLoading(true);
+    let secondaryApp = null;
+    try {
+      secondaryApp = initializeApp(auth.app.options, `secondary-${Date.now()}`);
+      const secondaryAuth = getAuth(secondaryApp);
+      const result = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+      const newUid = result.user.uid;
+
+      await setDoc(doc(db, 'users', newUid), {
+        uid: newUid,
+        email,
+        firstName,
+        lastName,
+        phone: phone || '',
+        address: '',
+        roles: roles || ['Hasič'],
+        approved: true,
+        mustChangePassword: true,
+        tempPassword: password,
+        createdAt: new Date().toISOString(),
+        createdByAdmin: currentUser.uid
+      });
+
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_CREATED_USER', 'admin',
+        `Vytvořil účet pro ${firstName} ${lastName} (${email})`);
+
+      showNotification('success', `Účet pro ${firstName} ${lastName} byl úspěšně vytvořen.`);
+      await fetchAdminData();
+      return true;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        showNotification('error', 'Tento email je již používán.');
+      } else if (error.code === 'auth/invalid-email') {
+        showNotification('error', 'Neplatný formát emailu.');
+      } else {
+        showNotification('error', 'Chyba při vytváření účtu: ' + error.message);
+      }
+      return false;
+    } finally {
+      if (secondaryApp) {
+        try { await firebaseSignOut(getAuth(secondaryApp)); } catch {}
+        try { await deleteApp(secondaryApp); } catch {}
+      }
+      setLoading(false);
+    }
+  }
+
   // Equipment save and delete hooks that reactively update member inventory
   async function onSaveEquipment(e, currentEq, targetUserId) {
     e.preventDefault();
@@ -674,6 +726,7 @@ export default function useAdmin() {
     toggleUserCertification,
     updateRegistrationNumber,
     onSaveEquipment,
-    onDeleteEquipment
+    onDeleteEquipment,
+    createUserForOther
   };
 }

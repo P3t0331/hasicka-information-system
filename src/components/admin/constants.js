@@ -68,6 +68,7 @@ export const ACTION_LABELS = {
   BULLETIN_UPDATED:          'Upraven příspěvek na nástěnce',
   BULLETIN_DELETED:          'Smazán příspěvek z nástěnky',
   ADMIN_BACKDATED_SHIFT:     'Zpětné přiřazení ke směně',
+  ADMIN_CREATED_USER:        'Vytvoření účtu pro člena',
 };
 
 export function formatRelativeTime(ts) {
