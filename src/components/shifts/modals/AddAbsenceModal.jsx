@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatDateCZ } from '../constants';
 
-export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClose }) {
+export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClose, targetUser }) {
   // Default to today's date in ISO format
   const today = new Date();
   const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -79,9 +79,14 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
           margin: '0 auto 1rem'
         }} />
 
-        <h3 style={{ marginTop: 0, marginBottom: '1.25rem', color: '#7B1FA2', textAlign: 'center' }}>
+        <h3 style={{ marginTop: 0, marginBottom: targetUser ? '0.5rem' : '1.25rem', color: '#7B1FA2', textAlign: 'center' }}>
           🚫 Přidat absenci
         </h3>
+        {targetUser && (
+          <div style={{ textAlign: 'center', marginBottom: '1rem', padding: '0.4rem 0.75rem', background: '#FFF8E1', borderRadius: '8px', border: '1px solid #FFB300', fontSize: '0.85rem', color: '#E65100', fontWeight: 600 }}>
+            ⏱ Za člena: {targetUser.fullName || targetUser.compactName}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-row" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>

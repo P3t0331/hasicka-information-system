@@ -1,5 +1,7 @@
 import React from 'react';
 import { MONTHS_CZ } from '../../utils/constants';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ChartBlock, ChartTooltip, PieLabel } from './ChartComponents';
 
 export default function ActivitiesTab({ eventsData, trainingsData }) {
     // Get all participants with stats
@@ -145,6 +147,52 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                     <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Průměr na osobu (aktivity / h)</div>
                 </div>
             </div>
+
+            {/* Charts Section */}
+            {totalActivitiesHours > 0 && (() => {
+                const pieData = [
+                    { name: 'Akce', value: parseFloat(totalEventsHours.toFixed(1)), color: '#E53935' },
+                    { name: 'Školení', value: parseFloat(totalTrainingsHours.toFixed(1)), color: '#9C27B0' },
+                ].filter(d => d.value > 0);
+
+                const memberBarData = userStats.slice(0, 8).map(u => ({
+                    name: u.name.split(' ')[0],
+                    Akce: parseFloat(u.eventsHours.toFixed(1)),
+                    Školení: parseFloat(u.trainingsHours.toFixed(1)),
+                }));
+
+                return (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                        <ChartBlock title="🍩 Akce vs Školení (hodiny)" height={300}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={pieData} cx="50%" cy="45%" innerRadius={65} outerRadius={105} dataKey="value" nameKey="name" labelLine={false} label={PieLabel}>
+                                        {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                                    </Pie>
+                                    <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
+                                    <Tooltip content={<ChartTooltip unit="h" />} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </ChartBlock>
+
+                        {memberBarData.some(d => d.Akce > 0 || d.Školení > 0) && (
+                            <ChartBlock title="👥 Hodiny členů (top 8)" height={300}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={memberBarData} barSize={16} margin={{ top: 4, right: 10, left: -10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} />
+                                        <YAxis tick={{ fontSize: 11 }} unit="h" width={38} tickLine={false} axisLine={false} />
+                                        <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: '#f5f5f5' }} />
+                                        <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
+                                        <Bar dataKey="Akce" stackId="a" fill="#E53935" />
+                                        <Bar dataKey="Školení" stackId="a" fill="#9C27B0" radius={[3, 3, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartBlock>
+                        )}
+                    </div>
+                );
+            })()}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
                 {/* TOP 5 LEADERBOARD */}

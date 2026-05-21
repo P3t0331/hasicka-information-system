@@ -582,10 +582,14 @@ export default function useShiftCalendar(currentUser, userData) {
   const handleAddAbsence = async (absenceData) => {
     if (!userData || !userData.approved) return;
 
+    const targetUser = absenceData.targetUser;
+    const uid = targetUser?.uid || currentUser.uid;
+    const userName = targetUser?.compactName || `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''}`;
+
     const newAbsence = {
-      id: `${currentUser.uid}-${Date.now()}`,
-      uid: currentUser.uid,
-      userName: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''}`,
+      id: `${uid}-${Date.now()}`,
+      uid,
+      userName,
       startDate: absenceData.startDate,
       endDate: absenceData.endDate,
       reason: absenceData.reason
@@ -596,9 +600,11 @@ export default function useShiftCalendar(currentUser, userData) {
       await setDoc(absenceDocRef, {
         items: arrayUnion(newAbsence)
       }, { merge: true });
+      const detail = targetUser
+        ? `Přidal absenci za ${userName}: "${absenceData.reason}" (${absenceData.startDate} – ${absenceData.endDate})`
+        : `Přidal absenci: "${absenceData.reason}" (${absenceData.startDate} – ${absenceData.endDate})`;
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-        'ADDED_ABSENCE', 'shifts',
-        `Přidal absenci: "${absenceData.reason}" (${absenceData.startDate} – ${absenceData.endDate})`);
+        'ADDED_ABSENCE', 'shifts', detail);
       showToast('success', 'Absence uložena.');
       setAbsenceModal(null);
     } catch (err) {
@@ -666,6 +672,33 @@ export default function useShiftCalendar(currentUser, userData) {
     }
   };
 
+  const handleRetroAssign = async (day, section, slotKey, targetUser) => {
+    try {
+      const docRef = doc(db, 'shifts', currentDocId);
+      const dayData = shiftsData[day] || {};
+      let newData = { ...dayData };
+      if (!newData[section]) newData[section] = {};
+
+      const base = getSlotBaseType(slotKey);
+      const qualified = base === 'velitel'
+        ? targetUser.roles.some(r => ['VD', 'VJ', 'Zástupce VJ', 'Admin'].includes(r))
+        : base === 'strojnik'
+          ? targetUser.roles.some(r => ['Strojník', 'Admin'].includes(r))
+          : true;
+
+      newData[section] = { ...newData[section], [slotKey]: { uid: targetUser.uid, name: targetUser.compactName, qualified } };
+
+      await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_BACKDATED_SHIFT', 'admin',
+        `Zpětně přiřazen ${targetUser.compactName} na pozici ${slotKey} (${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()})`);
+      showToast('success', `${targetUser.compactName} přiřazen na ${slotKey}.`);
+    } catch (err) {
+      console.error("Error in retro assign:", err);
+      showToast('error', 'Chyba při zpětném přiřazení.');
+    }
+  };
+
   return {
     currentDate,
     shiftsData,
@@ -715,6 +748,7 @@ export default function useShiftCalendar(currentUser, userData) {
     handleAddAbsence,
     handleDeleteAbsence,
     handleAddZaloha,
+    handleRetroAssign,
     showToast
   };
 }

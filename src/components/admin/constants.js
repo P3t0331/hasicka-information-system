@@ -64,6 +64,10 @@ export const ACTION_LABELS = {
   CLEANING_ADDED:            'Přidán záznam úklidu',
   CLEANING_UPDATED:          'Upraven záznam úklidu',
   CLEANING_DELETED:          'Smazán záznam úklidu',
+  BULLETIN_CREATED:          'Přidán příspěvek na nástěnku',
+  BULLETIN_UPDATED:          'Upraven příspěvek na nástěnce',
+  BULLETIN_DELETED:          'Smazán příspěvek z nástěnky',
+  ADMIN_BACKDATED_SHIFT:     'Zpětné přiřazení ke směně',
 };
 
 export function formatRelativeTime(ts) {

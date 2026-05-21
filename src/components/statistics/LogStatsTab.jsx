@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { MONTHS_CZ } from '../../utils/constants';
+import { ChartBlock, ChartTooltip } from './ChartComponents';
 
 export default function LogStatsTab({ entries, currentDate, accent, emoji, label }) {
     const monthIdx = currentDate.getMonth();
@@ -32,6 +34,23 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                 count: acc.count + 1
             };
         }, { hours: 0, people: 0, count: 0 });
+    }, [entries]);
+
+    const dailyData = useMemo(() => {
+        const map = new Map();
+        entries.forEach(e => {
+            if (!e.date) return;
+            const ph = e.personHoursOverride != null
+                ? Number(e.personHoursOverride)
+                : (Number(e.hours) || 0) * (Number(e.peopleCount) || 0);
+            map.set(e.date, (map.get(e.date) || 0) + ph);
+        });
+        return Array.from(map.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([date, ph]) => ({
+                date: date.slice(8),
+                'Osobohodiny': Math.round(ph * 10) / 10
+            }));
     }, [entries]);
 
     const maxUserHours = Math.max(...userStats.map(u => u.hours), 1);
@@ -80,6 +99,22 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                     smallValue
                 />
             </div>
+
+            {dailyData.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <ChartBlock title={`${emoji} Osobohodiny po dnech`} height={220}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={dailyData} margin={{ top: 5, right: 16, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                                <YAxis tick={{ fontSize: 11 }} />
+                                <Tooltip content={<ChartTooltip unit="oh" />} />
+                                <Bar dataKey="Osobohodiny" fill={accent.from} radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartBlock>
+                </div>
+            )}
 
             <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '2rem' }}>
                 <div style={{ padding: '1.1rem 1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>

@@ -9,8 +9,11 @@ export default function AbsencePanel({
   setAbsenceModal,
   userData,
   absencePanelOpen,
-  setAbsencePanelOpen
+  setAbsencePanelOpen,
+  retroMode,
+  onAddAbsenceForOther
 }) {
+  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
   return (
     <section style={{ marginBottom: '2rem' }}>
       <div
@@ -203,6 +206,26 @@ export default function AbsencePanel({
               >
                 + Přidat mou absenci
               </button>
+              {retroMode && isAdmin && (
+                <button
+                  className="btn"
+                  onClick={onAddAbsenceForOther}
+                  style={{
+                    width: '100%',
+                    marginTop: '0.5rem',
+                    background: '#FFF8E1',
+                    border: '1px solid #FFB300',
+                    color: '#E65100',
+                    padding: '0.7rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ⏱ Přidat absenci za člena
+                </button>
+              )}
             </div>
           )}
         </div>

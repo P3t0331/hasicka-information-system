@@ -7,6 +7,7 @@ import ActivitiesTab from '../components/statistics/ActivitiesTab';
 import AbsencesTab from '../components/statistics/AbsencesTab';
 import ShiftsTab from '../components/statistics/ShiftsTab';
 import LogStatsTab from '../components/statistics/LogStatsTab';
+import YearTab from '../components/statistics/YearTab';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -22,7 +23,8 @@ export default function StatisticsPage() {
   const [loading, setLoading] = useState(true);
 
   // New state for tabs and additional data
-  const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences' | 'maintenance' | 'cleaning'
+  const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences' | 'maintenance' | 'cleaning' | 'year'
+  const [activeYear, setActiveYear] = useState(new Date().getFullYear());
   const [eventsData, setEventsData] = useState([]);
   const [trainingsData, setTrainingsData] = useState([]);
   const [absencesData, setAbsencesData] = useState([]);
@@ -129,7 +131,7 @@ export default function StatisticsPage() {
   return (
     <div className="container mt-4" style={{ maxWidth: '1200px', paddingBottom: '3rem' }}>
 
-      {/* 1. Month Navigation Header */}
+      {/* 1. Navigation Header */}
       <div style={{
         background: 'linear-gradient(135deg, #37474F, #263238)',
         borderRadius: '10px',
@@ -142,35 +144,48 @@ export default function StatisticsPage() {
         flexWrap: 'wrap',
         gap: '0.5rem'
       }}>
-        <button
-          className="btn"
-          onClick={() => handleMonthChange(-1)}
-          style={{
-            background: 'rgba(255,255,255,0.1)',
-            color: 'white',
-            border: '1px solid rgba(255,255,255,0.2)',
-            padding: '0.4rem 0.75rem',
-            fontSize: '0.85rem'
-          }}
-        >
-          ←
-        </button>
-        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
-          {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </h2>
-        <button
-          className="btn"
-          onClick={() => handleMonthChange(1)}
-          style={{
-            background: 'rgba(255,255,255,0.1)',
-            color: 'white',
-            border: '1px solid rgba(255,255,255,0.2)',
-            padding: '0.4rem 0.75rem',
-            fontSize: '0.85rem'
-          }}
-        >
-          →
-        </button>
+        {activeTab === 'year' ? (
+          <>
+            <button
+              className="btn"
+              onClick={() => setActiveYear(y => y - 1)}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+            >
+              ←
+            </button>
+            <h2 style={{ margin: 0, color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+              {activeYear}
+            </h2>
+            <button
+              className="btn"
+              onClick={() => setActiveYear(y => y + 1)}
+              disabled={activeYear >= new Date().getFullYear()}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem', opacity: activeYear >= new Date().getFullYear() ? 0.4 : 1 }}
+            >
+              →
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="btn"
+              onClick={() => handleMonthChange(-1)}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+            >
+              ←
+            </button>
+            <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+              {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </h2>
+            <button
+              className="btn"
+              onClick={() => handleMonthChange(1)}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+            >
+              →
+            </button>
+          </>
+        )}
       </div>
 
       {/* Tab Navigation */}
@@ -267,6 +282,23 @@ export default function StatisticsPage() {
         >
           🧹 Úklid
         </button>
+        <button
+          onClick={() => setActiveTab('year')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            background: activeTab === 'year' ? '#37474F' : 'transparent',
+            color: activeTab === 'year' ? 'white' : '#666',
+            fontWeight: activeTab === 'year' ? 700 : 500,
+            borderRadius: '8px 8px 0 0',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s'
+          }}
+        >
+          📅 Roční přehled
+        </button>
       </div>
 
       {activeTab === 'shifts' && (
@@ -316,6 +348,9 @@ export default function StatisticsPage() {
           label="úklidu"
         />
       )}
+
+      {/* Year Tab */}
+      {activeTab === 'year' && <YearTab year={activeYear} />}
 
     </div>
   );

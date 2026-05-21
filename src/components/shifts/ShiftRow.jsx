@@ -11,7 +11,8 @@ export default function ShiftRow({
   currentUser,
   onRemoveDayShift,
   onRemoveZaloha,
-  isAdmin
+  isAdmin,
+  retroMode
 }) {
 
   const isEmpty = section === 'zalohaStaz'
@@ -147,6 +148,7 @@ export default function ShiftRow({
               slotKey={slotKey}
               assignee={assignee}
               isSelf={isSelf}
+              retroMode={retroMode}
               onClick={() => onSlotClick(day.date, section, slotKey)}
             />
           );

@@ -1,7 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { db } from '../../firebase';
-import { collection, query, getDocs, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, limit, onSnapshot, startAfter } from 'firebase/firestore';
 import { CATEGORY_CONFIG, ACTION_LABELS, formatRelativeTime, formatAbsoluteTime } from './constants';
+
+const PAGE_SIZE = 300;
 
 export default function LogsTab({
   activityLogs,
@@ -15,25 +17,33 @@ export default function LogsTab({
   logFilterCategory,
   setLogFilterCategory
 }) {
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const fetchLogs = useCallback(async (isRefresh = false) => {
     setLogsLoading(true);
     try {
       const q = query(
         collection(db, 'activityLogs'),
         orderBy('timestamp', 'desc'),
-        limit(300)
+        limit(PAGE_SIZE)
       );
 
       if (isRefresh) {
         const snap = await getDocs(q);
         const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setActivityLogs(docs);
+        setLastDoc(snap.docs[snap.docs.length - 1] ?? null);
+        setHasMore(snap.docs.length === PAGE_SIZE);
         setLogsLoading(false);
         setLogsLoaded(true);
       } else {
         const unsub = onSnapshot(q, (snap) => {
           const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           setActivityLogs(docs);
+          setLastDoc(snap.docs[snap.docs.length - 1] ?? null);
+          setHasMore(snap.docs.length === PAGE_SIZE);
           setLogsLoading(false);
           setLogsLoaded(true);
         }, (err) => {
@@ -47,6 +57,28 @@ export default function LogsTab({
       setLogsLoading(false);
     }
   }, [setActivityLogs, setLogsLoading, setLogsLoaded]);
+
+  const loadMoreLogs = async () => {
+    if (!lastDoc || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const q = query(
+        collection(db, 'activityLogs'),
+        orderBy('timestamp', 'desc'),
+        startAfter(lastDoc),
+        limit(PAGE_SIZE)
+      );
+      const snap = await getDocs(q);
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setActivityLogs(prev => [...prev, ...docs]);
+      setLastDoc(snap.docs[snap.docs.length - 1] ?? null);
+      setHasMore(snap.docs.length === PAGE_SIZE);
+    } catch (err) {
+      console.error('Load more logs error:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!logsLoaded) {
@@ -241,6 +273,35 @@ export default function LogsTab({
               </div>
             );
           })}
+
+          {hasMore && (
+            <button
+              onClick={loadMoreLogs}
+              disabled={loadingMore}
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.65rem 1.25rem',
+                background: 'white',
+                border: '1px solid #e0e0e0',
+                borderRadius: '10px',
+                cursor: loadingMore ? 'default' : 'pointer',
+                fontSize: '0.85rem',
+                color: '#555',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                width: '100%'
+              }}
+            >
+              <span style={{ animation: loadingMore ? 'spin 1s linear infinite' : 'none', display: 'inline-block' }}>
+                {loadingMore ? '🔄' : '⬇️'}
+              </span>
+              {loadingMore ? 'Načítám...' : `Načíst dalších ${PAGE_SIZE}`}
+            </button>
+          )}
         </div>
       )}
     </div>

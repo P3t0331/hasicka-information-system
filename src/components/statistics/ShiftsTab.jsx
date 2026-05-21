@@ -3,6 +3,8 @@ import { db } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 import StatCard from './StatCard';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ChartBlock, ChartTooltip, PieLabel } from './ChartComponents';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -164,6 +166,14 @@ export default function ShiftsTab({
         return users.reduce((sum, user) => sum + getSplitHoursForUser(day, user.uid).zaloha, 0);
     };
 
+    const getTotalDayHoursForDay = (day) => {
+        return users.reduce((sum, user) => sum + getSplitHoursForUser(day, user.uid).day, 0);
+    };
+
+    const getTotalNightHoursForDay = (day) => {
+        return users.reduce((sum, user) => sum + getSplitHoursForUser(day, user.uid).night, 0);
+    };
+
     const getGrandTotal = () => {
         return users.reduce((sum, user) => sum + getTotalHoursForUser(user.uid), 0);
     };
@@ -251,6 +261,60 @@ export default function ShiftsTab({
                     bg="rgba(245, 124, 0, 0.08)"
                 />
             </div>
+
+            {/* Charts Section */}
+            {(() => {
+                const splitTotal = getGrandSplitTotal();
+                const donutData = [
+                    { name: 'Denní', value: splitTotal.day, color: '#F57C00' },
+                    { name: 'Noční', value: splitTotal.night, color: '#3949AB' },
+                    { name: 'Záloha', value: splitTotal.zaloha, color: '#1565C0' },
+                ].filter(d => d.value > 0);
+
+                const dailyChartData = days
+                    .filter(d => !isDateInFuture(d.date))
+                    .map(d => ({
+                        den: String(d.date),
+                        Denní: getTotalDayHoursForDay(d.date),
+                        Noční: getTotalNightHoursForDay(d.date),
+                        Záloha: getTotalZalohaHoursForDay(d.date),
+                    }))
+                    .filter(d => d.Denní > 0 || d.Noční > 0 || d.Záloha > 0);
+
+                if (donutData.length === 0) return null;
+                return (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                        <ChartBlock title="🍩 Rozdělení hodin" height={300}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={donutData} cx="50%" cy="45%" innerRadius={65} outerRadius={105} dataKey="value" nameKey="name" labelLine={false} label={PieLabel}>
+                                        {donutData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                                    </Pie>
+                                    <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
+                                    <Tooltip content={<ChartTooltip unit="h" />} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </ChartBlock>
+
+                        {dailyChartData.length > 0 && (
+                            <ChartBlock title="📅 Hodiny po dnech" height={300}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={dailyChartData} barSize={14} margin={{ top: 4, right: 10, left: -10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                        <XAxis dataKey="den" tick={{ fontSize: 11 }} tickLine={false} />
+                                        <YAxis tick={{ fontSize: 11 }} unit="h" width={38} tickLine={false} axisLine={false} />
+                                        <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: '#f5f5f5' }} />
+                                        <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
+                                        <Bar dataKey="Denní" stackId="a" fill="#F57C00" />
+                                        <Bar dataKey="Noční" stackId="a" fill="#3949AB" />
+                                        <Bar dataKey="Záloha" stackId="a" fill="#1565C0" radius={[3, 3, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartBlock>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* Detailed Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>

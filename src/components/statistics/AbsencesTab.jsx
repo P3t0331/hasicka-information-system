@@ -1,4 +1,6 @@
 import React from 'react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
+import { ChartBlock, ChartTooltip } from './ChartComponents';
 
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
 
@@ -64,6 +66,11 @@ export default function AbsencesTab({ absencesData, currentDate }) {
     const avgDaysPerPerson = users.length > 0 ? (totalDays / users.length).toFixed(1) : 0;
     const activeAbsencesCount = userStats.filter(u => u.activeAbsence).length;
     const maxDays = Math.max(...userStats.map(u => u.daysAbsent), 1);
+    const chartData = userStats.map(u => ({
+        name: u.name.split(' ')[0],
+        'Dní absence': u.daysAbsent,
+        active: !!u.activeAbsence
+    }));
 
     return (
         <>
@@ -122,6 +129,30 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                     <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Průměrný počet dní</div>
                 </div>
             </div>
+
+            {chartData.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <ChartBlock title="📉 Absence členů (dny)" height={Math.max(200, chartData.length * 36 + 40)}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={chartData}
+                                layout="vertical"
+                                margin={{ top: 5, right: 24, left: 60, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+                                <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={55} />
+                                <Tooltip content={<ChartTooltip unit=" dní" />} />
+                                <Bar dataKey="Dní absence" radius={[0, 4, 4, 0]}>
+                                    {chartData.map((entry, i) => (
+                                        <Cell key={i} fill={entry.active ? '#D32F2F' : '#F57C00'} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartBlock>
+                </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
                 {/* TOP ABSENCES LEADERBOARD */}

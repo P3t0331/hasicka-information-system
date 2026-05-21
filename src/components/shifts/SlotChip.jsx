@@ -1,7 +1,7 @@
 import React from 'react';
 import { SLOT_LABELS, SLOT_ICONS } from './constants';
 
-export default function SlotChip({ slotKey, assignee, isSelf, onClick }) {
+export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode }) {
   const isUnqualified = assignee && assignee.qualified === false;
   const isOccupied = !!assignee;
 
@@ -22,6 +22,9 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick }) {
       border = isUnqualified ? '1px solid #FFCC80' : '1px solid #e0e0e0';
       color = isUnqualified ? '#F57C00' : '#424242';
     }
+  } else if (retroMode) {
+    border = '1px dashed #FFB300';
+    color = '#E65100';
   }
 
   const icon = SLOT_ICONS[slotKey] || '👤';
@@ -92,7 +95,9 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick }) {
       </div>
 
       {!isOccupied && (
-        <div style={{ fontSize: '0.9rem', color: '#ccc', fontWeight: 300 }}>+</div>
+        <div style={{ fontSize: '0.9rem', color: retroMode ? '#FFB300' : '#ccc', fontWeight: 300 }}>
+          {retroMode ? '⏱' : '+'}
+        </div>
       )}
     </div>
   );

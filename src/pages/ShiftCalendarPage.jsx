@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useShiftCalendar from '../hooks/useShiftCalendar';
 import { MONTHS_CZ } from '../components/shifts/constants';
@@ -13,6 +13,7 @@ import AddAbsenceModal from '../components/shifts/modals/AddAbsenceModal';
 import AddZalohaModal from '../components/shifts/modals/AddZalohaModal';
 import ActivityPopup from '../components/shifts/modals/ActivityPopup';
 import ZalohaAssignModal from '../components/shifts/modals/ZalohaAssignModal';
+import RetroAssignModal from '../components/shifts/modals/RetroAssignModal';
 
 export default function ShiftCalendarPage() {
   const { currentUser, userData } = useAuth();
@@ -64,10 +65,27 @@ export default function ShiftCalendarPage() {
     handleAddAbsence,
     handleDeleteAbsence,
     handleAddZaloha,
+    handleRetroAssign,
     showToast
   } = useShiftCalendar(currentUser, userData);
 
   const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
+
+  const [retroMode, setRetroMode] = useState(false);
+  const [retroAssignModal, setRetroAssignModal] = useState(null);
+  const [absenceTargetUser, setAbsenceTargetUser] = useState(null);
+  const [absencePickerOpen, setAbsencePickerOpen] = useState(false);
+
+  const handleShiftSlotClick = (day, section, slotKey) => {
+    if (retroMode && isAdmin) {
+      const assignee = (shiftsData[day]?.[section] || {})[slotKey];
+      if (!assignee) {
+        setRetroAssignModal({ day, section, slotKey });
+        return;
+      }
+    }
+    handleSlotClick(day, section, slotKey);
+  };
 
   if (loading) {
     return (
@@ -182,6 +200,37 @@ export default function ShiftCalendarPage() {
         </button>
       </div>
 
+      {/* Retro Mode Toggle (admin only) */}
+      {isAdmin && (
+        <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={() => setRetroMode(r => !r)}
+            style={{
+              padding: '0.4rem 0.85rem',
+              borderRadius: '8px',
+              border: retroMode ? '1px solid #FFB300' : '1px solid #e0e0e0',
+              background: retroMode ? '#FFF8E1' : 'white',
+              color: retroMode ? '#E65100' : '#666',
+              fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            {retroMode ? '⏱ Admin mód: ZAP' : '⏱ Admin mód: VYP'}
+          </button>
+        </div>
+      )}
+
+      {/* Retro Mode Banner */}
+      {retroMode && (
+        <div style={{
+          background: '#FFF8E1', border: '1px solid #FFB300', borderRadius: '8px',
+          padding: '0.65rem 1rem', marginBottom: '1rem',
+          fontSize: '0.85rem', color: '#E65100', fontWeight: 500
+        }}>
+          ⚠️ Admin mód je aktivní – kliknutím na prázdný slot přiřadíte libovolného člena.
+        </div>
+      )}
+
       {/* ABSENCE SUMMARY PANEL */}
       <AbsencePanel
         absencesData={absencesData}
@@ -192,14 +241,17 @@ export default function ShiftCalendarPage() {
         userData={userData}
         absencePanelOpen={absencePanelOpen}
         setAbsencePanelOpen={setAbsencePanelOpen}
+        retroMode={retroMode}
+        onAddAbsenceForOther={() => setAbsencePickerOpen(true)}
       />
 
       {/* Add Absence Modal */}
       {absenceModal && (
         <AddAbsenceModal
-          existingAbsences={absencesData.filter(a => a.uid === currentUser?.uid)}
-          onSubmit={handleAddAbsence}
-          onClose={() => setAbsenceModal(null)}
+          existingAbsences={absencesData.filter(a => a.uid === (absenceTargetUser?.uid || currentUser?.uid))}
+          targetUser={absenceTargetUser}
+          onSubmit={(data) => handleAddAbsence({ ...data, targetUser: absenceTargetUser })}
+          onClose={() => { setAbsenceModal(null); setAbsenceTargetUser(null); }}
         />
       )}
 
@@ -291,11 +343,12 @@ export default function ShiftCalendarPage() {
                         day={day}
                         sectionData={shiftsData[day.date]?.zalohaStaz || {}}
                         section="zalohaStaz"
-                        onSlotClick={handleSlotClick}
+                        onSlotClick={handleShiftSlotClick}
                         onZalohaInterestedClick={handleZalohaInterestedClick}
                         currentUser={currentUser}
                         onRemoveZaloha={handleRemoveZaloha}
                         isAdmin={isAdmin}
+                        retroMode={retroMode}
                       />
                       {hasActivities && (
                         <InlineActivities
@@ -412,10 +465,11 @@ export default function ShiftCalendarPage() {
                         day={day}
                         sectionData={shiftsData[day.date]?.dayShift || {}}
                         section="dayShift"
-                        onSlotClick={handleSlotClick}
+                        onSlotClick={handleShiftSlotClick}
                         currentUser={currentUser}
                         onRemoveDayShift={handleRemoveDayShift}
                         isAdmin={isAdmin}
+                        retroMode={retroMode}
                       />
                       {hasActivities && (
                         <InlineActivities
@@ -534,9 +588,10 @@ export default function ShiftCalendarPage() {
                         day={day}
                         sectionData={shiftsData[day.date]?.nightShift || {}}
                         section="nightShift"
-                        onSlotClick={handleSlotClick}
+                        onSlotClick={handleShiftSlotClick}
                         currentUser={currentUser}
                         isAdmin={isAdmin}
+                        retroMode={retroMode}
                       />
                       {hasActivities && (
                         <InlineActivities
@@ -577,6 +632,32 @@ export default function ShiftCalendarPage() {
           zalohaAssignModal={zalohaAssignModal}
           onAssign={handleZalohaAssignUser}
           onClose={() => setZalohaAssignModal(null)}
+        />
+      )}
+
+      {/* Retro Assign Modal */}
+      {retroAssignModal && (
+        <RetroAssignModal
+          modal={retroAssignModal}
+          onAssign={(user) => {
+            handleRetroAssign(retroAssignModal.day, retroAssignModal.section, retroAssignModal.slotKey, user);
+            setRetroAssignModal(null);
+          }}
+          onClose={() => setRetroAssignModal(null)}
+        />
+      )}
+
+      {/* Absence user picker (admin mode) */}
+      {absencePickerOpen && (
+        <RetroAssignModal
+          modal={{}}
+          title="Vybrat člena pro absenci"
+          onAssign={(user) => {
+            setAbsenceTargetUser(user);
+            setAbsencePickerOpen(false);
+            setAbsenceModal({ mode: 'add' });
+          }}
+          onClose={() => setAbsencePickerOpen(false)}
         />
       )}
     </div>

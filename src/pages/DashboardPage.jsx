@@ -9,6 +9,7 @@ import MonthlyStatistics from '../components/dashboard/MonthlyStatistics';
 import NextShiftCard from '../components/dashboard/NextShiftCard';
 import UpcomingActivities from '../components/dashboard/UpcomingActivities';
 import MyAbsences from '../components/dashboard/MyAbsences';
+import BulletinWidget from '../components/dashboard/BulletinWidget';
 
 export default function DashboardPage() {
     const navigate = useNavigate();
@@ -81,6 +82,9 @@ export default function DashboardPage() {
 
             {/* Quick Links / Important Links */}
             <ImportantLinks />
+
+            {/* Bulletin Board Widget */}
+            <BulletinWidget />
 
             {/* Monthly Statistics Cards */}
             <MonthlyStatistics monthlyStats={monthlyStats} />
