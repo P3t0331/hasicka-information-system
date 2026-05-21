@@ -14,6 +14,7 @@ import AddZalohaModal from '../components/shifts/modals/AddZalohaModal';
 import ActivityPopup from '../components/shifts/modals/ActivityPopup';
 import ZalohaAssignModal from '../components/shifts/modals/ZalohaAssignModal';
 import RetroAssignModal from '../components/shifts/modals/RetroAssignModal';
+import JoinShiftModal from '../components/shifts/modals/JoinShiftModal';
 
 export default function ShiftCalendarPage() {
   const { currentUser, userData } = useAuth();
@@ -75,6 +76,7 @@ export default function ShiftCalendarPage() {
   const [retroAssignModal, setRetroAssignModal] = useState(null);
   const [absenceTargetUser, setAbsenceTargetUser] = useState(null);
   const [absencePickerOpen, setAbsencePickerOpen] = useState(false);
+  const [joinShiftModal, setJoinShiftModal] = useState(null); // { day, section, slotKey }
 
   const handleShiftSlotClick = (day, section, slotKey) => {
     if (retroMode && isAdmin) {
@@ -84,6 +86,14 @@ export default function ShiftCalendarPage() {
         return;
       }
     }
+
+    // Show join params modal when user is joining an empty day/night slot
+    const assignee = (shiftsData[day]?.[section] || {})[slotKey];
+    if (!assignee && (section === 'dayShift' || section === 'nightShift')) {
+      setJoinShiftModal({ day, section, slotKey });
+      return;
+    }
+
     handleSlotClick(day, section, slotKey);
   };
 
@@ -632,6 +642,18 @@ export default function ShiftCalendarPage() {
           zalohaAssignModal={zalohaAssignModal}
           onAssign={handleZalohaAssignUser}
           onClose={() => setZalohaAssignModal(null)}
+        />
+      )}
+
+      {/* Join Shift Modal */}
+      {joinShiftModal && (
+        <JoinShiftModal
+          section={joinShiftModal.section}
+          onConfirm={(params) => {
+            handleSlotClick(joinShiftModal.day, joinShiftModal.section, joinShiftModal.slotKey, params);
+            setJoinShiftModal(null);
+          }}
+          onClose={() => setJoinShiftModal(null)}
         />
       )}
 

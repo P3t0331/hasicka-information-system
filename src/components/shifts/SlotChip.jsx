@@ -92,6 +92,30 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
         }}>
           {isOccupied ? assignee.name : 'Volno'}
         </span>
+        {isOccupied && (assignee.fromHome || assignee.timeFrom) && (
+          <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.15rem', flexWrap: 'wrap' }}>
+            {assignee.fromHome && (
+              <span style={{
+                fontSize: '0.6rem', fontWeight: 700,
+                padding: '1px 4px', borderRadius: '3px',
+                background: isSelf ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.07)',
+                color: isSelf ? '#1B5E20' : '#555'
+              }}>
+                🏠 SMS
+              </span>
+            )}
+            {assignee.timeFrom && assignee.timeTo && (
+              <span style={{
+                fontSize: '0.6rem', fontWeight: 700,
+                padding: '1px 4px', borderRadius: '3px',
+                background: isSelf ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.07)',
+                color: isSelf ? '#1B5E20' : '#555'
+              }}>
+                ⏰ {assignee.timeFrom}–{assignee.timeTo}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {!isOccupied && (

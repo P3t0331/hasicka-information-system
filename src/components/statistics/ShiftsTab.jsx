@@ -80,8 +80,22 @@ export default function ShiftsTab({
             const zalohaStaz = dayData.zalohaStaz || {};
             const hasZaloha = Object.values(zalohaStaz).some(u => u && u.uid === uid);
 
-            const dayHours = explicitDay !== undefined ? explicitDay : (hasDayShift ? DEFAULT_DAY_HOURS : 0);
-            const nightHours = explicitNight !== undefined ? explicitNight : (hasNightShift ? DEFAULT_NIGHT_HOURS : 0);
+            const daySlot = hasDayShift ? Object.values(dayShift).find(u => u && u.uid === uid) : null;
+            const nightSlot = hasNightShift ? Object.values(nightShift).find(u => u && u.uid === uid) : null;
+
+            const calcCustomHours = (slot, defaultHours) => {
+                if (slot?.timeFrom && slot?.timeTo) {
+                    const [h1, m1] = slot.timeFrom.split(':').map(Number);
+                    const [h2, m2] = slot.timeTo.split(':').map(Number);
+                    let diff = (h2 + m2/60) - (h1 + m1/60);
+                    if (diff < 0) diff += 24;
+                    return Math.round(diff * 100) / 100;
+                }
+                return defaultHours;
+            };
+
+            const dayHours = explicitDay !== undefined ? explicitDay : (hasDayShift ? calcCustomHours(daySlot, DEFAULT_DAY_HOURS) : 0);
+            const nightHours = explicitNight !== undefined ? explicitNight : (hasNightShift ? calcCustomHours(nightSlot, DEFAULT_NIGHT_HOURS) : 0);
             
             let zalohaHours = 0;
             if (hasZaloha) {

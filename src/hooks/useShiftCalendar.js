@@ -209,7 +209,7 @@ export default function useShiftCalendar(currentUser, userData) {
     return true; // Everyone is qualified for Hasič
   };
 
-  const handleSlotClick = async (day, section, slotKey) => {
+  const handleSlotClick = async (day, section, slotKey, joinParams = {}) => {
     if (!userData || !userData.approved) return;
 
     const dayData = shiftsData[day] || { dayShift: {}, nightShift: {} };
@@ -219,7 +219,9 @@ export default function useShiftCalendar(currentUser, userData) {
     const userCompact = {
       uid: currentUser.uid,
       name: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''}`,
-      qualified: isQualifiedFor(slotKey)
+      qualified: isQualifiedFor(slotKey),
+      ...(joinParams.fromHome ? { fromHome: true } : {}),
+      ...(joinParams.timeFrom ? { timeFrom: joinParams.timeFrom, timeTo: joinParams.timeTo } : {})
     };
 
     let newData = { ...dayData };
@@ -686,7 +688,16 @@ export default function useShiftCalendar(currentUser, userData) {
           ? targetUser.roles.some(r => ['Strojník', 'Admin'].includes(r))
           : true;
 
-      newData[section] = { ...newData[section], [slotKey]: { uid: targetUser.uid, name: targetUser.compactName, qualified } };
+      newData[section] = {
+        ...newData[section],
+        [slotKey]: {
+          uid: targetUser.uid,
+          name: targetUser.compactName,
+          qualified,
+          ...(targetUser.fromHome ? { fromHome: true } : {}),
+          ...(targetUser.timeFrom ? { timeFrom: targetUser.timeFrom, timeTo: targetUser.timeTo } : {}),
+        }
+      };
 
       await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
