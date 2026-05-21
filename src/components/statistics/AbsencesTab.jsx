@@ -65,7 +65,6 @@ export default function AbsencesTab({ absencesData, currentDate }) {
     const totalDays = userStats.reduce((sum, u) => sum + u.daysAbsent, 0);
     const avgDaysPerPerson = users.length > 0 ? (totalDays / users.length).toFixed(1) : 0;
     const activeAbsencesCount = userStats.filter(u => u.activeAbsence).length;
-    const maxDays = Math.max(...userStats.map(u => u.daysAbsent), 1);
     const chartData = userStats.map(u => ({
         name: u.name.split(' ')[0],
         'Dní absence': u.daysAbsent,
@@ -155,54 +154,6 @@ export default function AbsencesTab({ absencesData, currentDate }) {
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
-                {/* TOP ABSENCES LEADERBOARD */}
-                <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'fit-content' }}>
-                    <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>📉 Nejvíce absentující</h3>
-                    </div>
-                    <div style={{ padding: '0.5rem 1rem' }}>
-                        {userStats.slice(0, 5).map((user, i) => {
-                            const pct = (user.daysAbsent / maxDays) * 100;
-                            return (
-                                <div key={user.uid} style={{
-                                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0',
-                                    borderBottom: i < 4 ? '1px dashed #eee' : 'none'
-                                }}>
-                                    <div style={{
-                                        width: '36px', height: '36px',
-                                        borderRadius: '50%', background: i === 0 ? '#FFEBEE' : '#f5f5f5',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '1.2rem', fontWeight: 700,
-                                        color: i === 0 ? '#D32F2F' : '#999'
-                                    }}>
-                                        {i + 1}
-                                    </div>
-
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>
-                                            {user.name}
-                                            {user.activeAbsence && <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: '#FFEBEE', color: '#D32F2F' }}>aktivní</span>}
-                                        </div>
-                                        <div style={{ width: '100%', height: '6px', background: '#f0f0f0', borderRadius: '3px', overflow: 'hidden' }}>
-                                            <div style={{
-                                                width: `${pct}%`,
-                                                height: '100%',
-                                                background: user.activeAbsence ? '#D32F2F' : '#F57C00',
-                                                borderRadius: '3px'
-                                            }} />
-                                        </div>
-                                    </div>
-
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>{user.daysAbsent}</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#999' }}>dní</div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
                 {/* ACTIVE ABSENCES */}
                 <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
                     <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
