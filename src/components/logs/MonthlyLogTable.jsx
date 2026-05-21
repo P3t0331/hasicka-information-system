@@ -46,9 +46,12 @@ export default function MonthlyLogTable({
         return entries.reduce((acc, e) => {
             const h = Number(e.hours) || 0;
             const p = Number(e.peopleCount) || 0;
+            const phValue = e.personHoursOverride != null
+                ? Number(e.personHoursOverride)
+                : h * p;
             return {
                 hours: acc.hours + h,
-                personHours: acc.personHours + h * p,
+                personHours: acc.personHours + phValue,
                 people: acc.people + p,
                 count: acc.count + 1
             };
@@ -525,6 +528,9 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
                     <Badge icon="⏱️" text={`${formatHours(Number(entry.hours) || 0)}h`} />
                     <Badge icon="👥" text={`${entry.peopleCount || 0} osob`} />
+                    {entry.personHoursOverride != null && (
+                        <Badge icon="📊" text={`${formatHours(Number(entry.personHoursOverride))} oh ✏️`} />
+                    )}
                     {entry.createdBy?.name && (
                         <Badge icon="✍️" text={entry.createdBy.name} muted />
                     )}

@@ -103,6 +103,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
             externalParticipants: payload.externalParticipants,
             hours: Number(payload.hours) || 0,
             peopleCount: Number(payload.peopleCount) || 0,
+            personHoursOverride: payload.personHoursOverride ?? null,
         };
 
         try {

@@ -2,6 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import LogParticipantPicker from './LogParticipantPicker';
 
+const formatHours = (h) => {
+    if (!h && h !== 0) return '0';
+    return Number(h).toFixed(2).replace(/\.?0+$/, '');
+};
+
 const todayISO = () => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -40,6 +45,14 @@ export default function LogEntryEditor({
             : ''
     );
     const [overrideCount, setOverrideCount] = useState(false);
+    const [overridePersonHours, setOverridePersonHours] = useState(
+        initialEntry?.personHoursOverride != null
+    );
+    const [personHoursManual, setPersonHoursManual] = useState(
+        initialEntry?.personHoursOverride != null
+            ? String(initialEntry.personHoursOverride)
+            : ''
+    );
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
@@ -49,11 +62,23 @@ export default function LogEntryEditor({
 
     const computedCount = selectedUids.length + externalNames.length;
 
+    const computedPersonHours = useMemo(() => {
+        const h = Number(hours) || 0;
+        const p = parseInt(peopleCountManual, 10) || 0;
+        return h * p;
+    }, [hours, peopleCountManual]);
+
     useEffect(() => {
         if (!overrideCount) {
             setPeopleCountManual(String(computedCount));
         }
     }, [computedCount, overrideCount]);
+
+    useEffect(() => {
+        if (!overridePersonHours) {
+            setPersonHoursManual(String(computedPersonHours));
+        }
+    }, [computedPersonHours, overridePersonHours]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -81,6 +106,11 @@ export default function LogEntryEditor({
             setError('Zadejte platný počet osob.');
             return;
         }
+        const personHoursNum = Number(personHoursManual);
+        if (Number.isNaN(personHoursNum) || personHoursNum < 0) {
+            setError('Zadejte platný počet osobohodin.');
+            return;
+        }
 
         const participants = members
             .filter(m => selectedUids.includes(m.uid))
@@ -98,7 +128,8 @@ export default function LogEntryEditor({
                 participants,
                 externalParticipants: externalNames,
                 hours: hoursNum,
-                peopleCount: peopleCountNum
+                peopleCount: peopleCountNum,
+                personHoursOverride: overridePersonHours ? personHoursNum : null
             });
         } finally {
             setSaving(false);
@@ -234,6 +265,43 @@ export default function LogEntryEditor({
                                     }}
                                 >
                                     Použít automatický výpočet ({computedCount})
+                                </button>
+                            )}
+                        </div>
+                        <div className="input-group">
+                            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <span>Osobohodiny</span>
+                                <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 400 }}>
+                                    {overridePersonHours ? '(ručně)' : '(auto)'}
+                                </span>
+                            </label>
+                            <input
+                                className="input-field"
+                                type="number"
+                                step="0.25"
+                                min="0"
+                                inputMode="decimal"
+                                value={personHoursManual}
+                                onChange={e => {
+                                    setPersonHoursManual(e.target.value);
+                                    setOverridePersonHours(true);
+                                }}
+                            />
+                            {overridePersonHours && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setOverridePersonHours(false);
+                                        setPersonHoursManual(String(computedPersonHours));
+                                    }}
+                                    style={{
+                                        marginTop: '0.25rem',
+                                        background: 'none', border: 'none',
+                                        color: '#1976D2', cursor: 'pointer',
+                                        fontSize: '0.75rem', padding: 0, textAlign: 'left'
+                                    }}
+                                >
+                                    Použít automatický výpočet ({formatHours(computedPersonHours)})
                                 </button>
                             )}
                         </div>
