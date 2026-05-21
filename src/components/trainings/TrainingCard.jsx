@@ -85,6 +85,22 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                             </span>
                         </>
                     )}
+                    {(() => {
+                        const instructors = training.instructors?.length
+                            ? training.instructors
+                            : training.instructor?.name
+                                ? [training.instructor]
+                                : [];
+                        if (!instructors.length) return null;
+                        return (
+                            <>
+                                <span className="event-card__meta-sep">•</span>
+                                <span className="event-card__meta-item" title="Školitel" style={{ color: '#1565C0', fontWeight: 600 }}>
+                                    🎓 {instructors.map(i => i.name).join(', ')}
+                                </span>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 {training.description && (

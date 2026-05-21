@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 
-export default function CreateTrainingModal({ onClose, currentUser, userData, showToast, initialData }) {
+export default function CreateTrainingModal({ onClose, currentUser, userData, showToast, initialData, members = [] }) {
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [date, setDate] = useState(initialData?.date || '');
@@ -13,9 +13,36 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
     const [location, setLocation] = useState(initialData?.location || '');
     const [maxParticipants, setMaxParticipants] = useState(initialData?.maxParticipants || '');
     const [vehicles, setVehicles] = useState(initialData?.vehicles || '');
+    const [instructorUids, setInstructorUids] = useState(() => {
+        if (initialData?.instructors?.length) return initialData.instructors.map(i => i.uid);
+        if (initialData?.instructor?.uid) return [initialData.instructor.uid];
+        return [];
+    });
+    const [instructorSearch, setInstructorSearch] = useState('');
     const [saving, setSaving] = useState(false);
 
     const isEdit = !!initialData;
+
+    const sortedMembers = useMemo(() =>
+        [...members].sort((a, b) => (a.lastName || '').localeCompare(b.lastName || '') || (a.firstName || '').localeCompare(b.firstName || '')),
+        [members]
+    );
+
+    const filteredInstructorMembers = useMemo(() => {
+        const q = instructorSearch.trim().toLowerCase();
+        if (!q) return sortedMembers;
+        return sortedMembers.filter(m => `${m.firstName} ${m.lastName}`.toLowerCase().includes(q));
+    }, [sortedMembers, instructorSearch]);
+
+    const toggleInstructor = (uid) => {
+        setInstructorUids(prev => prev.includes(uid) ? prev.filter(u => u !== uid) : [...prev, uid]);
+    };
+
+    const buildInstructors = () =>
+        instructorUids.map(uid => {
+            const m = members.find(m => (m.uid || m.id) === uid);
+            return m ? { uid, name: `${m.firstName} ${m.lastName}` } : null;
+        }).filter(Boolean);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -46,7 +73,9 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
-                    vehicles: vehicles.trim() || null
+                    vehicles: vehicles.trim() || null,
+                    instructors: buildInstructors(),
+                    instructor: null
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_UPDATED_TRAINING', 'admin',
@@ -63,6 +92,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
                     vehicles: vehicles.trim() || null,
+                    instructors: buildInstructors(),
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
                     createdAt: new Date().toISOString(),
                     participants: []
@@ -192,6 +222,57 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     <div className="input-group">
                         <label className="input-label">Místo</label>
                         <input className="input-field" type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="např. Areál" />
+                    </div>
+
+                    <div className="input-group">
+                        <label className="input-label">Školitelé</label>
+                        {instructorUids.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                {instructorUids.map(uid => {
+                                    const m = members.find(m => (m.uid || m.id) === uid);
+                                    if (!m) return null;
+                                    return (
+                                        <span key={uid} style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                                            background: '#E3F2FD', color: '#1565C0',
+                                            padding: '0.2rem 0.55rem', borderRadius: '999px',
+                                            fontSize: '0.8rem', fontWeight: 600, border: '1px solid #90CAF9'
+                                        }}>
+                                            {m.firstName} {m.lastName}
+                                            <button type="button" onClick={() => toggleInstructor(uid)}
+                                                style={{ background: 'transparent', border: 'none', color: '#1565C0', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: 0 }}>×</button>
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        <input
+                            className="input-field"
+                            type="text"
+                            placeholder="Hledat školitele..."
+                            value={instructorSearch}
+                            onChange={e => setInstructorSearch(e.target.value)}
+                            style={{ marginBottom: '0.4rem' }}
+                        />
+                        <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
+                            {filteredInstructorMembers.length === 0 ? (
+                                <div style={{ padding: '0.75rem', color: '#888', fontSize: '0.85rem', textAlign: 'center' }}>Nikdo neodpovídá hledání.</div>
+                            ) : filteredInstructorMembers.map(m => {
+                                const uid = m.uid || m.id;
+                                const isSelected = instructorUids.includes(uid);
+                                return (
+                                    <label key={uid} style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                        padding: '0.4rem 0.6rem', cursor: 'pointer',
+                                        background: isSelected ? '#E3F2FD' : 'transparent',
+                                        borderBottom: '1px solid #f0f0f0', fontSize: '0.85rem'
+                                    }}>
+                                        <input type="checkbox" checked={isSelected} onChange={() => toggleInstructor(uid)} style={{ margin: 0 }} />
+                                        <span style={{ fontWeight: isSelected ? 600 : 400 }}>{m.firstName} {m.lastName}</span>
+                                    </label>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div className="input-group">

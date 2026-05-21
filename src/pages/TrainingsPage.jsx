@@ -1,5 +1,6 @@
 import React from 'react';
 import useTrainings from '../hooks/useTrainings';
+import useMembers from '../hooks/useMembers';
 import TrainingCard from '../components/trainings/TrainingCard';
 import CreateTrainingModal from '../components/trainings/CreateTrainingModal';
 import { MONTHS_CZ_FILTER } from '../utils/constants';
@@ -29,6 +30,8 @@ export default function TrainingsPage() {
         handleCloseModal,
         showToast
     } = useTrainings();
+
+    const { filteredMembers: members } = useMembers();
 
     const [filterYear, setFilterYear] = React.useState('all');
     const [filterMonth, setFilterMonth] = React.useState('all');
@@ -299,6 +302,7 @@ export default function TrainingsPage() {
                     userData={userData}
                     showToast={showToast}
                     initialData={editTraining}
+                    members={members}
                 />
             )}
 
