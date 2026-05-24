@@ -27,6 +27,8 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                 .filter(u => u.approved === true)
                 .map(u => ({
                     uid: u.uid,
+                    firstName: u.firstName || '',
+                    lastName: u.lastName || '',
                     fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
                     compactName: `${u.lastName || ''} ${u.firstName?.[0] ? u.firstName[0] + '.' : ''}`.trim(),
                     roles: u.roles || (u.role ? [u.role] : ['Hasič']),
