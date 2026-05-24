@@ -3,7 +3,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { logAction } from '../../utils/logger';
 
-export default function InlineActivities({ trainings, events, currentUser, userData, showToast }) {
+export default function InlineActivities({ trainings, events, currentUser, userData, showToast, retroMode, onRetroAddParticipant }) {
   const [expanded, setExpanded] = useState(false);
 
   const activities = [
@@ -106,29 +106,39 @@ export default function InlineActivities({ trainings, events, currentUser, userD
                 </div>
 
                 <div className="inline-activity-card__actions">
-                  {isJoined ? (
-                    <button
-                      className="inline-activity-card__btn inline-activity-card__btn--leave"
-                      onClick={() => handleLeave(activity)}
-                    >
-                      Odhlásit
-                    </button>
-                  ) : (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) ? (
-                    <button
-                      className="inline-activity-card__btn"
-                      disabled
-                      style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}
-                    >
-                      Plno
-                    </button>
-                  ) : (
-                    <button
-                      className="inline-activity-card__btn inline-activity-card__btn--join"
-                      onClick={() => handleJoin(activity)}
-                    >
-                      Přihlásit
-                    </button>
-                  )}
+                    {isJoined ? (
+                      <button
+                        className="inline-activity-card__btn inline-activity-card__btn--leave"
+                        onClick={() => handleLeave(activity)}
+                      >
+                        Odhlásit
+                      </button>
+                    ) : (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) ? (
+                      <button
+                        className="inline-activity-card__btn"
+                        disabled
+                        style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}
+                      >
+                        Plno
+                      </button>
+                    ) : (
+                      <button
+                        className="inline-activity-card__btn inline-activity-card__btn--join"
+                        onClick={() => handleJoin(activity)}
+                      >
+                        Přihlásit
+                      </button>
+                    )}
+                    {retroMode && (
+                      <button
+                        className="inline-activity-card__btn"
+                        onClick={() => onRetroAddParticipant && onRetroAddParticipant(activity)}
+                        style={{ background: '#FFF8E1', color: '#E65100', borderColor: '#FFB300', marginLeft: '0.25rem' }}
+                        title="Přidat jiného člena (Admin)"
+                      >
+                        ⏱ +
+                      </button>
+                    )}
                 </div>
               </div>
             );

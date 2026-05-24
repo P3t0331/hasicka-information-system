@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useShiftCalendar from '../hooks/useShiftCalendar';
 import { MONTHS_CZ } from '../components/shifts/constants';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '../firebase';
+import { logAction } from '../utils/logger';
 
 // Subcomponents
 import AbsencePanel from '../components/shifts/AbsencePanel';
@@ -70,12 +73,43 @@ export default function ShiftCalendarPage() {
     showToast
   } = useShiftCalendar(currentUser, userData);
 
-  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
-
   const [retroMode, setRetroMode] = useState(false);
   const [retroAssignModal, setRetroAssignModal] = useState(null);
   const [absenceTargetUser, setAbsenceTargetUser] = useState(null);
   const [absencePickerOpen, setAbsencePickerOpen] = useState(false);
+  const [activityPickerOpen, setActivityPickerOpen] = useState(null);
+
+  const handleRetroActivityAdd = async (user) => {
+    if (!activityPickerOpen) return;
+    const activity = activityPickerOpen;
+    const collectionName = activity.type === 'training' ? 'trainings' : 'events';
+    
+    if (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) {
+       showToast('error', 'Kapacita je naplněna.');
+       return;
+    }
+    
+    try {
+      await updateDoc(doc(db, collectionName, activity.id), {
+        participants: arrayUnion({
+          uid: user.uid,
+          name: `${user.firstName} ${user.lastName}`,
+          joinedAt: new Date().toISOString()
+        })
+      });
+      const typeLabel = activity.type === 'training' ? 'školení' : 'akci';
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        activity.type === 'training' ? 'ADMIN_ADDED_TRAINING' : 'ADMIN_ADDED_EVENT', 'admin',
+        `Admin přidal člena ${user.firstName} ${user.lastName} na ${typeLabel} „${activity.title}“ (${activity.date})`);
+      showToast('success', `Uživatel přidán na ${typeLabel}.`);
+    } catch (err) {
+      console.error(err);
+      showToast('error', 'Chyba při přidávání.');
+    }
+    setActivityPickerOpen(null);
+  };
+
+  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
   const [joinShiftModal, setJoinShiftModal] = useState(null); // { day, section, slotKey }
 
   const handleShiftSlotClick = (day, section, slotKey) => {
@@ -367,6 +401,8 @@ export default function ShiftCalendarPage() {
                           currentUser={currentUser}
                           userData={userData}
                           showToast={showToast}
+                          retroMode={retroMode}
+                          onRetroAddParticipant={setActivityPickerOpen}
                         />
                       )}
                     </React.Fragment>
@@ -488,6 +524,8 @@ export default function ShiftCalendarPage() {
                           currentUser={currentUser}
                           userData={userData}
                           showToast={showToast}
+                          retroMode={retroMode}
+                          onRetroAddParticipant={setActivityPickerOpen}
                         />
                       )}
                     </React.Fragment>
@@ -610,6 +648,8 @@ export default function ShiftCalendarPage() {
                           currentUser={currentUser}
                           userData={userData}
                           showToast={showToast}
+                          retroMode={retroMode}
+                          onRetroAddParticipant={setActivityPickerOpen}
                         />
                       )}
                     </React.Fragment>
@@ -680,6 +720,16 @@ export default function ShiftCalendarPage() {
             setAbsenceModal({ mode: 'add' });
           }}
           onClose={() => setAbsencePickerOpen(false)}
+        />
+      )}
+
+      {/* Activity user picker (admin mode) */}
+      {activityPickerOpen && (
+        <RetroAssignModal
+          modal={{}}
+          title={`Přidat člena na ${activityPickerOpen.type === 'training' ? 'školení' : 'akci'}`}
+          onAssign={handleRetroActivityAdd}
+          onClose={() => setActivityPickerOpen(null)}
         />
       )}
     </div>
