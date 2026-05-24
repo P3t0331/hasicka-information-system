@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function MyAbsences({ absences }) {
+    const [showPast, setShowPast] = useState(false);
+
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
         const parts = dateStr.split('-').map(Number);
@@ -10,7 +12,16 @@ export default function MyAbsences({ absences }) {
     };
 
     const todayStr = new Date().toISOString().slice(0, 10);
-    const activeAbsences = absences.filter(a => a.endDate >= todayStr);
+    
+    const activeAbsences = absences
+        .filter(a => a.endDate >= todayStr)
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        
+    const pastAbsences = absences
+        .filter(a => a.endDate < todayStr)
+        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate)); // newest past first
+
+    const displayAbsences = showPast ? [...activeAbsences, ...pastAbsences] : activeAbsences;
 
     return (
         <section style={{ marginBottom: '2rem' }}>
@@ -21,47 +32,74 @@ export default function MyAbsences({ absences }) {
                 </Link>
             </div>
 
-            {activeAbsences.length > 0 ? (
+            {displayAbsences.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {activeAbsences
-                        .slice(0, 3)
-                        .map((absence, idx) => {
-                            const startDate = new Date(absence.startDate);
-                            const endDate = new Date(absence.endDate);
-                            const today = new Date();
-                            const daysUntil = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
-                            const isOngoing = startDate <= today && endDate >= today;
+                    {displayAbsences.map((absence, idx) => {
+                        const startDate = new Date(absence.startDate);
+                        const endDate = new Date(absence.endDate);
+                        const today = new Date();
+                        // Reset time to 00:00:00 for accurate day diff
+                        today.setHours(0,0,0,0);
+                        startDate.setHours(0,0,0,0);
+                        endDate.setHours(0,0,0,0);
+                        
+                        const daysUntil = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
+                        const isOngoing = startDate <= today && endDate >= today;
+                        const isPast = endDate < today;
 
-                            return (
-                                <div key={idx} className="dashboard-card" style={{ padding: '1rem', borderLeft: `4px solid ${isOngoing ? '#F57C00' : '#757575'}` }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div>
-                                            <div style={{ fontWeight: 700, color: '#333', marginBottom: '0.25rem' }}>
-                                                {absence.reason}
-                                            </div>
-                                            <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                                                {formatDate(absence.startDate)} - {formatDate(absence.endDate)}
-                                            </div>
+                        return (
+                            <div key={idx} className="dashboard-card" style={{ 
+                                padding: '1rem', 
+                                borderLeft: `4px solid ${isOngoing ? '#F57C00' : isPast ? '#9E9E9E' : '#757575'}`,
+                                opacity: isPast ? 0.7 : 1
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 700, color: '#333', marginBottom: '0.25rem', textDecoration: isPast ? 'line-through' : 'none' }}>
+                                            {absence.reason}
                                         </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            {isOngoing ? (
-                                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F57C00', background: '#FFF3E0', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
-                                                    PROBÍHÁ
-                                                </span>
-                                            ) : daysUntil > 0 ? (
-                                                <div style={{ fontSize: '0.75rem', color: '#666' }}>
-                                                    Za {daysUntil} {daysUntil === 1 ? 'den' : daysUntil <= 4 ? 'dny' : 'dní'}
-                                                </div>
-                                            ) : null}
+                                        <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                            {formatDate(absence.startDate)} - {formatDate(absence.endDate)}
                                         </div>
                                     </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        {isOngoing ? (
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F57C00', background: '#FFF3E0', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                                                PROBÍHÁ
+                                            </span>
+                                        ) : isPast ? (
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#757575', background: '#F5F5F5', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                                                PROBĚHLO
+                                            </span>
+                                        ) : daysUntil > 0 ? (
+                                            <div style={{ fontSize: '0.75rem', color: '#666' }}>
+                                                Za {daysUntil} {daysUntil === 1 ? 'den' : daysUntil <= 4 ? 'dny' : 'dní'}
+                                            </div>
+                                        ) : null}
+                                    </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        );
+                    })}
                 </div>
             ) : (
                 <div className="dashboard-card" style={{ textAlign: 'center', padding: '1.5rem', color: '#888' }}>
-                    Žádné nadcházející absence.
+                    Žádné {showPast ? '' : 'nadcházející'} absence.
+                </div>
+            )}
+            
+            {pastAbsences.length > 0 && (
+                <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+                    <button 
+                        onClick={() => setShowPast(!showPast)}
+                        style={{
+                            background: 'none', border: 'none', color: '#1976D2', 
+                            fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        {showPast ? 'Skrýt historii' : `Zobrazit historii (${pastAbsences.length})`}
+                    </button>
                 </div>
             )}
         </section>

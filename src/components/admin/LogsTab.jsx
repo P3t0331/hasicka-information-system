@@ -1,11 +1,12 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { db } from '../../firebase';
-import { collection, query, getDocs, orderBy, limit, onSnapshot, startAfter } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, limit, onSnapshot, startAfter, where } from 'firebase/firestore';
 import { CATEGORY_CONFIG, ACTION_LABELS, formatRelativeTime, formatAbsoluteTime } from './constants';
 
 const PAGE_SIZE = 300;
 
 export default function LogsTab({
+  allUsers,
   activityLogs,
   setActivityLogs,
   logsLoading,
@@ -20,17 +21,38 @@ export default function LogsTab({
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [indexError, setIndexError] = useState(null);
+  const unsubRef = useRef(null);
+
+  // We need to keep track of filters to refetch when they change
+  const buildQuery = useCallback((lastDocSnap = null) => {
+    const constraints = [];
+    if (logFilterUser !== 'all') {
+      constraints.push(where('uid', '==', logFilterUser));
+    }
+    if (logFilterCategory !== 'all') {
+      constraints.push(where('category', '==', logFilterCategory));
+    }
+    constraints.push(orderBy('timestamp', 'desc'));
+    if (lastDocSnap) {
+      constraints.push(startAfter(lastDocSnap));
+    }
+    constraints.push(limit(PAGE_SIZE));
+    
+    return query(collection(db, 'activityLogs'), ...constraints);
+  }, [logFilterUser, logFilterCategory]);
 
   const fetchLogs = useCallback(async (isRefresh = false) => {
     setLogsLoading(true);
+    setIndexError(null);
     try {
-      const q = query(
-        collection(db, 'activityLogs'),
-        orderBy('timestamp', 'desc'),
-        limit(PAGE_SIZE)
-      );
+      const q = buildQuery();
 
       if (isRefresh) {
+        if (unsubRef.current) {
+          unsubRef.current();
+          unsubRef.current = null;
+        }
         const snap = await getDocs(q);
         const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setActivityLogs(docs);
@@ -39,6 +61,7 @@ export default function LogsTab({
         setLogsLoading(false);
         setLogsLoaded(true);
       } else {
+        if (unsubRef.current) unsubRef.current();
         const unsub = onSnapshot(q, (snap) => {
           const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           setActivityLogs(docs);
@@ -48,26 +71,27 @@ export default function LogsTab({
           setLogsLoaded(true);
         }, (err) => {
           console.error('Logs error:', err);
+          if (err.message && err.message.includes('requires an index')) {
+            setIndexError(err.message);
+          }
           setLogsLoading(false);
         });
-        return unsub;
+        unsubRef.current = unsub;
       }
     } catch (err) {
       console.error('Fetch logs error:', err);
+      if (err.message && err.message.includes('requires an index')) {
+        setIndexError(err.message);
+      }
       setLogsLoading(false);
     }
-  }, [setActivityLogs, setLogsLoading, setLogsLoaded]);
+  }, [buildQuery, setActivityLogs, setLogsLoading, setLogsLoaded]);
 
   const loadMoreLogs = async () => {
     if (!lastDoc || loadingMore) return;
     setLoadingMore(true);
     try {
-      const q = query(
-        collection(db, 'activityLogs'),
-        orderBy('timestamp', 'desc'),
-        startAfter(lastDoc),
-        limit(PAGE_SIZE)
-      );
+      const q = buildQuery(lastDoc);
       const snap = await getDocs(q);
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setActivityLogs(prev => [...prev, ...docs]);
@@ -80,30 +104,29 @@ export default function LogsTab({
     }
   };
 
+  // Refetch when filters change
   useEffect(() => {
-    if (!logsLoaded) {
-      let unsub;
-      const setupSubscription = async () => {
-        unsub = await fetchLogs(false);
-      };
-      setupSubscription();
-      return () => {
-        if (unsub && typeof unsub === 'function') {
-          unsub();
-        }
-      };
-    }
-  }, [logsLoaded, fetchLogs]);
+    fetchLogs(true);
+  }, [logFilterUser, logFilterCategory, fetchLogs]);
 
-  const filteredLogs = activityLogs.filter(log => {
-    if (logFilterUser !== 'all' && log.uid !== logFilterUser) return false;
-    if (logFilterCategory !== 'all' && log.category !== logFilterCategory) return false;
-    return true;
+  useEffect(() => {
+    return () => {
+      if (unsubRef.current) unsubRef.current();
+    };
+  }, []);
+
+  const uniqueUsersMap = new Map();
+  (allUsers || []).forEach(u => {
+    uniqueUsersMap.set(u.uid, { uid: u.uid, name: `${u.lastName} ${u.firstName || ''}`.trim() });
   });
-
-  const uniqueUsers = Array.from(
-    new Map(activityLogs.map(l => [l.uid, { uid: l.uid, name: l.userName }])).values()
-  ).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'cs'));
+  // We keep pulling from activityLogs as well in case deleted users have logs
+  activityLogs.forEach(l => {
+    if (l.uid && !uniqueUsersMap.has(l.uid)) {
+      uniqueUsersMap.set(l.uid, { uid: l.uid, name: l.userName || 'Neznámý uživatel' });
+    }
+  });
+  const uniqueUsers = Array.from(uniqueUsersMap.values())
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'cs'));
 
   return (
     <div>
@@ -193,10 +216,33 @@ export default function LogsTab({
 
           {/* Count */}
           <span style={{ fontSize: '0.75rem', color: '#aaa', whiteSpace: 'nowrap' }}>
-            {filteredLogs.length} <span className="d-desktop-only">záznamů</span>
+            {activityLogs.length} <span className="d-desktop-only">záznamů</span>
           </span>
         </div>
       </div>
+
+      {/* Index Error Warning */}
+      {indexError && (
+        <div style={{
+          padding: '1.25rem', marginBottom: '1.5rem',
+          background: '#FFF3E0', border: '1px solid #FFB74D',
+          borderRadius: '10px', color: '#E65100'
+        }}>
+          <h4 style={{ margin: '0 0 0.5rem' }}>⚠️ Chybí databázový index</h4>
+          <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>
+            Pro filtrování na serveru je potřeba vytvořit v databázi index. Klikněte na odkaz níže (otevře se Firebase Console) a klikněte na "Vytvořit index".
+          </p>
+          <div style={{ wordBreak: 'break-all', fontSize: '0.75rem', background: '#fff', padding: '0.5rem', borderRadius: '4px', border: '1px solid #FFE0B2' }}>
+            {(() => {
+              const urlMatch = indexError.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
+              if (urlMatch) {
+                return <a href={urlMatch[0]} target="_blank" rel="noreferrer" style={{ color: '#1565C0', textDecoration: 'underline' }}>{urlMatch[0]}</a>;
+              }
+              return indexError;
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Log List */}
       {logsLoading ? (
@@ -204,7 +250,7 @@ export default function LogsTab({
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
           Načítám záznamy...
         </div>
-      ) : filteredLogs.length === 0 ? (
+      ) : activityLogs.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '3rem', color: '#bbb',
           background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
@@ -215,7 +261,7 @@ export default function LogsTab({
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {filteredLogs.map((log, idx) => {
+          {activityLogs.map((log, idx) => {
             const cat = CATEGORY_CONFIG[log.category] || { label: log.category, color: '#555', bg: '#f5f5f5', border: '#ddd', icon: '•' };
             const actionLabel = ACTION_LABELS[log.action] || log.action;
             const initials = log.userName ? log.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';

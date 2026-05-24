@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatDateCZ } from './constants';
 
 export default function AbsencePanel({
@@ -14,6 +14,21 @@ export default function AbsencePanel({
   onAddAbsenceForOther
 }) {
   const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
+  const [showPast, setShowPast] = useState(false);
+
+  const today = new Date();
+  const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const activeAbsences = absencesData
+    .filter(a => a.endDate >= todayISO)
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    
+  const pastAbsences = absencesData
+    .filter(a => a.endDate < todayISO)
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate)); // chronological order
+
+  const displayAbsences = showPast ? [...activeAbsences, ...pastAbsences] : activeAbsences;
+
   return (
     <section style={{ marginBottom: '2rem' }}>
       <div
@@ -58,19 +73,17 @@ export default function AbsencePanel({
           overflow: 'hidden',
           background: 'white'
         }}>
-          {absencesData.length === 0 ? (
+          {displayAbsences.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#9575CD' }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
-              Žádné absence v tomto měsíci
+              Žádné {showPast ? '' : 'nadcházející'} absence v tomto měsíci
             </div>
           ) : (
             <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {absencesData.map((absence, index) => {
+              {displayAbsences.map((absence, index) => {
                 const canDelete = absence.uid === currentUser?.uid || userRoles.includes('Admin') || userRoles.includes('VJ');
                 const isMine = absence.uid === currentUser?.uid;
 
-                const today = new Date();
-                const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                 const isPast = absence.endDate < todayISO;
                 const isFuture = absence.startDate > todayISO;
 
@@ -97,7 +110,7 @@ export default function AbsencePanel({
 
                 return (
                   <div
-                    key={absence.id || index}
+                    key={absence.id || `${absence.uid}-${absence.startDate}-${absence.endDate}-${index}`}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -182,6 +195,21 @@ export default function AbsencePanel({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {pastAbsences.length > 0 && (
+            <div style={{ padding: '0.5rem', textAlign: 'center', background: '#FAFAFA', borderTop: '1px solid #F3E5F5' }}>
+              <button 
+                onClick={() => setShowPast(!showPast)}
+                style={{
+                  background: 'none', border: 'none', color: '#7B1FA2', 
+                  fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                {showPast ? 'Skrýt historii' : `Zobrazit historii (${pastAbsences.length})`}
+              </button>
             </div>
           )}
 
