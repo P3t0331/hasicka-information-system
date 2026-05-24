@@ -13,7 +13,17 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
     const [location, setLocation] = useState(initialData?.location || '');
     const [maxParticipants, setMaxParticipants] = useState(initialData?.maxParticipants || '');
     const [isImportant, setIsImportant] = useState(initialData?.isImportant || false);
-    const [vehicles, setVehicles] = useState(initialData?.vehicles || '');
+    const [vehicles, setVehicles] = useState(() => {
+        if (typeof initialData?.vehicles === 'string') return initialData.vehicles.split(',').map(v => v.trim()).filter(Boolean);
+        if (Array.isArray(initialData?.vehicles)) return initialData.vehicles;
+        return [];
+    });
+    
+    const VEHICLE_OPTIONS = ['OA', 'DA-12', 'CAS 30', 'CAS 20'];
+
+    const toggleVehicle = (v) => {
+        setVehicles(prev => prev.includes(v) ? prev.filter(item => item !== v) : [...prev, v]);
+    };
     const [saving, setSaving] = useState(false);
 
     const isEdit = !!initialData;
@@ -48,7 +58,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
                     isImportant,
-                    vehicles: vehicles.trim() || null
+                    vehicles: vehicles.length > 0 ? vehicles.join(', ') : null
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_UPDATED_EVENT', 'admin',
@@ -65,7 +75,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
                     isImportant,
-                    vehicles: vehicles.trim() || null,
+                    vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
                     createdAt: new Date().toISOString(),
                     participants: []
@@ -208,8 +218,31 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     </div>
 
                     <div className="input-group">
-                        <label className="input-label">Technika (např. CAS 20, DA)</label>
-                        <input className="input-field" type="text" value={vehicles} onChange={e => setVehicles(e.target.value)} placeholder="Vypište vozidla/techniku, která pojede" />
+                        <label className="input-label">Technika</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem' }}>
+                            {VEHICLE_OPTIONS.map(v => {
+                                const isSelected = vehicles.includes(v);
+                                return (
+                                    <label key={v} style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                        padding: '0.4rem 0.75rem', borderRadius: '8px',
+                                        background: isSelected ? '#E8EAF6' : '#f5f5f5',
+                                        border: `1px solid ${isSelected ? '#7986CB' : '#e0e0e0'}`,
+                                        cursor: 'pointer', fontSize: '0.85rem', fontWeight: isSelected ? 600 : 500,
+                                        color: isSelected ? '#283593' : '#555',
+                                        transition: 'all 0.15s'
+                                    }}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={isSelected} 
+                                            onChange={() => toggleVehicle(v)} 
+                                            style={{ margin: 0, width: '14px', height: '14px' }} 
+                                        />
+                                        {v}
+                                    </label>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>

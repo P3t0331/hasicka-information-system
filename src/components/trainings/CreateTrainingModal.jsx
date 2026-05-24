@@ -12,7 +12,17 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
     const [departureTime, setDepartureTime] = useState(initialData?.departureTime || '');
     const [location, setLocation] = useState(initialData?.location || '');
     const [maxParticipants, setMaxParticipants] = useState(initialData?.maxParticipants || '');
-    const [vehicles, setVehicles] = useState(initialData?.vehicles || '');
+    const [vehicles, setVehicles] = useState(() => {
+        if (typeof initialData?.vehicles === 'string') return initialData.vehicles.split(',').map(v => v.trim()).filter(Boolean);
+        if (Array.isArray(initialData?.vehicles)) return initialData.vehicles;
+        return [];
+    });
+    
+    const VEHICLE_OPTIONS = ['OA', 'DA-12', 'CAS 30', 'CAS 20'];
+
+    const toggleVehicle = (v) => {
+        setVehicles(prev => prev.includes(v) ? prev.filter(item => item !== v) : [...prev, v]);
+    };
     const [instructorUids, setInstructorUids] = useState(() => {
         if (initialData?.instructors?.length) return initialData.instructors.map(i => i.uid);
         if (initialData?.instructor?.uid) return [initialData.instructor.uid];
@@ -73,7 +83,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
-                    vehicles: vehicles.trim() || null,
+                    vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
                     instructors: buildInstructors(),
                     instructor: null
                 });
@@ -91,7 +101,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
-                    vehicles: vehicles.trim() || null,
+                    vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
                     instructors: buildInstructors(),
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
                     createdAt: new Date().toISOString(),
@@ -286,8 +296,31 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     </div>
 
                     <div className="input-group">
-                        <label className="input-label">Technika (např. CAS 20, DA)</label>
-                        <input className="input-field" type="text" value={vehicles} onChange={e => setVehicles(e.target.value)} placeholder="Vypište vozidla/techniku, která pojede" />
+                        <label className="input-label">Technika</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem' }}>
+                            {VEHICLE_OPTIONS.map(v => {
+                                const isSelected = vehicles.includes(v);
+                                return (
+                                    <label key={v} style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                        padding: '0.4rem 0.75rem', borderRadius: '8px',
+                                        background: isSelected ? '#E8EAF6' : '#f5f5f5',
+                                        border: `1px solid ${isSelected ? '#7986CB' : '#e0e0e0'}`,
+                                        cursor: 'pointer', fontSize: '0.85rem', fontWeight: isSelected ? 600 : 500,
+                                        color: isSelected ? '#283593' : '#555',
+                                        transition: 'all 0.15s'
+                                    }}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={isSelected} 
+                                            onChange={() => toggleVehicle(v)} 
+                                            style={{ margin: 0, width: '14px', height: '14px' }} 
+                                        />
+                                        {v}
+                                    </label>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div className="modal-actions">
