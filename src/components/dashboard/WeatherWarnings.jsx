@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
+const EVENT_ICONS = {
+    'High Temperatures': '🌡️',
+    'Low Temperatures': '🥶',
+    'Wind': '💨',
+    'Snow/Ice': '🌨️',
+    'Thunderstorms': '⛈️',
+    'Rain': '🌧️',
+    'Fog': '🌫️',
+    'Flooding': '🌊',
+    'Danger of Fires': '🔥',
+    'Avalanches': '🏔️',
+    'Coastal Event': '🌊',
+};
+
 const EVENT_NAMES = {
     'High Temperatures': 'Vysoké teploty',
     'Low Temperatures': 'Nízké teploty',
@@ -22,17 +36,10 @@ const SEVERITY_LABELS = {
 };
 
 const SEVERITY_COLORS = {
-    'Extreme': '#D32F2F',
+    'Extreme': '#C62828',
     'Severe': '#E64A19',
-    'Moderate': '#F57C00',
-    'Minor': '#FBC02D',
-};
-
-const SEVERITY_BG = {
-    'Extreme': '#FFEBEE',
-    'Severe': '#FBE9E7',
-    'Moderate': '#FFF3E0',
-    'Minor': '#FFFDE7',
+    'Moderate': '#EF6C00',
+    'Minor': '#F9A825',
 };
 
 export default function WeatherWarnings() {
@@ -69,8 +76,8 @@ export default function WeatherWarnings() {
             }
 
             setWarnings(data.warnings || []);
-            nextUpdateRef.current = targetTime;
             setError(null);
+            nextUpdateRef.current = targetTime;
         } catch (err) {
             console.error('WeatherWarnings error:', err);
             setError('Nepodařilo se načíst výstrahy.');
@@ -97,60 +104,106 @@ export default function WeatherWarnings() {
         return () => clearInterval(interval);
     }, [fetchWarnings]);
 
+    const SectionHeader = ({ icon, title }) => (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#333', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span>{icon}</span>{title}
+            </h2>
+            {timerText && (
+                <span style={{ fontSize: '0.7rem', color: '#999', background: '#f0f0f0', padding: '0.2rem 0.5rem', borderRadius: '10px' }}>
+                    {timerText}
+                </span>
+            )}
+        </div>
+    );
+
     if (loading) return null;
 
     if (error) return (
-        <div className="dashboard-card" style={{ padding: '0.5rem 1rem', color: '#d32f2f', fontSize: '0.8rem', background: '#ffebee', marginBottom: '1rem' }}>
+        <div style={{ padding: '0.6rem 1rem', color: '#c62828', fontSize: '0.82rem', background: '#ffebee', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #ffcdd2' }}>
             ⚠️ {error}
         </div>
     );
 
     if (warnings.length === 0) return (
-        <section style={{ marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🌤️ Počasí a výstrahy</span>
-                {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
-            </h2>
-            <div className="dashboard-card" style={{ padding: '1rem', background: '#E8F5E9', borderLeft: '5px solid #4CAF50', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>✅</span>
+        <section style={{ marginBottom: '1.75rem' }}>
+            <SectionHeader icon="🌤️" title="Počasí a výstrahy" />
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: '0.875rem',
+                padding: '0.875rem 1rem', borderRadius: '12px',
+                background: 'linear-gradient(135deg, #E8F5E9, #F1F8E9)',
+                border: '1px solid #C8E6C9'
+            }}>
+                <div style={{ fontSize: '1.75rem', lineHeight: 1 }}>✅</div>
                 <div>
-                    <div style={{ fontWeight: 600, color: '#2E7D32' }}>Bez meteorologických výstrah</div>
-                    <div style={{ fontSize: '0.85rem', color: '#4CAF50' }}>Pro oblast Brno nejsou aktuálně vydány žádné výstrahy ČHMÚ.</div>
+                    <div style={{ fontWeight: 700, color: '#2E7D32', fontSize: '0.95rem' }}>Bez výstrah</div>
+                    <div style={{ fontSize: '0.8rem', color: '#558B2F', marginTop: '0.1rem' }}>Oblast Brno — žádné výstrahy ČHMÚ</div>
                 </div>
             </div>
         </section>
     );
 
     return (
-        <section style={{ marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>⚠️ Výstrahy</span>
-                {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <section style={{ marginBottom: '1.75rem' }}>
+            <SectionHeader icon="⚠️" title="Meteorologické výstrahy" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 {warnings.map((w, i) => {
-                    const color = SEVERITY_COLORS[w.severity] || '#FBC02D';
-                    const bg = SEVERITY_BG[w.severity] || '#FFFDE7';
+                    const color = SEVERITY_COLORS[w.severity] || '#F9A825';
                     const name = EVENT_NAMES[w.event] || w.event;
+                    const icon = EVENT_ICONS[w.event] || '⚠️';
                     const sevLabel = SEVERITY_LABELS[w.severity] || w.severity;
-                    const onset = w.onset ? new Date(w.onset).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                    const expires = w.expires ? new Date(w.expires).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    const fmt = dt => dt ? new Date(dt).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    const onset = fmt(w.onset);
+                    const expires = fmt(w.expires);
+
                     return (
-                        <div key={i} className="dashboard-card" style={{ padding: '1rem 1.25rem', borderLeft: `5px solid ${color}`, background: bg }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#222' }}>{name}</div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color, background: 'rgba(255,255,255,0.6)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{sevLabel}</div>
+                        <div key={i} style={{
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                            border: `1px solid ${color}30`
+                        }}>
+                            {/* Color bar + header */}
+                            <div style={{
+                                background: color,
+                                padding: '0.6rem 1rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontSize: '1.25rem' }}>{icon}</span>
+                                    <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
+                                </div>
+                                <span style={{
+                                    background: 'rgba(255,255,255,0.25)',
+                                    color: 'white', fontSize: '0.75rem', fontWeight: 600,
+                                    padding: '0.2rem 0.6rem', borderRadius: '20px'
+                                }}>
+                                    {sevLabel}
+                                </span>
                             </div>
+                            {/* Details */}
                             {(onset || expires) && (
-                                <div style={{ fontSize: '0.82rem', color: '#555' }}>
-                                    {onset && <span>Od: {onset}</span>}
-                                    {onset && expires && <span> &nbsp;·&nbsp; </span>}
-                                    {expires && <span>Do: {expires}</span>}
+                                <div style={{
+                                    background: 'white', padding: '0.6rem 1rem',
+                                    display: 'flex', gap: '1rem', flexWrap: 'wrap'
+                                }}>
+                                    {onset && (
+                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Od</span>
+                                            <strong>{onset}</strong>
+                                        </div>
+                                    )}
+                                    {expires && (
+                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Do</span>
+                                            <strong>{expires}</strong>
+                                        </div>
+                                    )}
+                                    <div style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#bbb', alignSelf: 'center' }}>
+                                        ČHMÚ / Meteoalarm
+                                    </div>
                                 </div>
                             )}
-                            <div style={{ fontSize: '0.78rem', color: '#888', marginTop: '0.3rem' }}>
-                                Zdroj: Meteoalarm / ČHMÚ
-                            </div>
                         </div>
                     );
                 })}
