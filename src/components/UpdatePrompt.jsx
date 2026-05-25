@@ -1,7 +1,17 @@
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function UpdatePrompt() {
-    const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW();
+    const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
+        onRegistered(registration) {
+            if (!registration) return;
+            // Check every 60 minutes
+            setInterval(() => registration.update(), 60 * 60 * 1000);
+            // Check when user switches back to the tab/app
+            window.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') registration.update();
+            });
+        }
+    });
 
     if (!needRefresh) return null;
 
