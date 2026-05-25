@@ -11,12 +11,26 @@ function urlBase64ToUint8Array(base64String) {
 
 async function subscribe(userId) {
     try {
-        const permission = await Notification.requestPermission();
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+        let permission = Notification.permission;
+        if (permission === 'denied') return;
+
+        if (permission === 'default') {
+            permission = await Notification.requestPermission();
+        }
         if (permission !== 'granted') return;
+
+        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (!vapidKey) {
+            console.warn('VITE_VAPID_PUBLIC_KEY not set');
+            return;
+        }
+
         const reg = await navigator.serviceWorker.ready;
         const sub = await reg.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY),
+            applicationServerKey: urlBase64ToUint8Array(vapidKey),
         });
         await setDoc(doc(db, 'pushSubscriptions', userId), { subscription: sub.toJSON() });
     } catch (err) {
@@ -25,13 +39,13 @@ async function subscribe(userId) {
 }
 
 export function usePushNotifications() {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
 
     useEffect(() => {
-        if (!user) return;
+        if (!currentUser) return;
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-        if (Notification.permission !== 'default') return;
-        const t = setTimeout(() => subscribe(user.uid), 4000);
+        if (Notification.permission === 'denied') return;
+        const t = setTimeout(() => subscribe(currentUser.uid), 4000);
         return () => clearTimeout(t);
-    }, [user]);
+    }, [currentUser]);
 }
