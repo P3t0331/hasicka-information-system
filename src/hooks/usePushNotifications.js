@@ -32,7 +32,15 @@ async function subscribe(userId) {
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(vapidKey),
         });
-        await setDoc(doc(db, 'pushSubscriptions', userId), { subscription: sub.toJSON() });
+
+        // Use endpoint hash as device key so each device gets its own document
+        const endpointKey = btoa(sub.endpoint).replace(/[^a-zA-Z0-9]/g, '').slice(-32);
+        const docId = `${userId}_${endpointKey}`;
+        await setDoc(doc(db, 'pushSubscriptions', docId), {
+            subscription: sub.toJSON(),
+            userId,
+            updatedAt: new Date().toISOString(),
+        });
     } catch (err) {
         console.error('Push subscription failed:', err);
     }
