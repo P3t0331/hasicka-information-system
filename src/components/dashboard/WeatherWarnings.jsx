@@ -47,7 +47,16 @@ export default function WeatherWarnings() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [timerText, setTimerText] = useState('');
+    const [expandedKeys, setExpandedKeys] = useState(new Set());
     const nextUpdateRef = useRef(null);
+
+    const toggleExpanded = (key) => {
+        setExpandedKeys(prev => {
+            const next = new Set(prev);
+            next.has(key) ? next.delete(key) : next.add(key);
+            return next;
+        });
+    };
 
     const fetchWarnings = useCallback(async () => {
         try {
@@ -164,24 +173,35 @@ export default function WeatherWarnings() {
                             border: `1px solid ${color}30`
                         }}>
                             {/* Color bar + header */}
-                            <div style={{
-                                background: color,
-                                padding: '0.6rem 1rem',
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                            }}>
+                            <div
+                                style={{
+                                    background: color,
+                                    padding: '0.6rem 1rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    cursor: 'pointer',
+                                    userSelect: 'none',
+                                }}
+                                onClick={() => toggleExpanded(i)}
+                            >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ fontSize: '1.25rem' }}>{icon}</span>
                                     <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
                                 </div>
-                                <span style={{
-                                    background: 'rgba(255,255,255,0.25)',
-                                    color: 'white', fontSize: '0.75rem', fontWeight: 600,
-                                    padding: '0.2rem 0.6rem', borderRadius: '20px'
-                                }}>
-                                    {sevLabel}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{
+                                        background: 'rgba(255,255,255,0.25)',
+                                        color: 'white', fontSize: '0.75rem', fontWeight: 600,
+                                        padding: '0.2rem 0.6rem', borderRadius: '20px'
+                                    }}>
+                                        {sevLabel}
+                                    </span>
+                                    <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', lineHeight: 1 }}>
+                                        {expandedKeys.has(i) ? '▲' : '▼'}
+                                    </span>
+                                </div>
                             </div>
-                            {/* Details */}
+                            {/* Details — collapsible */}
+                            {expandedKeys.has(i) && (
                             <div style={{ background: 'white', padding: '0.75rem 1rem' }}>
                                 {w.description && (
                                     <div style={{ fontSize: '0.88rem', color: '#333', marginBottom: '0.5rem', fontWeight: 500 }}>
@@ -213,6 +233,7 @@ export default function WeatherWarnings() {
                                     </div>
                                 )}
                             </div>
+                            )}
                         </div>
                     );
                 })}
