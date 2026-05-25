@@ -57,7 +57,7 @@ export default function DashboardPage() {
                 </div>
                 <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#2c3e50' }}>
                     {getGreeting()},{' '}
-                    <span style={{ color: '#E53935' }}>{userData?.firstName || 'Hasiči'}</span>! 🔥
+                    <span style={{ color: '#E53935' }}>{userData?.firstName || 'Hasiči'}</span>!
                 </h1>
             </header>
 
