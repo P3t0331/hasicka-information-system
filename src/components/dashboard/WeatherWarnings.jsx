@@ -173,67 +173,76 @@ export default function WeatherWarnings() {
                             border: `1px solid ${color}30`
                         }}>
                             {/* Color bar + header */}
-                            <div
-                                style={{
-                                    background: color,
-                                    padding: '0.6rem 1rem',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    cursor: 'pointer',
-                                    userSelect: 'none',
-                                }}
-                                onClick={() => toggleExpanded(i)}
-                            >
+                            <div style={{
+                                background: color,
+                                padding: '0.6rem 1rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ fontSize: '1.25rem' }}>{icon}</span>
                                     <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <span style={{
-                                        background: 'rgba(255,255,255,0.25)',
-                                        color: 'white', fontSize: '0.75rem', fontWeight: 600,
-                                        padding: '0.2rem 0.6rem', borderRadius: '20px'
-                                    }}>
-                                        {sevLabel}
-                                    </span>
-                                    <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', lineHeight: 1 }}>
-                                        {expandedKeys.has(i) ? '▲' : '▼'}
-                                    </span>
-                                </div>
+                                <span style={{
+                                    background: 'rgba(255,255,255,0.25)',
+                                    color: 'white', fontSize: '0.75rem', fontWeight: 600,
+                                    padding: '0.2rem 0.6rem', borderRadius: '20px'
+                                }}>
+                                    {sevLabel}
+                                </span>
                             </div>
-                            {/* Details — collapsible */}
-                            {expandedKeys.has(i) && (
-                            <div style={{ background: 'white', padding: '0.75rem 1rem' }}>
-                                {w.description && (
-                                    <div style={{ fontSize: '0.88rem', color: '#333', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                        {w.description}
-                                    </div>
-                                )}
-                                {w.instruction && (
-                                    <div style={{ fontSize: '0.8rem', color: '#555', marginBottom: '0.5rem', lineHeight: 1.5, borderLeft: `3px solid ${color}50`, paddingLeft: '0.6rem' }}>
-                                        {w.instruction}
-                                    </div>
-                                )}
-                                {(onset || expires) && (
-                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: w.description || w.instruction ? '0.5rem' : 0, paddingTop: w.description || w.instruction ? '0.5rem' : 0, borderTop: w.description || w.instruction ? '1px solid #f0f0f0' : 'none' }}>
-                                        {onset && (
-                                            <div style={{ fontSize: '0.8rem', color: '#555' }}>
-                                                <span style={{ color: '#999', marginRight: '0.25rem' }}>Od</span>
-                                                <strong>{onset}</strong>
+                            {/* Always-visible: times row */}
+                            <div style={{ background: 'white', padding: '0.6rem 1rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    {onset && (
+                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Od</span>
+                                            <strong>{onset}</strong>
+                                        </div>
+                                    )}
+                                    {expires && (
+                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Do</span>
+                                            <strong>{expires}</strong>
+                                        </div>
+                                    )}
+                                    {(w.description || w.instruction) && (
+                                        <button
+                                            onClick={() => toggleExpanded(i)}
+                                            style={{
+                                                marginLeft: 'auto',
+                                                background: 'none',
+                                                border: `1px solid ${color}60`,
+                                                color: color,
+                                                borderRadius: '6px',
+                                                padding: '0.2rem 0.6rem',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            {expandedKeys.has(i) ? 'Skrýt detail ▲' : 'Zobrazit detail ▼'}
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Collapsible: description + instruction */}
+                                {expandedKeys.has(i) && (
+                                    <div style={{ marginTop: '0.6rem', paddingTop: '0.6rem', borderTop: '1px solid #f0f0f0' }}>
+                                        {w.description && (
+                                            <div style={{ fontSize: '0.88rem', color: '#333', marginBottom: '0.5rem', fontWeight: 500 }}>
+                                                {w.description}
                                             </div>
                                         )}
-                                        {expires && (
-                                            <div style={{ fontSize: '0.8rem', color: '#555' }}>
-                                                <span style={{ color: '#999', marginRight: '0.25rem' }}>Do</span>
-                                                <strong>{expires}</strong>
+                                        {w.instruction && (
+                                            <div style={{ fontSize: '0.8rem', color: '#555', lineHeight: 1.5, borderLeft: `3px solid ${color}50`, paddingLeft: '0.6rem' }}>
+                                                {w.instruction}
                                             </div>
                                         )}
-                                        <div style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#bbb', alignSelf: 'center' }}>
+                                        <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: '#bbb', textAlign: 'right' }}>
                                             ČHMÚ / Meteoalarm
                                         </div>
                                     </div>
                                 )}
                             </div>
-                            )}
                         </div>
                     );
                 })}
