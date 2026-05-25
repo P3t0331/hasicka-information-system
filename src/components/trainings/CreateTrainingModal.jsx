@@ -108,6 +108,11 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                     createdAt: new Date().toISOString(),
                     participants: []
                 });
+                fetch('/api/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'Nové školení 📋', body: title.trim(), url: '/skoleni' }),
+                });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_TRAINING', 'admin',
                     `Vytvořil nové školení „${title.trim()}” (${date})`);

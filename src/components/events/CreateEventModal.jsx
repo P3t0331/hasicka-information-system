@@ -81,6 +81,11 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                     createdAt: new Date().toISOString(),
                     participants: []
                 });
+                fetch('/api/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'Nová akce 🚒', body: title.trim(), url: '/akce' }),
+                });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_EVENT', 'admin',
                     `Vytvořil novou akci „${title.trim()}” (${date})`);

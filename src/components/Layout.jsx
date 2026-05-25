@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 // Navigation Items Component for reuse
 const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
@@ -25,6 +26,7 @@ const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
 
 export default function Layout() {
   const { logout, userData } = useAuth();
+  usePushNotifications();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
