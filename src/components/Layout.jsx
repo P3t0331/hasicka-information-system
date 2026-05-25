@@ -97,6 +97,18 @@ export default function Layout() {
       <div className="main-content" style={{ flex: 1 }}>
         <Outlet />
       </div>
+
+      <footer style={{
+        textAlign: 'center',
+        padding: '1.25rem 1rem',
+        fontSize: '0.75rem',
+        color: '#aaa',
+        borderTop: '1px solid #f0f0f0',
+        marginTop: '2rem'
+      }}>
+        <div>Hasičský informační systém &copy; {new Date().getFullYear()}</div>
+        <div style={{ marginTop: '0.2rem', color: '#ccc' }}>Vytvořil Peter Greguš &middot; Všechna práva vyhrazena</div>
+      </footer>
     </div>
   );
 }
