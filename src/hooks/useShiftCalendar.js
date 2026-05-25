@@ -481,7 +481,17 @@ export default function useShiftCalendar(currentUser, userData) {
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ASSIGNED_USER_TO_STAZ', 'shifts',
         `Přiřadil ${targetUser.name} na pozici ${slotKey} – stáž ${dateLabel}`);
-          
+      fetch('/api/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '📋 Přiřazen na zálohu / stáž',
+          body: `Pozice: ${slotKey} · ${dateLabel}`,
+          url: '/shifts',
+          tag: 'staz-assign',
+          targetUserId: targetUser.uid,
+        }),
+      });
       showToast('success', 'Uživatel přiřazen na pozici.');
       setZalohaAssignModal(null);
     } catch (err) {
@@ -728,6 +738,19 @@ export default function useShiftCalendar(currentUser, userData) {
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_BACKDATED_SHIFT', 'admin',
         `Zpětně přiřazen ${targetUser.compactName} na pozici ${slotKey} (${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()})`);
+      if (section === 'zalohaStaz') {
+        fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: '📋 Přiřazen na zálohu / stáž',
+            body: `Pozice: ${slotKey} · ${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
+            url: '/shifts',
+            tag: 'staz-assign',
+            targetUserId: targetUser.uid,
+          }),
+        });
+      }
       showToast('success', `${targetUser.compactName} přiřazen na ${slotKey}.`);
     } catch (err) {
       console.error("Error in retro assign:", err);

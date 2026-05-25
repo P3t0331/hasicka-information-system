@@ -23,15 +23,19 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).end();
 
-    const { title, body, url } = req.body || {};
+    const { title, body, url, tag, targetUserId } = req.body || {};
     if (!title) return res.status(400).json({ error: 'missing title' });
 
     const db = getFirestore();
     const subs = await db.collection('pushSubscriptions').get();
     const payload = JSON.stringify({ title, body: body || '', url: url || '/' });
 
+    const docs = targetUserId
+        ? subs.docs.filter(d => d.data().userId === targetUserId)
+        : subs.docs;
+
     await Promise.allSettled(
-        subs.docs.map(async (docSnap) => {
+        docs.map(async (docSnap) => {
             try {
                 await webpush.sendNotification(docSnap.data().subscription, payload);
             } catch (err) {
@@ -42,5 +46,5 @@ export default async function handler(req, res) {
         })
     );
 
-    res.status(200).json({ ok: true, count: subs.size });
+    res.status(200).json({ ok: true, count: docs.length });
 }
