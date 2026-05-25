@@ -18,19 +18,36 @@ registerRoute(
 
 self.addEventListener('push', (event) => {
     if (!event.data) return;
-    const { title, body, url } = event.data.json();
+    const { title, body, url, tag } = event.data.json();
     event.waitUntil(
         self.registration.showNotification(title, {
             body,
             icon: '/pwa-192x192.png',
             badge: '/pwa-64x64.png',
+            tag: tag || 'default',
+            renotify: true,
             data: { url },
+            actions: [
+                { action: 'open', title: 'Zobrazit' },
+                { action: 'dismiss', title: 'Zavřít' },
+            ],
         })
     );
 });
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const url = event.notification.data?.url;
-    if (url) event.waitUntil(clients.openWindow(url));
+    if (event.action === 'dismiss') return;
+    const url = event.notification.data?.url || '/';
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url.includes(self.location.origin) && 'focus' in client) {
+                    client.navigate(url);
+                    return client.focus();
+                }
+            }
+            return clients.openWindow(url);
+        })
+    );
 });

@@ -84,7 +84,17 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                 fetch('/api/send-notification', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: 'Nová akce 🚒', body: title.trim(), url: '/akce' }),
+                    body: JSON.stringify({
+                        title: '🚒 Nová akce',
+                        body: [
+                            title.trim(),
+                            date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
+                            time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
+                            location.trim() || null,
+                        ].filter(Boolean).join(' · '),
+                        url: '/akce',
+                        tag: 'akce',
+                    }),
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_EVENT', 'admin',

@@ -111,7 +111,17 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                 fetch('/api/send-notification', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: 'Nové školení 📋', body: title.trim(), url: '/skoleni' }),
+                    body: JSON.stringify({
+                        title: '📋 Nové školení',
+                        body: [
+                            title.trim(),
+                            date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
+                            time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
+                            location.trim() || null,
+                        ].filter(Boolean).join(' · '),
+                        url: '/skoleni',
+                        tag: 'skoleni',
+                    }),
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_TRAINING', 'admin',
