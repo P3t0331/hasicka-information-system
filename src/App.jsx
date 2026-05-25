@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
+import UpdatePrompt from './components/UpdatePrompt';
 
 const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
@@ -29,6 +30,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="app-container">
+          <UpdatePrompt />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/login" element={<AuthPage />} />
