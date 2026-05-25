@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import {
   doc,
@@ -33,7 +33,7 @@ export default function useShiftCalendar(currentUser, userData) {
   // Absence state
   const [absencesData, setAbsencesData] = useState([]); // Array of { id, uid, userName, startDate, endDate, reason }
   const [absenceModal, setAbsenceModal] = useState(null); // { mode: 'add'|'edit', absence?: object }
-  const [absencePanelOpen, setAbsencePanelOpen] = useState(true);
+  const [absencePanelOpen, setAbsencePanelOpen] = useState(false);
 
   // Trainings state
   const [trainingsData, setTrainingsData] = useState([]);
@@ -46,9 +46,10 @@ export default function useShiftCalendar(currentUser, userData) {
   const [collapsedWeeks, setCollapsedWeeks] = useState({}); // { 'd-0': true, 'n-1': false }
   const [zalohaAssignModal, setZalohaAssignModal] = useState(null); // { day, slotKey, section }
 
-  const [zalohaSectionOpen, setZalohaSectionOpen] = useState(true);
-  const [daySectionOpen, setDaySectionOpen] = useState(true);
+  const [zalohaSectionOpen, setZalohaSectionOpen] = useState(false);
+  const [daySectionOpen, setDaySectionOpen] = useState(false);
   const [nightSectionOpen, setNightSectionOpen] = useState(true);
+  const sectionsInitialized = useRef(false);
 
   const groupWeeks = (daysArray) => {
     const weeks = [];
@@ -195,11 +196,22 @@ export default function useShiftCalendar(currentUser, userData) {
     return dayData && dayData.zalohaStaz;
   });
 
+  useEffect(() => {
+    if (!loading && !sectionsInitialized.current) {
+      sectionsInitialized.current = true;
+      if (enabledDayShifts.length > 0) setDaySectionOpen(true);
+      if (enabledZalohaShifts.length > 0) setZalohaSectionOpen(true);
+    }
+  }, [loading, enabledDayShifts.length, enabledZalohaShifts.length]);
+
   const handleMonthChange = (offset) => {
     setLoading(true);
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
     setCurrentDate(newDate);
     setNewDayShiftDate('');
+    sectionsInitialized.current = false;
+    setDaySectionOpen(false);
+    setZalohaSectionOpen(false);
   };
 
   const isQualifiedFor = (slotType) => {
