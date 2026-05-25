@@ -66,7 +66,7 @@ export default function DashboardPage() {
 
             {/* New Záloha Notification Banner */}
             {!shiftsDismissed && (
-                <ZalohaNotificationBanner 
+                <ZalohaNotificationBanner
                     newZalohaShifts={newZalohaShifts}
                     onDismiss={handleDismissShifts}
                 />
@@ -80,20 +80,20 @@ export default function DashboardPage() {
                 />
             )}
 
-            {/* Quick Links / Important Links */}
-            <ImportantLinks />
-
             {/* Bulletin Board Widget */}
             <BulletinWidget />
 
-            {/* Monthly Statistics Cards */}
-            <MonthlyStatistics monthlyStats={monthlyStats} />
+            {/* Quick Links / Important Links */}
+            <ImportantLinks />
 
             {/* Next Shift Section */}
             <NextShiftCard allShifts={allShifts} userData={userData} />
 
             {/* Upcoming Activities */}
             <UpcomingActivities upcomingActivities={upcomingActivities} />
+
+            {/* Monthly Statistics Cards */}
+            <MonthlyStatistics monthlyStats={monthlyStats} />
 
             {/* My Absences Panel */}
             <MyAbsences absences={absences} />
