@@ -678,6 +678,19 @@ export default function useShiftCalendar(currentUser, userData) {
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ADDED_SHIFT', 'admin',
         `Vytvořil zálohu/stáž pro den ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()} (${config.timeFrom}-${config.timeTo})`);
+      fetch('/api/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '🚑 Nová záloha / stáž',
+          body: [
+            `${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
+            config.timeFrom && config.timeTo ? `${config.timeFrom}–${config.timeTo}` : null,
+          ].filter(Boolean).join(' · '),
+          url: '/shifts',
+          tag: 'staz',
+        }),
+      });
       showToast('success', `Záloha/Stáž vytvořena.`);
       setZalohaModal(null);
     } catch (err) {
