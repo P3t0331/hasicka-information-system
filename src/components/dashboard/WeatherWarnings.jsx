@@ -149,7 +149,7 @@ export default function WeatherWarnings() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 {warnings.map((w, i) => {
                     const color = SEVERITY_COLORS[w.severity] || '#F9A825';
-                    const name = EVENT_NAMES[w.event] || w.event;
+                    const name = w.eventCz || EVENT_NAMES[w.event] || w.event;
                     const icon = EVENT_ICONS[w.event] || '⚠️';
                     const sevLabel = SEVERITY_LABELS[w.severity] || w.severity;
                     const fmt = dt => dt ? new Date(dt).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
@@ -182,28 +182,37 @@ export default function WeatherWarnings() {
                                 </span>
                             </div>
                             {/* Details */}
-                            {(onset || expires) && (
-                                <div style={{
-                                    background: 'white', padding: '0.6rem 1rem',
-                                    display: 'flex', gap: '1rem', flexWrap: 'wrap'
-                                }}>
-                                    {onset && (
-                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
-                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Od</span>
-                                            <strong>{onset}</strong>
-                                        </div>
-                                    )}
-                                    {expires && (
-                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
-                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Do</span>
-                                            <strong>{expires}</strong>
-                                        </div>
-                                    )}
-                                    <div style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#bbb', alignSelf: 'center' }}>
-                                        ČHMÚ / Meteoalarm
+                            <div style={{ background: 'white', padding: '0.75rem 1rem' }}>
+                                {w.description && (
+                                    <div style={{ fontSize: '0.88rem', color: '#333', marginBottom: '0.5rem', fontWeight: 500 }}>
+                                        {w.description}
                                     </div>
-                                </div>
-                            )}
+                                )}
+                                {w.instruction && (
+                                    <div style={{ fontSize: '0.8rem', color: '#555', marginBottom: '0.5rem', lineHeight: 1.5, borderLeft: `3px solid ${color}50`, paddingLeft: '0.6rem' }}>
+                                        {w.instruction}
+                                    </div>
+                                )}
+                                {(onset || expires) && (
+                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: w.description || w.instruction ? '0.5rem' : 0, paddingTop: w.description || w.instruction ? '0.5rem' : 0, borderTop: w.description || w.instruction ? '1px solid #f0f0f0' : 'none' }}>
+                                        {onset && (
+                                            <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                                <span style={{ color: '#999', marginRight: '0.25rem' }}>Od</span>
+                                                <strong>{onset}</strong>
+                                            </div>
+                                        )}
+                                        {expires && (
+                                            <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                                <span style={{ color: '#999', marginRight: '0.25rem' }}>Do</span>
+                                                <strong>{expires}</strong>
+                                            </div>
+                                        )}
+                                        <div style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#bbb', alignSelf: 'center' }}>
+                                            ČHMÚ / Meteoalarm
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     );
                 })}
