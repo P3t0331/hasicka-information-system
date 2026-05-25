@@ -1,12 +1,38 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-const getSeverityColor = (severity) => {
-    // Map severity to colors
-    const s = (severity || '').toLowerCase();
-    if (s.includes('extreme') || s.includes('extrém')) return '#D32F2F'; // Red
-    if (s.includes('severe') || s.includes('siln')) return '#E64A19'; // Deep Orange
-    if (s.includes('moderate') || s.includes('střed')) return '#F57C00'; // Orange
-    return '#FBC02D'; // Default Yellow
+const EVENT_NAMES = {
+    'High Temperatures': 'Vysoké teploty',
+    'Low Temperatures': 'Nízké teploty',
+    'Wind': 'Silný vítr',
+    'Snow/Ice': 'Sníh / náledí',
+    'Thunderstorms': 'Bouřky',
+    'Rain': 'Silný déšť',
+    'Fog': 'Hustá mlha',
+    'Flooding': 'Povodně',
+    'Danger of Fires': 'Nebezpečí požárů',
+    'Avalanches': 'Laviny',
+    'Coastal Event': 'Pobřežní událost',
+};
+
+const SEVERITY_LABELS = {
+    'Extreme': 'Extrémní',
+    'Severe': 'Silná',
+    'Moderate': 'Střední',
+    'Minor': 'Nízká',
+};
+
+const SEVERITY_COLORS = {
+    'Extreme': '#D32F2F',
+    'Severe': '#E64A19',
+    'Moderate': '#F57C00',
+    'Minor': '#FBC02D',
+};
+
+const SEVERITY_BG = {
+    'Extreme': '#FFEBEE',
+    'Severe': '#FBE9E7',
+    'Moderate': '#FFF3E0',
+    'Minor': '#FFFDE7',
 };
 
 export default function WeatherWarnings() {
@@ -14,169 +40,86 @@ export default function WeatherWarnings() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [timerText, setTimerText] = useState('');
-    
     const nextUpdateRef = useRef(null);
 
-    const processWeatherData = useCallback((data) => {
-        if (!data) return;
-
-        // Process Warnings (Alerts)
-        let alertsList = [];
-        if (data.alerts) {
-            if (Array.isArray(data.alerts)) {
-                alertsList = data.alerts;
-            } else if (data.alerts.alert) {
-                alertsList = Array.isArray(data.alerts.alert) ? data.alerts.alert : [data.alerts.alert];
-            }
-        }
-
-        // Filter alerts relevant for Brno
-        const relevantAlerts = alertsList.filter(alert => {
-            const text = ((alert.areas || '') + ' ' + (alert.headline || '')).toLowerCase();
-
-            // 1. Explicit Brno mention
-            if (text.includes('brno')) return true;
-
-            // 2. Region mention with validation (Jihomoravský / South Moravian)
-            if (text.includes('jihomoravsk') || text.includes('south moravian')) {
-                // If it contains a list of specific areas in parentheses (e.g. "... (Blansko, Vyškov)"), verify Brno is inside
-                // If parens exist but "brno" is missing, we assume it's for other districts only.
-                if (text.includes('(') && !text.includes('brno')) return false;
-                return true;
-            }
-
-            return false;
-        });
-
-        const newWarnings = relevantAlerts.map(alert => ({
-            event: alert.event || 'Výstraha',
-            severity: alert.severity || 'Moderate',
-            description: alert.desc || '',
-            instruction: alert.instruction || '',
-            onset: alert.effective ? new Date(alert.effective).toLocaleString('cs-CZ') : '',
-            expires: alert.expires ? new Date(alert.expires).toLocaleString('cs-CZ') : '',
-            color: getSeverityColor(alert.severity)
-        }));
-
-        setWarnings(newWarnings);
-    }, []);
-
-    const fetchWeather = useCallback(async () => {
+    const fetchWarnings = useCallback(async () => {
         try {
-            const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in ms
-            const cachedData = localStorage.getItem('weatherWarningsCache');
-            const cacheTimestamp = localStorage.getItem('weatherWarningsTimestamp');
-            
-            let dataToProcess = null;
-            let targetTime = 0;
-            
-            if (cachedData && cacheTimestamp) {
-                const now = new Date().getTime();
-                const cacheTime = parseInt(cacheTimestamp, 10);
+            const CACHE_DURATION = 30 * 60 * 1000;
+            const cached = localStorage.getItem('meteoalarmCache');
+            const cachedTime = localStorage.getItem('meteoalarmTimestamp');
 
-                if (now - cacheTime < CACHE_DURATION) {
-                    dataToProcess = JSON.parse(cachedData);
-                    targetTime = cacheTime + CACHE_DURATION;
+            let data = null;
+            let targetTime = 0;
+
+            if (cached && cachedTime) {
+                const age = Date.now() - parseInt(cachedTime, 10);
+                if (age < CACHE_DURATION) {
+                    data = JSON.parse(cached);
+                    targetTime = parseInt(cachedTime, 10) + CACHE_DURATION;
                 }
             }
 
-            if (!dataToProcess) {
-                // WeatherAPI.com - Brno
-                // Key from .env
-                const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-                const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Brno&days=1&alerts=yes&lang=cs`;
-
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Nelze načíst data o počasí');
-
-                dataToProcess = await response.json();
-                
-                const now = new Date().getTime();
-                localStorage.setItem('weatherWarningsCache', JSON.stringify(dataToProcess));
-                localStorage.setItem('weatherWarningsTimestamp', now.toString());
-                targetTime = now + CACHE_DURATION;
+            if (!data) {
+                const res = await fetch('/api/weather-warnings');
+                if (!res.ok) throw new Error('Chyba při načítání výstrah');
+                data = await res.json();
+                localStorage.setItem('meteoalarmCache', JSON.stringify(data));
+                localStorage.setItem('meteoalarmTimestamp', Date.now().toString());
+                targetTime = Date.now() + CACHE_DURATION;
             }
 
-            processWeatherData(dataToProcess);
+            setWarnings(data.warnings || []);
             nextUpdateRef.current = targetTime;
-            
+            setError(null);
         } catch (err) {
-            console.error('Error fetching weather:', err);
+            console.error('WeatherWarnings error:', err);
             setError('Nepodařilo se načíst výstrahy.');
         } finally {
             setLoading(false);
         }
-    }, [processWeatherData]);
+    }, []);
 
     useEffect(() => {
-        fetchWeather();
-        
+        fetchWarnings();
         const interval = setInterval(() => {
             if (!nextUpdateRef.current) return;
-            
-            const now = new Date().getTime();
-            const diff = nextUpdateRef.current - now;
-            
+            const diff = nextUpdateRef.current - Date.now();
             if (diff <= 0) {
                 setTimerText('Aktualizuji...');
                 nextUpdateRef.current = null;
-                fetchWeather();
+                fetchWarnings();
             } else {
-                const minutes = Math.floor(diff / 60000);
-                const seconds = Math.floor((diff % 60000) / 1000);
-                setTimerText(`Aktualizace za ${minutes}:${seconds.toString().padStart(2, '0')}`);
+                const m = Math.floor(diff / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                setTimerText(`Aktualizace za ${m}:${s.toString().padStart(2, '0')}`);
             }
         }, 1000);
-        
         return () => clearInterval(interval);
-    }, [fetchWeather]);
+    }, [fetchWarnings]);
 
-    const loadDemoData = () => {
-        setError(null);
-        // Demo specific warning to test UI
-        setWarnings([
-            {
-                event: 'DEMO: Silný vítr',
-                severity: 'Moderate',
-                description: 'Toto je ukázka výstrahy. Rychlost větru překračuje 85 km/h.',
-                instruction: 'Doporučuje se zajistit okna a dveře.',
-                color: '#F57C00'
-            }
-        ]);
-    };
-
-    // "I do not want to see weather, only if there are or not alerts."
-    // If loading, silent.
     if (loading) return null;
 
-    // If error, likely silent too unless we want to debug.
-    // I'll show a tiny error icon just in case, but unobtrusive.
-    if (error) {
-        return (
-            <div className="dashboard-card" style={{ padding: '0.5rem', textAlign: 'center', color: '#d32f2f', fontSize: '0.8rem', background: '#ffebee', marginBottom: '1rem' }}>
-                ⚠️ {error} <button onClick={loadDemoData} style={{ border: 'none', background: 'none', textDecoration: 'underline', cursor: 'pointer', color: '#d32f2f' }}>Demo</button>
-            </div>
-        );
-    }
+    if (error) return (
+        <div className="dashboard-card" style={{ padding: '0.5rem 1rem', color: '#d32f2f', fontSize: '0.8rem', background: '#ffebee', marginBottom: '1rem' }}>
+            ⚠️ {error}
+        </div>
+    );
 
-    // If no warnings, render a positive state
-    if (warnings.length === 0) {
-        return (
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🌤️ Počasí a výstrahy</span>
-                    {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
-                </h2>
-                <div className="dashboard-card" style={{ padding: '1rem', background: '#E8F5E9', borderLeft: '5px solid #4CAF50', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ fontSize: '1.5rem' }}>✅</span>
-                    <div>
-                        <div style={{ fontWeight: 600, color: '#2E7D32' }}>Bez meteorologických výstrah</div>
-                        <div style={{ fontSize: '0.85rem', color: '#4CAF50' }}>Pro oblast Brno a okolí nejsou aktuálně vydány žádné nebezpečné jevy.</div>
-                    </div>
+    if (warnings.length === 0) return (
+        <section style={{ marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🌤️ Počasí a výstrahy</span>
+                {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
+            </h2>
+            <div className="dashboard-card" style={{ padding: '1rem', background: '#E8F5E9', borderLeft: '5px solid #4CAF50', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>✅</span>
+                <div>
+                    <div style={{ fontWeight: 600, color: '#2E7D32' }}>Bez meteorologických výstrah</div>
+                    <div style={{ fontSize: '0.85rem', color: '#4CAF50' }}>Pro oblast Brno nejsou aktuálně vydány žádné výstrahy ČHMÚ.</div>
                 </div>
-            </section>
-        );
-    }
+            </div>
+        </section>
+    );
 
     return (
         <section style={{ marginBottom: '2rem' }}>
@@ -184,38 +127,33 @@ export default function WeatherWarnings() {
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>⚠️ Výstrahy</span>
                 {timerText && <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', background: '#e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>{timerText}</span>}
             </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {warnings.map((w, index) => (
-                    <div key={index} className="dashboard-card" style={{
-                        padding: '1.5rem',
-                        borderLeft: `5px solid ${w.color}`,
-                        background: '#fff3e0' // Light warning bg
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                            <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>
-                                {w.event}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {warnings.map((w, i) => {
+                    const color = SEVERITY_COLORS[w.severity] || '#FBC02D';
+                    const bg = SEVERITY_BG[w.severity] || '#FFFDE7';
+                    const name = EVENT_NAMES[w.event] || w.event;
+                    const sevLabel = SEVERITY_LABELS[w.severity] || w.severity;
+                    const onset = w.onset ? new Date(w.onset).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    const expires = w.expires ? new Date(w.expires).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    return (
+                        <div key={i} className="dashboard-card" style={{ padding: '1rem 1.25rem', borderLeft: `5px solid ${color}`, background: bg }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#222' }}>{name}</div>
+                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color, background: 'rgba(255,255,255,0.6)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{sevLabel}</div>
                             </div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: w.color, background: 'rgba(255,255,255,0.5)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
-                                {w.severity}
+                            {(onset || expires) && (
+                                <div style={{ fontSize: '0.82rem', color: '#555' }}>
+                                    {onset && <span>Od: {onset}</span>}
+                                    {onset && expires && <span> &nbsp;·&nbsp; </span>}
+                                    {expires && <span>Do: {expires}</span>}
+                                </div>
+                            )}
+                            <div style={{ fontSize: '0.78rem', color: '#888', marginTop: '0.3rem' }}>
+                                Zdroj: Meteoalarm / ČHMÚ
                             </div>
                         </div>
-
-                        <div style={{ fontSize: '0.9rem', marginBottom: '1rem', color: '#444' }}>
-                            {w.description}
-                        </div>
-
-                        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                            <strong>Platnost:</strong> {w.onset} - {w.expires}
-                        </div>
-
-                        {w.instruction && (
-                            <div style={{ fontSize: '0.85rem', color: '#555', fontStyle: 'italic', marginTop: '0.5rem', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.5rem' }}>
-                                ℹ️ {w.instruction}
-                            </div>
-                        )}
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </section>
     );
