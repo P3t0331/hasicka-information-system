@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     const payload = JSON.stringify({ title, body: body || '', url: url || '/' });
 
     const docs = targetUserId
-        ? subs.docs.filter(d => d.data().userId === targetUserId)
+        ? subs.docs.filter(d => d.data().userId === targetUserId || d.id === targetUserId || d.id.startsWith(targetUserId + '_'))
         : subs.docs;
 
     await Promise.allSettled(
