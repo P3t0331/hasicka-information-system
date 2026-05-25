@@ -110,10 +110,11 @@ export default function ShiftCalendarPage() {
   };
 
   const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
+  const isStrictAdmin = userRoles.includes('Admin');
   const [joinShiftModal, setJoinShiftModal] = useState(null); // { day, section, slotKey }
 
   const handleShiftSlotClick = (day, section, slotKey) => {
-    if (retroMode && isAdmin) {
+    if (retroMode && isStrictAdmin) {
       const assignee = (shiftsData[day]?.[section] || {})[slotKey];
       if (!assignee) {
         setRetroAssignModal({ day, section, slotKey });
@@ -245,7 +246,7 @@ export default function ShiftCalendarPage() {
       </div>
 
       {/* Retro Mode Toggle (admin only) */}
-      {isAdmin && (
+      {isStrictAdmin && (
         <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={() => setRetroMode(r => !r)}

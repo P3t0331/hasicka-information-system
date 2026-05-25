@@ -26,7 +26,13 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                 ) : allEquipment.length === 0 ? (
                     <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Zatím nemáte evidováno žádné vybavení.</p>
                 ) : (
-                    allEquipment.map(item => {
+                    [...allEquipment]
+                        .sort((a, b) => {
+                            const ai = equipmentTypes.findIndex(t => t.id === a.typeId);
+                            const bi = equipmentTypes.findIndex(t => t.id === b.typeId);
+                            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+                        })
+                        .map(item => {
                         const eqType = equipmentTypes.find(t => t.id === item.typeId);
                         if (!eqType) return null;
                         const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);

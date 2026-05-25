@@ -3,7 +3,7 @@ import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 
-export default function CreateEventModal({ onClose, currentUser, userData, showToast, initialData }) {
+export default function CreateEventModal({ onClose, currentUser, userData, showToast, initialData, onSaveAsTemplate }) {
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [date, setDate] = useState(initialData?.date || '');
@@ -25,8 +25,9 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
         setVehicles(prev => prev.includes(v) ? prev.filter(item => item !== v) : [...prev, v]);
     };
     const [saving, setSaving] = useState(false);
+    const [saveTemplate, setSaveTemplate] = useState(false);
 
-    const isEdit = !!initialData;
+    const isEdit = !!(initialData?.id);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -82,7 +83,17 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_EVENT', 'admin',
-                    `Vytvořil novou akci „${title.trim()}“ (${date})`);
+                    `Vytvořil novou akci „${title.trim()}” (${date})`);
+                if (saveTemplate && onSaveAsTemplate) {
+                    await onSaveAsTemplate({
+                        title: title.trim(), description: description.trim(),
+                        time, timeEnd: timeEnd || null, departureTime: departureTime || null,
+                        location: location.trim(),
+                        maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                        vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
+                        isImportant,
+                    });
+                }
                 showToast('success', 'Vytvořeno!');
             }
             onClose();
@@ -250,6 +261,12 @@ export default function CreateEventModal({ onClose, currentUser, userData, showT
                         <label htmlFor="isImportant" style={{ fontSize: '0.9rem', color: '#333', fontWeight: 'bold', cursor: 'pointer', userSelect: 'none' }}>Důležitá akce (zvýraznit oranžově)</label>
                     </div>
 
+                    {!isEdit && onSaveAsTemplate && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                            <input type="checkbox" checked={saveTemplate} onChange={e => setSaveTemplate(e.target.checked)} />
+                            💾 Uložit jako šablonu pro příště
+                        </label>
+                    )}
                     <div className="modal-actions">
                         <button type="button" className="btn btn-secondary" onClick={onClose}>Zrušit</button>
                         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Ukládám...' : (isEdit ? 'Uložit změny' : 'Vytvořit')}</button>

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, doc, onSnapshot, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function useTrainings() {
     const { currentUser, userData } = useAuth();
     const [trainings, setTrainings] = useState([]);
+    const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showPast, setShowPast] = useState(false);
@@ -29,6 +30,14 @@ export default function useTrainings() {
             setLoading(false);
         });
         return unsubscribe;
+    }, []);
+
+    useEffect(() => {
+        const unsub = onSnapshot(collection(db, 'trainingTemplates'), (snap) => {
+            setTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => a.title.localeCompare(b.title, 'cs')));
+        });
+        return unsub;
     }, []);
 
     useEffect(() => {
@@ -122,6 +131,30 @@ export default function useTrainings() {
         setEditTraining(null);
     };
 
+    const saveAsTemplate = async (templateData) => {
+        try {
+            await addDoc(collection(db, 'trainingTemplates'), {
+                ...templateData,
+                createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
+                createdAt: new Date().toISOString()
+            });
+            showToast('success', 'Šablona uložena.');
+        } catch (err) {
+            console.error('Error saving template:', err);
+            showToast('error', 'Chyba při ukládání šablony.');
+        }
+    };
+
+    const deleteTemplate = async (templateId) => {
+        try {
+            await deleteDoc(doc(db, 'trainingTemplates', templateId));
+            showToast('success', 'Šablona smazána.');
+        } catch (err) {
+            console.error('Error deleting template:', err);
+            showToast('error', 'Chyba při mazání šablony.');
+        }
+    };
+
     return {
         currentUser,
         userData,
@@ -139,12 +172,15 @@ export default function useTrainings() {
         canDeleteAny,
         upcomingTrainings,
         pastTrainings,
+        templates,
         handleJoin,
         handleLeave,
         requestDelete,
         confirmDelete,
         openEditModal,
         handleCloseModal,
+        saveAsTemplate,
+        deleteTemplate,
         showToast
     };
 }

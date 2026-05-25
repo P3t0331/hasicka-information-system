@@ -10,6 +10,7 @@ export default function EventsPage() {
         userData,
         loading,
         showCreateModal,
+        setShowCreateModal,
         showPast,
         setShowPast,
         toast,
@@ -21,18 +22,25 @@ export default function EventsPage() {
         canDeleteAny,
         upcomingEvents,
         pastEvents,
+        templates,
         handleJoin,
         handleLeave,
         requestDelete,
         confirmDelete,
         openEditModal,
         handleCloseModal,
+        saveAsTemplate,
+        deleteTemplate,
         showToast
     } = useEvents();
 
     const [filterYear, setFilterYear] = React.useState('all');
     const [filterMonth, setFilterMonth] = React.useState('all');
     const [upcomingFilter, setUpcomingFilter] = React.useState('all');
+    const [showTemplates, setShowTemplates] = React.useState(false);
+    const [activeTemplate, setActiveTemplate] = React.useState(null);
+
+    const handleClose = () => { handleCloseModal(); setActiveTemplate(null); };
 
     const uniqueYears = Array.from(new Set(pastEvents.map(e => e.date.split('-')[0]))).sort((a, b) => b.localeCompare(a));
 
@@ -93,6 +101,69 @@ export default function EventsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Templates Section */}
+            {canCreate && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                    <div
+                        onClick={() => setShowTemplates(v => !v)}
+                        style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '0.6rem 0.85rem', borderRadius: '8px',
+                            background: '#f5f5f5', border: '1px solid #e0e0e0',
+                            cursor: 'pointer', userSelect: 'none'
+                        }}
+                    >
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>
+                            📋 Šablony {templates.length > 0 ? `(${templates.length})` : ''}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: '#888' }}>{showTemplates ? '▲' : '▼'}</span>
+                    </div>
+                    {showTemplates && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.4rem' }}>
+                            {templates.length === 0 ? (
+                                <p style={{ color: '#888', fontSize: '0.85rem', padding: '0.5rem 0.85rem', margin: 0 }}>
+                                    Zatím žádné šablony. Vytvořte akci a zaškrtněte "Uložit jako šablonu".
+                                </p>
+                            ) : templates.map(t => (
+                                <div key={t.id} style={{
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                    padding: '0.65rem 0.85rem', background: 'white',
+                                    border: '1px solid #e0e0e0', borderRadius: '8px', gap: '0.75rem'
+                                }}>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#222' }}>{t.title}</div>
+                                        <div style={{ fontSize: '0.78rem', color: '#888', marginTop: '0.1rem' }}>
+                                            {t.time}{t.timeEnd ? ` – ${t.timeEnd}` : ''}
+                                            {t.location ? ` · ${t.location}` : ''}
+                                            {t.vehicles ? ` · ${t.vehicles}` : ''}
+                                            {t.isImportant ? ' · ⚠️ Důležitá' : ''}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                                        <button
+                                            onClick={() => { setActiveTemplate(t); setShowCreateModal(true); }}
+                                            style={{
+                                                padding: '0.35rem 0.75rem', borderRadius: '6px',
+                                                border: '1px solid #90CAF9', background: '#E3F2FD',
+                                                color: '#1565C0', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer'
+                                            }}
+                                        >Použít</button>
+                                        <button
+                                            onClick={() => deleteTemplate(t.id)}
+                                            style={{
+                                                padding: '0.35rem 0.5rem', borderRadius: '6px',
+                                                border: '1px solid #ffcdd2', background: '#fff',
+                                                color: '#c62828', fontSize: '0.9rem', cursor: 'pointer'
+                                            }}
+                                        >×</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Upcoming Events */}
             <section style={{ marginBottom: '1.5rem' }}>
@@ -294,11 +365,12 @@ export default function EventsPage() {
             {/* Create/Edit Modal */}
             {showCreateModal && (
                 <CreateEventModal
-                    onClose={handleCloseModal}
+                    onClose={handleClose}
                     currentUser={currentUser}
                     userData={userData}
                     showToast={showToast}
-                    initialData={editEvent}
+                    initialData={activeTemplate ?? editEvent}
+                    onSaveAsTemplate={saveAsTemplate}
                 />
             )}
 

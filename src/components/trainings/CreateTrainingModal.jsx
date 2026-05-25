@@ -3,7 +3,7 @@ import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 
-export default function CreateTrainingModal({ onClose, currentUser, userData, showToast, initialData, members = [] }) {
+export default function CreateTrainingModal({ onClose, currentUser, userData, showToast, initialData, members = [], onSaveAsTemplate }) {
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [date, setDate] = useState(initialData?.date || '');
@@ -30,8 +30,9 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
     });
     const [instructorSearch, setInstructorSearch] = useState('');
     const [saving, setSaving] = useState(false);
+    const [saveTemplate, setSaveTemplate] = useState(false);
 
-    const isEdit = !!initialData;
+    const isEdit = !!(initialData?.id);
 
     const sortedMembers = useMemo(() =>
         [...members].sort((a, b) => (a.lastName || '').localeCompare(b.lastName || '') || (a.firstName || '').localeCompare(b.firstName || '')),
@@ -109,7 +110,17 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_TRAINING', 'admin',
-                    `Vytvořil nové školení „${title.trim()}“ (${date})`);
+                    `Vytvořil nové školení „${title.trim()}” (${date})`);
+                if (saveTemplate && onSaveAsTemplate) {
+                    await onSaveAsTemplate({
+                        title: title.trim(), description: description.trim(),
+                        time, timeEnd: timeEnd || null, departureTime: departureTime || null,
+                        location: location.trim(),
+                        maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                        vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
+                        instructors: buildInstructors(),
+                    });
+                }
                 showToast('success', 'Vytvořeno!');
             }
             onClose();
@@ -323,6 +334,12 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, sh
                         </div>
                     </div>
 
+                    {!isEdit && onSaveAsTemplate && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                            <input type="checkbox" checked={saveTemplate} onChange={e => setSaveTemplate(e.target.checked)} />
+                            💾 Uložit jako šablonu pro příště
+                        </label>
+                    )}
                     <div className="modal-actions">
                         <button type="button" className="btn btn-secondary" onClick={onClose}>Zrušit</button>
                         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Ukládám...' : (isEdit ? 'Uložit změny' : 'Vytvořit')}</button>
