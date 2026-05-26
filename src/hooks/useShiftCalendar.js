@@ -68,6 +68,32 @@ export default function useShiftCalendar(currentUser, userData) {
     setCollapsedWeeks(prev => ({ ...prev, [weekId]: !prev[weekId] }));
   };
 
+  // Auto-collapse weeks that are fully in the past when month changes
+  useEffect(() => {
+    const today = new Date();
+    const todayDate = today.getDate();
+    const isCurrentMonth =
+      today.getFullYear() === currentDate.getFullYear() &&
+      today.getMonth() === currentDate.getMonth();
+
+    if (!isCurrentMonth) {
+      setCollapsedWeeks({});
+      return;
+    }
+
+    const weeks = groupWeeks(days);
+    const collapsed = {};
+    weeks.forEach((week, index) => {
+      const lastDay = week[week.length - 1].date;
+      if (lastDay < todayDate) {
+        ['zaloha-week', 'day-week', 'night-week'].forEach(prefix => {
+          collapsed[`${prefix}-${index}`] = true;
+        });
+      }
+    });
+    setCollapsedWeeks(collapsed);
+  }, [currentDate.getFullYear(), currentDate.getMonth()]);
+
   const showToast = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
