@@ -2,6 +2,8 @@ import React from 'react';
 import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import { enableNetwork, disableNetwork } from 'firebase/firestore';
+import { db } from '../firebase';
 
 // Navigation Items Component for reuse
 const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
@@ -27,6 +29,33 @@ const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
 export default function Layout() {
   const { logout, userData } = useAuth();
   usePushNotifications();
+
+  React.useEffect(() => {
+    const reconnect = () => {
+      disableNetwork(db).then(() => enableNetwork(db)).catch(() => {});
+    };
+
+    // App comes to foreground
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reconnect();
+    });
+
+    // Network restored after offline
+    window.addEventListener('online', reconnect);
+
+    // Mobile network type change (LTE→WiFi, cell tower switch, etc.)
+    if (navigator.connection) {
+      navigator.connection.addEventListener('change', reconnect);
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', reconnect);
+      window.removeEventListener('online', reconnect);
+      if (navigator.connection) {
+        navigator.connection.removeEventListener('change', reconnect);
+      }
+    };
+  }, []);
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);

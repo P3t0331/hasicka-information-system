@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function useMembers() {
@@ -12,24 +12,34 @@ export default function useMembers() {
         fetchMembers();
     }, []);
 
-    const fetchMembers = async () => {
+    const fetchMembers = async (isRetry = false) => {
         try {
             const usersRef = collection(db, 'users');
             const q = query(usersRef, where('approved', '==', true));
-            const snapshot = await getDocs(q);
+
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('timeout')), 8000)
+            );
+
+            const snapshot = await Promise.race([getDocs(q), timeout]);
 
             const membersData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
 
-            // Sort by last name
             membersData.sort((a, b) =>
                 (a.lastName || '').localeCompare(b.lastName || '')
             );
 
             setMembers(membersData);
         } catch (error) {
+            if (error.message === 'timeout' && !isRetry) {
+                // Force Firestore reconnect and retry once
+                await disableNetwork(db).catch(() => {});
+                await enableNetwork(db).catch(() => {});
+                return fetchMembers(true);
+            }
             console.error('Error fetching members:', error);
         } finally {
             setLoading(false);

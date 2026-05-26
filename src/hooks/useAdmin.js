@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
 import { db, auth } from '../firebase';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
 import { logAction } from '../utils/logger';
@@ -47,12 +47,16 @@ export default function useAdmin() {
   }, []);
 
   // Fetch admin data
-  const fetchAdminData = useCallback(async () => {
+  const fetchAdminData = useCallback(async (isRetry = false) => {
     setLoading(true);
     setDataLoading(true);
     try {
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 8000)
+      );
+
       const q = query(collection(db, "users"));
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await Promise.race([getDocs(q), timeout]);
       const allFetchedUsers = [];
       querySnapshot.forEach((doc) => {
         allFetchedUsers.push(doc.data());
@@ -60,9 +64,9 @@ export default function useAdmin() {
 
       const pending = allFetchedUsers.filter(u => u.approved === false);
       const confirmed = allFetchedUsers.filter(u => u.approved === true);
-      
+
       confirmed.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
-      
+
       setPendingUsers(pending);
       setAllUsers(confirmed);
 
@@ -71,6 +75,13 @@ export default function useAdmin() {
         setEquipmentTypes(eqDoc.data().types || []);
       }
     } catch (error) {
+      if (error.message === 'timeout' && !isRetry) {
+        await disableNetwork(db).catch(() => {});
+        await enableNetwork(db).catch(() => {});
+        setLoading(false);
+        setDataLoading(false);
+        return fetchAdminData(true);
+      }
       console.error("Error fetching admin data:", error);
       showNotification('error', 'Chyba při načítání dat.');
     } finally {
