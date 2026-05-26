@@ -20,8 +20,10 @@ const CleaningLogPage = React.lazy(() => import('./pages/CleaningLogPage'));
 
 function PageLoader() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <p style={{ color: '#888', fontSize: '0.95rem' }}>Načítám...</p>
+    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '0.75rem' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #f0f0f0', borderTop: '3px solid #B71C1C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ color: '#aaa', fontSize: '0.88rem', margin: 0 }}>Načítám...</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -32,32 +34,29 @@ function App() {
       <Router>
         <div className="app-container">
           <UpdatePrompt />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/login" element={<AuthPage />} />
+          <Routes>
+            <Route path="/login" element={<Suspense fallback={<PageLoader />}><AuthPage /></Suspense>} />
 
-              {/* Protected Routes */}
-              <Route element={
-                <PrivateRoute>
-                  <Layout />
-                </PrivateRoute>
-              }>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/shifts" element={<ShiftCalendarPage />} />
-                <Route path="/skoleni" element={<TrainingsPage />} />
-                <Route path="/akce" element={<EventsPage />} />
-                <Route path="/udrzba" element={<MaintenanceLogPage />} />
-                <Route path="/uklid" element={<CleaningLogPage />} />
-                <Route path="/statistiky" element={<StatisticsPage />} />
-                <Route path="/clenove" element={<MembersPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-              </Route>
+            {/* Protected Routes — Layout stays mounted, only page content suspends */}
+            <Route element={
+              <PrivateRoute>
+                <Layout />
+              </PrivateRoute>
+            }>
+              <Route path="/" element={<Suspense fallback={<PageLoader />}><DashboardPage /></Suspense>} />
+              <Route path="/profile" element={<Suspense fallback={<PageLoader />}><ProfilePage /></Suspense>} />
+              <Route path="/shifts" element={<Suspense fallback={<PageLoader />}><ShiftCalendarPage /></Suspense>} />
+              <Route path="/skoleni" element={<Suspense fallback={<PageLoader />}><TrainingsPage /></Suspense>} />
+              <Route path="/akce" element={<Suspense fallback={<PageLoader />}><EventsPage /></Suspense>} />
+              <Route path="/udrzba" element={<Suspense fallback={<PageLoader />}><MaintenanceLogPage /></Suspense>} />
+              <Route path="/uklid" element={<Suspense fallback={<PageLoader />}><CleaningLogPage /></Suspense>} />
+              <Route path="/statistiky" element={<Suspense fallback={<PageLoader />}><StatisticsPage /></Suspense>} />
+              <Route path="/clenove" element={<Suspense fallback={<PageLoader />}><MembersPage /></Suspense>} />
+              <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
+            </Route>
 
-              {/* Catch all redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </div>
       </Router>
       <Analytics />
