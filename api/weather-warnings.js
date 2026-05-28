@@ -63,7 +63,10 @@ export default async function handler(req, res) {
             }
         }));
 
-        res.status(200).json({ warnings });
+        const now = new Date();
+        const activeWarnings = warnings.filter(w => !w.expires || new Date(w.expires) > now);
+
+        res.status(200).json({ warnings: activeWarnings });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -84,7 +84,7 @@ export default function WeatherWarnings() {
                 targetTime = Date.now() + CACHE_DURATION;
             }
 
-            setWarnings(data.warnings || []);
+            setWarnings((data.warnings || []).filter(w => !w.expires || new Date(w.expires) > new Date()));
             setError(null);
             nextUpdateRef.current = targetTime;
         } catch (err) {
