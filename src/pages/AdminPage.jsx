@@ -6,6 +6,7 @@ import EquipmentTypesTab from '../components/admin/EquipmentTypesTab';
 import DetailedInventoryTab from '../components/admin/DetailedInventoryTab';
 import LogsTab from '../components/admin/LogsTab';
 import BulletinTab from '../components/admin/BulletinTab';
+import LinksTab from '../components/admin/LinksTab';
 import AddEquipmentTypeModal from '../components/admin/modals/AddEquipmentTypeModal';
 
 export default function AdminPage() {
@@ -156,6 +157,7 @@ export default function AdminPage() {
           { id: 'vybaveni', label: `🧰 Vybavení ${equipmentTypes.length > 0 ? `(${equipmentTypes.length})` : ''}` },
           { id: 'prehled', label: '📋 Přehled vybavení' },
           { id: 'nastevnka', label: '📌 Nástěnka' },
+          { id: 'odkazy', label: '🔗 Odkazy' },
           { id: 'logy', label: '📜 Logy' }
         ].map(tab => (
           <button
@@ -228,6 +230,10 @@ export default function AdminPage() {
 
       {activeTab === 'nastevnka' && (
         <BulletinTab allUsers={allUsers} />
+      )}
+
+      {activeTab === 'odkazy' && (
+        <LinksTab />
       )}
 
       {activeTab === 'logy' && (

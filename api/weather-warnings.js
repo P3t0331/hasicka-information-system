@@ -19,7 +19,14 @@ export default async function handler(req, res) {
 
         for (const entry of entries) {
             const area = get(entry, 'cap:areaDesc');
-            if (!area.toLowerCase().includes('brno') && !area.toLowerCase().includes('jihomorav')) continue;
+            const areaLower = area.toLowerCase();
+
+            // Include if Brno is explicitly mentioned in the area
+            const mentionsBrno = areaLower.includes('brno');
+            // Include if it covers all of Jihomoravský kraj (no subregion in parentheses)
+            const isWholeJmk = areaLower.includes('jihomorav') && !area.includes('(');
+
+            if (!mentionsBrno && !isWholeJmk) continue;
 
             const event = get(entry, 'cap:event');
             const severity = get(entry, 'cap:severity');

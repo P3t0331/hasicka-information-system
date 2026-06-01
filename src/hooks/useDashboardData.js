@@ -68,29 +68,37 @@ export default function useDashboardData() {
 
                 const dayData = daysMap[dayKey];
 
+                const slotToRole = (slotKey) => {
+                    if (slotKey.startsWith('velitel')) return 'Velitel';
+                    if (slotKey.startsWith('strojnik')) return 'Strojník';
+                    return 'Hasič';
+                };
+
                 // Check Day Shift
                 const dayShift = dayData.dayShift || {};
-                const dayUsers = Object.values(dayShift);
-                const isDayMsg = dayUsers.some(u => u.uid === currentUser.uid);
+                const dayEntries = Object.entries(dayShift);
+                const dayEntry = dayEntries.find(([, u]) => u.uid === currentUser.uid);
 
                 // Check Night Shift
                 const nightShift = dayData.nightShift || {};
-                const nightUsers = Object.values(nightShift);
-                const isNightMsg = nightUsers.some(u => u.uid === currentUser.uid);
+                const nightEntries = Object.entries(nightShift);
+                const nightEntry = nightEntries.find(([, u]) => u.uid === currentUser.uid);
 
                 const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
 
-                if (isDayMsg) {
-                    const colleagues = dayUsers
-                        .filter(u => u.uid !== currentUser.uid)
-                        .map(u => u.name || 'Neznámý');
-                    monthShifts.push({ date: dateStr, type: 'denní', start: '09:00', end: '18:00', colleagues });
+                if (dayEntry) {
+                    const [slotKey] = dayEntry;
+                    const colleagues = dayEntries
+                        .filter(([, u]) => u.uid !== currentUser.uid)
+                        .map(([, u]) => u.name || 'Neznámý');
+                    monthShifts.push({ date: dateStr, type: 'denní', start: '09:00', end: '18:00', colleagues, role: slotToRole(slotKey) });
                 }
-                if (isNightMsg) {
-                    const colleagues = nightUsers
-                        .filter(u => u.uid !== currentUser.uid)
-                        .map(u => u.name || 'Neznámý');
-                    monthShifts.push({ date: dateStr, type: 'noční', start: '18:00', end: '05:00', colleagues });
+                if (nightEntry) {
+                    const [slotKey] = nightEntry;
+                    const colleagues = nightEntries
+                        .filter(([, u]) => u.uid !== currentUser.uid)
+                        .map(([, u]) => u.name || 'Neznámý');
+                    monthShifts.push({ date: dateStr, type: 'noční', start: '18:00', end: '05:00', colleagues, role: slotToRole(slotKey) });
                 }
 
                 // Check Zaloha/Staz

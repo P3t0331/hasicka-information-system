@@ -64,7 +64,7 @@ export default function NextShiftCard({ allShifts, userData }) {
                                         Role
                                     </div>
                                     <div style={{ fontWeight: 600, color: '#333' }}>
-                                        {userData?.role || 'Hasič'}
+                                        {shift.role || 'Hasič'}
                                     </div>
                                 </div>
                             </div>
