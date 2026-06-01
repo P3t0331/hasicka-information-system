@@ -36,11 +36,13 @@ const SEVERITY_LABELS = {
 };
 
 const SEVERITY_COLORS = {
-    'Extreme': '#C62828',
-    'Severe': '#E64A19',
-    'Moderate': '#EF6C00',
+    'Extreme': '#6A1B9A',
+    'Severe': '#C62828',
+    'Moderate': '#E65100',
     'Minor': '#F9A825',
 };
+
+const SEVERITY_ORDER = { 'Extreme': 0, 'Severe': 1, 'Moderate': 2, 'Minor': 3 };
 
 export default function WeatherWarnings() {
     const [warnings, setWarnings] = useState([]);
@@ -84,7 +86,10 @@ export default function WeatherWarnings() {
                 targetTime = Date.now() + CACHE_DURATION;
             }
 
-            setWarnings((data.warnings || []).filter(w => !w.expires || new Date(w.expires) > new Date()));
+            setWarnings((data.warnings || [])
+                .filter(w => !w.expires || new Date(w.expires) > new Date())
+                .sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9))
+            );
             setError(null);
             nextUpdateRef.current = targetTime;
         } catch (err) {

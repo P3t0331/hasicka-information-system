@@ -21,12 +21,73 @@ const EMOJI_OPTIONS = [
     '🧯','🏋️','📞','🗂️','🔧','🏥','🗺️','📸','📊','🧰','💡','🌍',
 ];
 
+function LinkFormFields({ value, onChange }) {
+    return (
+        <>
+            <div style={{ marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '0.78rem', color: '#888', marginBottom: '0.4rem' }}>Vyberte ikonu</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                    <button
+                        type="button"
+                        onClick={() => onChange({ ...value, emoji: '' })}
+                        style={{
+                            fontSize: '0.72rem', padding: '0.3rem 0.5rem',
+                            border: value.emoji === '' ? '2px solid #E53935' : '2px solid #eee',
+                            borderRadius: '8px', background: value.emoji === '' ? '#ffebee' : 'white',
+                            cursor: 'pointer', color: '#888', fontWeight: 600,
+                        }}
+                    >
+                        Bez ikony
+                    </button>
+                    {EMOJI_OPTIONS.map(e => (
+                        <button
+                            key={e}
+                            type="button"
+                            onClick={() => onChange({ ...value, emoji: e })}
+                            style={{
+                                fontSize: '1.35rem', padding: '0.3rem 0.4rem',
+                                border: value.emoji === e ? '2px solid #E53935' : '2px solid #eee',
+                                borderRadius: '8px', background: value.emoji === e ? '#ffebee' : 'white',
+                                cursor: 'pointer', lineHeight: 1,
+                            }}
+                        >
+                            {e}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <input
+                    placeholder="Název *"
+                    value={value.label}
+                    onChange={e => onChange({ ...value, label: e.target.value })}
+                    style={{ padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
+                />
+                <input
+                    placeholder="URL *"
+                    value={value.url}
+                    onChange={e => onChange({ ...value, url: e.target.value })}
+                    style={{ padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
+                />
+            </div>
+            <input
+                placeholder="Popis (volitelný)"
+                value={value.description}
+                onChange={e => onChange({ ...value, description: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }}
+            />
+        </>
+    );
+}
+
 export default function LinksTab() {
     const { currentUser, userData } = useAuth();
     const [links, setLinks] = useState(null);
     const [form, setForm] = useState(EMPTY_FORM);
+    const [editLink, setEditLink] = useState(null);
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState(null);
+    const [confirmRemove, setConfirmRemove] = useState(null);
 
     useEffect(() => {
         const unsub = onSnapshot(doc(db, 'settings', 'importantLinks'), (snap) => {
@@ -45,6 +106,8 @@ export default function LinksTab() {
         setTimeout(() => setToast(null), 3000);
     };
 
+    const userName = () => `${userData?.firstName} ${userData?.lastName}`.trim();
+
     const save = async (newLinks) => {
         setSaving(true);
         try {
@@ -57,32 +120,76 @@ export default function LinksTab() {
     };
 
     const handleAdd = async () => {
-        if (!form.label.trim() || !form.url.trim()) {
-            showToast('error', 'Vyplňte název a URL.');
-            return;
-        }
+        if (!form.label.trim() || !form.url.trim()) { showToast('error', 'Vyplňte název a URL.'); return; }
         const id = Date.now().toString();
         const newLinks = [...(links || []), { id, ...form, label: form.label.trim(), url: form.url.trim(), description: form.description.trim() }];
         await save(newLinks);
-        const userName = `${userData?.firstName} ${userData?.lastName}`.trim();
-        logAction(db, currentUser.uid, userName, 'ADMIN_ADDED_LINK', 'admin', `Přidán odkaz: ${form.label.trim()}`);
+        logAction(db, currentUser.uid, userName(), 'ADMIN_ADDED_LINK', 'admin', `Přidán odkaz: ${form.label.trim()}`);
         setForm(EMPTY_FORM);
         showToast('success', 'Odkaz přidán.');
+    };
+
+    const handleEdit = async () => {
+        if (!editLink.label.trim() || !editLink.url.trim()) { showToast('error', 'Vyplňte název a URL.'); return; }
+        const newLinks = (links || []).map(l => l.id === editLink.id
+            ? { ...editLink, label: editLink.label.trim(), url: editLink.url.trim(), description: editLink.description.trim() }
+            : l
+        );
+        await save(newLinks);
+        logAction(db, currentUser.uid, userName(), 'ADMIN_UPDATED_LINK', 'admin', `Upraven odkaz: ${editLink.label.trim()}`);
+        setEditLink(null);
+        showToast('success', 'Odkaz upraven.');
     };
 
     const handleRemove = async (id) => {
         const link = (links || []).find(l => l.id === id);
         const newLinks = (links || []).filter(l => l.id !== id);
         await save(newLinks);
-        const userName = `${userData?.firstName} ${userData?.lastName}`.trim();
-        logAction(db, currentUser.uid, userName, 'ADMIN_REMOVED_LINK', 'admin', `Odstraněn odkaz: ${link?.label || id}`);
+        logAction(db, currentUser.uid, userName(), 'ADMIN_REMOVED_LINK', 'admin', `Odstraněn odkaz: ${link?.label || id}`);
         showToast('success', 'Odkaz odstraněn.');
+        setConfirmRemove(null);
     };
 
     if (links === null) return <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání...</div>;
 
     return (
         <div>
+            {/* Edit modal */}
+            {editLink && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem'
+                }} onClick={() => setEditLink(null)}>
+                    <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px', width: '100%', animation: 'fadeIn 0.2s' }}>
+                        <h3 style={{ marginTop: 0, marginBottom: '1.25rem' }}>Upravit odkaz</h3>
+                        <LinkFormFields value={editLink} onChange={setEditLink} />
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setEditLink(null)}>Zrušit</button>
+                            <button className="btn btn-primary" style={{ flex: 1 }} disabled={saving} onClick={handleEdit}>Uložit</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirm remove modal */}
+            {confirmRemove && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
+                }} onClick={() => setConfirmRemove(null)}>
+                    <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%', animation: 'fadeIn 0.2s' }}>
+                        <h3 style={{ marginTop: 0 }}>Odebrat odkaz?</h3>
+                        <p style={{ color: '#555', marginBottom: '1.25rem' }}>
+                            Odkaz <strong>„{confirmRemove.label}"</strong> bude trvale odstraněn.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmRemove(null)}>Zrušit</button>
+                            <button className="btn btn-primary" style={{ flex: 1, background: '#d32f2f', borderColor: '#d32f2f' }} onClick={() => handleRemove(confirmRemove.id)}>Odebrat</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {toast && (
                 <div style={{
                     position: 'fixed', top: '20px', right: '20px', zIndex: 2000,
@@ -100,70 +207,9 @@ export default function LinksTab() {
             {/* Add form */}
             <div className="card" style={{ marginBottom: '2rem', padding: '1.25rem' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 700 }}>Přidat odkaz</h3>
-
-                {/* Emoji palette */}
-                <div style={{ marginBottom: '0.75rem' }}>
-                    <div style={{ fontSize: '0.78rem', color: '#888', marginBottom: '0.4rem' }}>Vyberte ikonu</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-                        <button
-                            type="button"
-                            onClick={() => setForm(f => ({ ...f, emoji: '' }))}
-                            style={{
-                                fontSize: '0.72rem', padding: '0.3rem 0.5rem',
-                                border: form.emoji === '' ? '2px solid #E53935' : '2px solid #eee',
-                                borderRadius: '8px', background: form.emoji === '' ? '#ffebee' : 'white',
-                                cursor: 'pointer', color: '#888', fontWeight: 600,
-                            }}
-                        >
-                            Bez ikony
-                        </button>
-                        {EMOJI_OPTIONS.map(e => (
-                            <button
-                                key={e}
-                                type="button"
-                                onClick={() => setForm(f => ({ ...f, emoji: e }))}
-                                style={{
-                                    fontSize: '1.35rem', padding: '0.3rem 0.4rem',
-                                    border: form.emoji === e ? '2px solid #E53935' : '2px solid #eee',
-                                    borderRadius: '8px', background: form.emoji === e ? '#ffebee' : 'white',
-                                    cursor: 'pointer', lineHeight: 1,
-                                }}
-                            >
-                                {e}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <input
-                        placeholder="Název *"
-                        value={form.label}
-                        onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
-                        style={{ padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
-                    />
-                    <input
-                        placeholder="URL *"
-                        value={form.url}
-                        onChange={e => setForm(f => ({ ...f, url: e.target.value }))}
-                        style={{ padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
-                    />
-                </div>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <input
-                        placeholder="Popis (volitelný)"
-                        value={form.description}
-                        onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                        style={{ flex: 1, padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
-                    />
-                    <button
-                        onClick={handleAdd}
-                        disabled={saving}
-                        className="btn btn-primary"
-                        style={{ whiteSpace: 'nowrap' }}
-                    >
-                        + Přidat
-                    </button>
+                <LinkFormFields value={form} onChange={setForm} />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+                    <button onClick={handleAdd} disabled={saving} className="btn btn-primary">+ Přidat</button>
                 </div>
             </div>
 
@@ -188,17 +234,30 @@ export default function LinksTab() {
                                 {link.url}
                             </div>
                         </div>
-                        <button
-                            onClick={() => handleRemove(link.id)}
-                            disabled={saving}
-                            style={{
-                                background: 'none', border: '1px solid #ffcdd2', color: '#c62828',
-                                borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer',
-                                fontSize: '0.8rem', fontWeight: 600, flexShrink: 0
-                            }}
-                        >
-                            Odebrat
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                            <button
+                                onClick={() => setEditLink({ ...link })}
+                                disabled={saving}
+                                style={{
+                                    background: 'none', border: '1px solid #ddd', color: '#555',
+                                    borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer',
+                                    fontSize: '0.8rem', fontWeight: 600,
+                                }}
+                            >
+                                Upravit
+                            </button>
+                            <button
+                                onClick={() => setConfirmRemove(link)}
+                                disabled={saving}
+                                style={{
+                                    background: 'none', border: '1px solid #ffcdd2', color: '#c62828',
+                                    borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer',
+                                    fontSize: '0.8rem', fontWeight: 600,
+                                }}
+                            >
+                                Odebrat
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

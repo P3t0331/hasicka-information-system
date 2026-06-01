@@ -73,6 +73,7 @@ export const ACTION_LABELS = {
   ADMIN_CREATED_USER:        'Vytvoření účtu pro člena',
   ADMIN_IMPORTED_SHIFTS:     'Import historických služeb',
   ADMIN_ADDED_LINK:          'Přidán důležitý odkaz',
+  ADMIN_UPDATED_LINK:        'Upraven důležitý odkaz',
   ADMIN_REMOVED_LINK:        'Odstraněn důležitý odkaz',
 };
 
