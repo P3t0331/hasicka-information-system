@@ -5,6 +5,7 @@ import { MONTHS_CZ } from '../components/shifts/constants';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from '../utils/logger';
+import { generateICS, downloadICS, shiftSlotToICSEvent } from '../utils/icsExport';
 
 // Subcomponents
 import AbsencePanel from '../components/shifts/AbsencePanel';
@@ -130,6 +131,31 @@ export default function ShiftCalendarPage() {
     handleSlotClick(day, section, slotKey);
   }, [retroMode, isStrictAdmin, shiftsData, handleSlotClick]);
 
+  const handleExportShifts = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const events = [];
+
+    Object.entries(shiftsData).forEach(([dayStr, dayData]) => {
+      const day = parseInt(dayStr, 10);
+      const sections = ['nightShift', 'dayShift', 'zalohaStaz'];
+      sections.forEach(section => {
+        const sectionData = dayData[section];
+        if (!sectionData) return;
+        const zalohaConfig = section === 'zalohaStaz' ? sectionData.config : undefined;
+        Object.entries(sectionData).forEach(([slotKey, slotData]) => {
+          if (slotKey === 'config' || slotKey === 'interested') return;
+          if (slotData && slotData.uid === currentUser.uid) {
+            events.push(shiftSlotToICSEvent(year, month, day, section, slotKey, slotData, zalohaConfig));
+          }
+        });
+      });
+    });
+
+    const pad = n => String(n).padStart(2, '0');
+    downloadICS(generateICS(events), `sluzby-${year}-${pad(month)}.ics`);
+  };
+
   if (loading) {
     return (
       <div className="container mt-4 flex-center" style={{ minHeight: '300px' }}>
@@ -179,7 +205,6 @@ export default function ShiftCalendarPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        flexWrap: 'wrap',
         gap: '0.5rem'
       }}>
         <button
@@ -195,22 +220,40 @@ export default function ShiftCalendarPage() {
         >
           ←
         </button>
-        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px', flex: 1, textAlign: 'center' }}>
           {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
-        <button
-          className="btn"
-          onClick={() => handleMonthChange(1)}
-          style={{
-            background: 'rgba(255,255,255,0.1)',
-            color: 'white',
-            border: '1px solid rgba(255,255,255,0.2)',
-            padding: '0.4rem 0.75rem',
-            fontSize: '0.85rem'
-          }}
-        >
-          →
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button
+            className="btn"
+            onClick={() => handleMonthChange(1)}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.2)',
+              padding: '0.4rem 0.75rem',
+              fontSize: '0.85rem'
+            }}
+          >
+            →
+          </button>
+          <button
+            onClick={handleExportShifts}
+            title="Exportovat mé služby do kalendáře"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              color: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              padding: '0.4rem 0.6rem',
+              fontSize: '0.85rem',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              lineHeight: 1
+            }}
+          >
+            📅
+          </button>
+        </div>
       </div>
 
       {/* Retro Mode Toggle (admin only) */}

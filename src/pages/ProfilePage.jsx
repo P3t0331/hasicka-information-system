@@ -1,13 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { db } from '../firebase';
 import useProfile from '../hooks/useProfile';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import EquipmentSection from '../components/profile/EquipmentSection';
 import EquipmentModal from '../components/profile/EquipmentModal';
 import ConfirmModal from '../components/profile/ConfirmModal';
+import { generateICS, downloadICS, activityToICSEvent, shiftSlotToICSEvent } from '../utils/icsExport';
 
 export default function ProfilePage() {
     const {
+        currentUser,
         userData,
         isEditing,
         setIsEditing,
@@ -53,6 +57,59 @@ export default function ProfilePage() {
 
     const userRoles = userData.roles || [userData.role || 'Hasič'];
     const allEquipment = userData.equipmentList || [];
+
+    const handleExportAll = async () => {
+        const today = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const monthDocIds = [0, 1, 2].map(offset => {
+            const d = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+        });
+        const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+        const [shiftDocs, trainingsSnap, eventsSnap] = await Promise.all([
+            Promise.all(monthDocIds.map(id => getDoc(doc(db, 'shifts', id)))),
+            getDocs(collection(db, 'trainings')),
+            getDocs(collection(db, 'events')),
+        ]);
+
+        const events = [];
+
+        shiftDocs.forEach((docSnap, idx) => {
+            if (!docSnap.exists()) return;
+            const [yearStr, monthStr] = monthDocIds[idx].split('-');
+            const year = parseInt(yearStr, 10);
+            const month = parseInt(monthStr, 10);
+            const daysData = docSnap.data().days || {};
+            Object.entries(daysData).forEach(([dayStr, dayData]) => {
+                const day = parseInt(dayStr, 10);
+                ['nightShift', 'dayShift', 'zalohaStaz'].forEach(section => {
+                    const sectionData = dayData[section];
+                    if (!sectionData) return;
+                    const zalohaConfig = section === 'zalohaStaz' ? sectionData.config : undefined;
+                    Object.entries(sectionData).forEach(([slotKey, slotData]) => {
+                        if (slotKey === 'config' || slotKey === 'interested') return;
+                        if (slotData && slotData.uid === currentUser.uid) {
+                            events.push(shiftSlotToICSEvent(year, month, day, section, slotKey, slotData, zalohaConfig));
+                        }
+                    });
+                });
+            });
+        });
+
+        trainingsSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(t => t.date >= todayStr && t.participants?.some(p => p.uid === currentUser.uid))
+            .forEach(t => events.push(activityToICSEvent(t, 'training')));
+
+        eventsSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(e => e.date >= todayStr && e.participants?.some(p => p.uid === currentUser.uid))
+            .forEach(e => events.push(activityToICSEvent(e, 'event')));
+
+        events.sort((a, b) => a.dtstart.localeCompare(b.dtstart));
+        downloadICS(generateICS(events), 'hasicka-kalendar.ics');
+    };
 
     return (
         <div className="container mt-4" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
@@ -206,6 +263,9 @@ export default function ProfilePage() {
                             <Link to="/statistiky" className="btn btn-secondary" style={{ flex: 1 }}>
                                 📊 Moje Statistiky
                             </Link>
+                            <button onClick={handleExportAll} className="btn btn-secondary" style={{ flex: 1 }}>
+                                📅 Export kalendáře
+                            </button>
                         </div>
                     </div>
                 </div>

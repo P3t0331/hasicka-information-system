@@ -3,6 +3,7 @@ import useEvents from '../hooks/useEvents';
 import EventCard from '../components/events/EventCard';
 import CreateEventModal from '../components/events/CreateEventModal';
 import { MONTHS_CZ_FILTER } from '../utils/constants';
+import { generateICS, downloadICS, activityToICSEvent } from '../utils/icsExport';
 
 export default function EventsPage() {
     const {
@@ -162,8 +163,27 @@ export default function EventsPage() {
                         <span>📅</span>
                         <span>Nadcházející</span>
                     </span>
-                    <div className="section-header__meta">
+                    <div className="section-header__meta" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span className="section-header__count">{filteredUpcomingEvents.length}</span>
+                        {upcomingEvents.length > 0 && (
+                            <button
+                                onClick={() => {
+                                    const joined = upcomingEvents.filter(e => e.participants?.some(p => p.uid === currentUser?.uid));
+                                    downloadICS(generateICS(joined.map(e => activityToICSEvent(e, 'event'))), 'akce.ics');
+                                }}
+                                title="Exportovat do kalendáře (.ics)"
+                                style={{
+                                    background: 'transparent', border: 'none',
+                                    padding: '0.1rem 0.25rem', cursor: 'pointer',
+                                    fontSize: '1rem', lineHeight: 1, opacity: 0.6,
+                                    transition: 'opacity 0.15s'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+                            >
+                                📅
+                            </button>
+                        )}
                     </div>
                 </div>
 
