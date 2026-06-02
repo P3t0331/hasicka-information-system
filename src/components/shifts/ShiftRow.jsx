@@ -2,7 +2,7 @@ import React from 'react';
 import SlotChip from './SlotChip';
 import { SLOT_TYPES } from './constants';
 
-export default function ShiftRow({
+function ShiftRow({
   day,
   sectionData,
   section,
@@ -198,3 +198,5 @@ export default function ShiftRow({
     </div>
   );
 }
+
+export default React.memo(ShiftRow);

@@ -2,6 +2,15 @@ import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { db } from '../firebase';
 
+const ROLE_LABELS = {
+    'VJ': 'Velitel jednotky',
+    'Zástupce VJ': 'Zástupce VJ',
+    'VD': 'Velitel družstva',
+    'Strojník': 'Strojník',
+    'Hasič': 'Hasič',
+    'Admin': 'Administrátor'
+};
+
 export default function useMembers() {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -62,14 +71,6 @@ export default function useMembers() {
     });
 
     const allRoles = ['VJ', 'Zástupce VJ', 'VD', 'Strojník', 'Hasič'];
-    const roleLabels = {
-        'VJ': 'Velitel jednotky',
-        'Zástupce VJ': 'Zástupce VJ',
-        'VD': 'Velitel družstva',
-        'Strojník': 'Strojník',
-        'Hasič': 'Hasič',
-        'Admin': 'Administrátor'
-    };
 
     return {
         loading,
@@ -79,6 +80,6 @@ export default function useMembers() {
         setRoleFilter,
         filteredMembers,
         allRoles,
-        roleLabels
+        roleLabels: ROLE_LABELS
     };
 }

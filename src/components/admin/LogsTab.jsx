@@ -5,6 +5,64 @@ import { CATEGORY_CONFIG, ACTION_LABELS, formatRelativeTime, formatAbsoluteTime 
 
 const PAGE_SIZE = 300;
 
+const LogEntry = React.memo(function LogEntry({ id, category, action, userName, detail, timestamp }) {
+  const cat = CATEGORY_CONFIG[category] || { label: category, color: '#555', bg: '#f5f5f5', border: '#ddd', icon: '•' };
+  const actionLabel = ACTION_LABELS[action] || action;
+  const initials = userName ? userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
+
+  return (
+    <div
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+        background: 'white', borderRadius: '10px',
+        padding: '0.75rem 1rem',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        borderLeft: `4px solid ${cat.border}`,
+        transition: 'box-shadow 0.15s'
+      }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.1)'}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)'}
+    >
+      {/* Avatar */}
+      <div style={{
+        width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+        background: cat.bg, border: `2px solid ${cat.border}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: cat.color, fontWeight: 700, fontSize: '0.72rem'
+      }}>
+        {initials}
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#222' }}>{userName}</span>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+            fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
+            borderRadius: '12px', background: cat.bg, color: cat.color, border: `1px solid ${cat.border}`
+          }}>
+            {cat.icon} {actionLabel}
+          </span>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.82rem', color: '#555', lineHeight: 1.45 }}>
+          {detail}
+        </p>
+      </div>
+
+      {/* Timestamp */}
+      <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '70px', alignSelf: 'center' }}>
+        <div style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>
+          {formatRelativeTime(timestamp)}
+        </div>
+        <div className="d-desktop-only" style={{ fontSize: '0.65rem', color: '#bbb', marginTop: '0.15rem' }}>
+          {formatAbsoluteTime(timestamp)}
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function LogsTab({
   allUsers,
   activityLogs,
@@ -261,64 +319,17 @@ export default function LogsTab({
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {activityLogs.map((log, idx) => {
-            const cat = CATEGORY_CONFIG[log.category] || { label: log.category, color: '#555', bg: '#f5f5f5', border: '#ddd', icon: '•' };
-            const actionLabel = ACTION_LABELS[log.action] || log.action;
-            const initials = log.userName ? log.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
-
-            return (
-              <div
-                key={log.id || idx}
-                style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
-                  background: 'white', borderRadius: '10px',
-                  padding: '0.75rem 1rem',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                  borderLeft: `4px solid ${cat.border}`,
-                  transition: 'box-shadow 0.15s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.1)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)'}
-              >
-                {/* Avatar */}
-                <div style={{
-                  width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
-                  background: cat.bg, border: `2px solid ${cat.border}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: cat.color, fontWeight: 700, fontSize: '0.72rem'
-                }}>
-                  {initials}
-                </div>
-
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#222' }}>{log.userName}</span>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                      fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
-                      borderRadius: '12px', background: cat.bg, color: cat.color, border: `1px solid ${cat.border}`
-                    }}>
-                      {cat.icon} {actionLabel}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#555', lineHeight: 1.45 }}>
-                    {log.detail}
-                  </p>
-                </div>
-
-                {/* Timestamp */}
-                <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '70px', alignSelf: 'center' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>
-                    {formatRelativeTime(log.timestamp)}
-                  </div>
-                  <div className="d-desktop-only" style={{ fontSize: '0.65rem', color: '#bbb', marginTop: '0.15rem' }}>
-                    {formatAbsoluteTime(log.timestamp)}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {activityLogs.map((log, idx) => (
+            <LogEntry
+              key={log.id || idx}
+              id={log.id}
+              category={log.category}
+              action={log.action}
+              userName={log.userName}
+              detail={log.detail}
+              timestamp={log.timestamp}
+            />
+          ))}
 
           {hasMore && (
             <button

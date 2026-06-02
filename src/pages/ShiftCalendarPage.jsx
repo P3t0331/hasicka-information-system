@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useShiftCalendar from '../hooks/useShiftCalendar';
 import { MONTHS_CZ } from '../components/shifts/constants';
@@ -111,7 +111,7 @@ export default function ShiftCalendarPage() {
   const isStrictAdmin = userRoles.includes('Admin');
   const [joinShiftModal, setJoinShiftModal] = useState(null); // { day, section, slotKey }
 
-  const handleShiftSlotClick = (day, section, slotKey) => {
+  const handleShiftSlotClick = useCallback((day, section, slotKey) => {
     if (retroMode && isStrictAdmin) {
       const assignee = (shiftsData[day]?.[section] || {})[slotKey];
       if (!assignee) {
@@ -128,7 +128,7 @@ export default function ShiftCalendarPage() {
     }
 
     handleSlotClick(day, section, slotKey);
-  };
+  }, [retroMode, isStrictAdmin, shiftsData, handleSlotClick]);
 
   if (loading) {
     return (
@@ -355,7 +355,7 @@ export default function ShiftCalendarPage() {
                       )}
                       <ShiftRow
                         day={day}
-                        sectionData={shiftsData[day.date]?.zalohaStaz || {}}
+                        sectionData={shiftsData[day.date]?.zalohaStaz}
                         section="zalohaStaz"
                         onSlotClick={handleShiftSlotClick}
                         onZalohaInterestedClick={handleZalohaInterestedClick}
@@ -479,7 +479,7 @@ export default function ShiftCalendarPage() {
                     <React.Fragment key={`day-${day.date}`}>
                       <ShiftRow
                         day={day}
-                        sectionData={shiftsData[day.date]?.dayShift || {}}
+                        sectionData={shiftsData[day.date]?.dayShift}
                         section="dayShift"
                         onSlotClick={handleShiftSlotClick}
                         currentUser={currentUser}
@@ -604,7 +604,7 @@ export default function ShiftCalendarPage() {
                     <React.Fragment key={`night-${day.date}`}>
                       <ShiftRow
                         day={day}
-                        sectionData={shiftsData[day.date]?.nightShift || {}}
+                        sectionData={shiftsData[day.date]?.nightShift}
                         section="nightShift"
                         onSlotClick={handleShiftSlotClick}
                         currentUser={currentUser}

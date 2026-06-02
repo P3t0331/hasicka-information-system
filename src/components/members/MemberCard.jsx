@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function MemberCard({ member, roleLabels }) {
+function MemberCard({ member, roleLabels }) {
     // Normalize roles to array of strings
     const rawRoles = member.roles || [member.role || 'Hasič'];
     const userRoles = Array.isArray(rawRoles)
@@ -229,3 +229,5 @@ export default function MemberCard({ member, roleLabels }) {
         </div>
     );
 }
+
+export default React.memo(MemberCard);
