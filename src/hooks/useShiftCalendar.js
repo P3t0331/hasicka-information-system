@@ -49,14 +49,6 @@ export default function useShiftCalendar(currentUser, userData) {
   const [daySectionOpen, setDaySectionOpen] = useState(false);
   const [nightSectionOpen, setNightSectionOpen] = useState(true);
   const sectionsInitialized = useRef(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const refresh = useCallback(() => {
-    return new Promise(resolve => {
-      setRefreshKey(k => k + 1);
-      setTimeout(resolve, 1200);
-    });
-  }, []);
 
   const groupWeeks = (daysArray) => {
     const weeks = [];
@@ -135,7 +127,7 @@ export default function useShiftCalendar(currentUser, userData) {
     });
 
     return unsubscribe;
-  }, [currentDocId, refreshKey]);
+  }, [currentDocId]);
 
   // 2. Subscribe to Absences (global collection) and filter for current month view
   useEffect(() => {
@@ -164,7 +156,7 @@ export default function useShiftCalendar(currentUser, userData) {
     });
 
     return unsubscribe;
-  }, [currentDate, refreshKey]);
+  }, [currentDate]);
 
   // 3. Subscribe to Trainings
   useEffect(() => {
@@ -179,7 +171,7 @@ export default function useShiftCalendar(currentUser, userData) {
       setTrainingsData(currentMonthTrainings);
     });
     return unsubscribe;
-  }, [currentDate, refreshKey]);
+  }, [currentDate]);
 
   // 4. Subscribe to Events
   useEffect(() => {
@@ -194,7 +186,7 @@ export default function useShiftCalendar(currentUser, userData) {
       setEventsData(currentMonthEvents);
     });
     return unsubscribe;
-  }, [currentDate, refreshKey]);
+  }, [currentDate]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -837,6 +829,5 @@ export default function useShiftCalendar(currentUser, userData) {
     handleAddZaloha,
     handleRetroAssign,
     showToast,
-    refresh,
   };
 }

@@ -3,8 +3,6 @@ import useDailyLog from '../hooks/useDailyLog';
 import useMembers from '../hooks/useMembers';
 import MonthlyLogTable from '../components/logs/MonthlyLogTable';
 import LogEntryEditor from '../components/logs/LogEntryEditor';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 const ACCENT = { from: '#00838F', to: '#006064' };
 
@@ -32,13 +30,11 @@ export default function CleaningLogPage() {
         confirmDelete,
         onlyMine,
         setOnlyMine,
-        refresh
     } = useDailyLog('cleaningLogs', 'cleaning', 'úklidu');
 
     const { filteredMembers: members } = useMembers();
 
     const presets = useMemo(() => buildPresets(entries), [entries]);
-    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     if (loading) {
         return (
@@ -50,7 +46,6 @@ export default function CleaningLogPage() {
 
     return (
         <>
-            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             <MonthlyLogTable
                 title="🧹 Úklid na stanici"
                 accentColor={ACCENT}

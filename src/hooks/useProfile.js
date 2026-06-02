@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,14 +20,6 @@ export default function useProfile() {
 
     // Notifications and Modals
     const [confirmModal, setConfirmModal] = useState(null);
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const refresh = useCallback(() => {
-        return new Promise(resolve => {
-            setRefreshKey(k => k + 1);
-            setTimeout(resolve, 1200);
-        });
-    }, []);
 
     function showNotification(type, message) {
         addToast(type, message);
@@ -44,7 +36,7 @@ export default function useProfile() {
             }
         });
         return unsub;
-    }, [refreshKey]);
+    }, []);
 
     useEffect(() => {
         if (currentUser && userData) {
@@ -172,7 +164,6 @@ export default function useProfile() {
         handleUpdateProfile,
         handleSaveEquipment,
         handleDeleteEquipment,
-        requestConfirm,
-        refresh
+        requestConfirm
     };
 }

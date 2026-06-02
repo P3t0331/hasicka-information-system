@@ -4,8 +4,6 @@ import useMembers from '../hooks/useMembers';
 import TrainingCard from '../components/trainings/TrainingCard';
 import CreateTrainingModal from '../components/trainings/CreateTrainingModal';
 import { MONTHS_CZ_FILTER } from '../utils/constants';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 export default function TrainingsPage() {
     const {
@@ -32,10 +30,7 @@ export default function TrainingsPage() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
-        refresh,
     } = useTrainings();
-
-    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     const { filteredMembers: members } = useMembers();
 
@@ -80,7 +75,6 @@ export default function TrainingsPage() {
 
     return (
         <div className="container mt-4" style={{ maxWidth: '800px', paddingBottom: '3rem' }}>
-            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             {/* Page Header */}
             <div className="page-header">
                 <div className="page-header__content">

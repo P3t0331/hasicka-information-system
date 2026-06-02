@@ -5,8 +5,6 @@ import ProfileInfo from '../components/profile/ProfileInfo';
 import EquipmentSection from '../components/profile/EquipmentSection';
 import EquipmentModal from '../components/profile/EquipmentModal';
 import ConfirmModal from '../components/profile/ConfirmModal';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 export default function ProfilePage() {
     const {
@@ -28,8 +26,6 @@ export default function ProfilePage() {
         handleDeleteEquipment,
         refresh
     } = useProfile();
-
-    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     if (!userData) {
         return (
@@ -60,7 +56,6 @@ export default function ProfilePage() {
 
     return (
         <div className="container mt-4" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
-            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             {/* Confirm Modal */}
             {confirmModal && (
                 <ConfirmModal

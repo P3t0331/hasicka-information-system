@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useDashboardData from '../hooks/useDashboardData';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import WeatherWarnings from '../components/dashboard/WeatherWarnings';
 import NewActivitiesBanner from '../components/dashboard/NewActivitiesBanner';
 import ZalohaNotificationBanner from '../components/dashboard/ZalohaNotificationBanner';
@@ -22,11 +20,8 @@ export default function DashboardPage() {
         monthlyStats,
         absences,
         newZalohaShifts,
-        newActivities,
-        refresh
+        newActivities
     } = useDashboardData();
-
-    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     const [activitiesDismissed, setActivitiesDismissed] = useState(
         sessionStorage.getItem('dismissed_new_activities') === 'true'
@@ -55,7 +50,6 @@ export default function DashboardPage() {
 
     return (
         <div className="container dashboard-page" style={{ paddingBottom: '5rem' }}>
-            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             {/* Header */}
             <header style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
                 <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.2rem' }}>

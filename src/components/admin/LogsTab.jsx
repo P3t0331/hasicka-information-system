@@ -2,8 +2,6 @@ import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { db } from '../../firebase';
 import { collection, query, getDocs, orderBy, limit, onSnapshot, startAfter, where } from 'firebase/firestore';
 import { CATEGORY_CONFIG, ACTION_LABELS, formatRelativeTime, formatAbsoluteTime } from './constants';
-import { usePullToRefresh } from '../../hooks/usePullToRefresh';
-import PullToRefreshIndicator from '../PullToRefreshIndicator';
 
 const PAGE_SIZE = 300;
 
@@ -175,8 +173,6 @@ export default function LogsTab({
     };
   }, []);
 
-  const { isRefreshing, pullProgress } = usePullToRefresh(() => fetchLogs(true));
-
   const uniqueUsersMap = new Map();
   (allUsers || []).forEach(u => {
     uniqueUsersMap.set(u.uid, { uid: u.uid, name: `${u.lastName} ${u.firstName || ''}`.trim() });
@@ -192,7 +188,6 @@ export default function LogsTab({
 
   return (
     <div>
-      <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
       {/* Filter Bar */}
       <div className="mobile-stack" style={{
         background: 'white', borderRadius: '12px', padding: '1rem',

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
@@ -15,7 +15,6 @@ export default function useEvents() {
     const [showPast, setShowPast] = useState(false);
     const [deleteModal, setDeleteModal] = useState(null);
     const [editEvent, setEditEvent] = useState(null);
-    const [refreshKey, setRefreshKey] = useState(0);
 
     const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
     const canCreate = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'VD'].includes(r));
@@ -32,7 +31,7 @@ export default function useEvents() {
             setLoading(false);
         });
         return unsubscribe;
-    }, [refreshKey]);
+    }, []);
 
     useEffect(() => {
         const unsub = onSnapshot(collection(db, 'eventTemplates'), (snap) => {
@@ -40,16 +39,9 @@ export default function useEvents() {
                 .sort((a, b) => a.title.localeCompare(b.title, 'cs')));
         });
         return unsub;
-    }, [refreshKey]);
+    }, []);
 
     const showToast = (type, message) => addToast(type, message);
-
-    const refresh = useCallback(() => {
-        return new Promise(resolve => {
-            setRefreshKey(k => k + 1);
-            setTimeout(resolve, 1200);
-        });
-    }, []);
 
     const upcomingEvents = events.filter(t => t.date >= todayISO);
     const pastEvents = events.filter(t => t.date < todayISO).reverse();
@@ -181,6 +173,5 @@ export default function useEvents() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
-        refresh,
     };
 }
