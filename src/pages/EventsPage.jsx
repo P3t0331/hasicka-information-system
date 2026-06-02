@@ -163,27 +163,8 @@ export default function EventsPage() {
                         <span>📅</span>
                         <span>Nadcházející</span>
                     </span>
-                    <div className="section-header__meta" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="section-header__meta">
                         <span className="section-header__count">{filteredUpcomingEvents.length}</span>
-                        {upcomingEvents.length > 0 && (
-                            <button
-                                onClick={() => {
-                                    const joined = upcomingEvents.filter(e => e.participants?.some(p => p.uid === currentUser?.uid));
-                                    downloadICS(generateICS(joined.map(e => activityToICSEvent(e, 'event'))), 'akce.ics');
-                                }}
-                                title="Exportovat do kalendáře (.ics)"
-                                style={{
-                                    background: 'transparent', border: 'none',
-                                    padding: '0.1rem 0.25rem', cursor: 'pointer',
-                                    fontSize: '1rem', lineHeight: 1, opacity: 0.6,
-                                    transition: 'opacity 0.15s'
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
-                            >
-                                📅
-                            </button>
-                        )}
                     </div>
                 </div>
 
@@ -231,6 +212,28 @@ export default function EventsPage() {
                                 }}
                             >
                                 Tento měsíc
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const joined = upcomingEvents.filter(e => e.participants?.some(p => p.uid === currentUser?.uid));
+                                    downloadICS(generateICS(joined.map(e => activityToICSEvent(e, 'event'))), 'akce.ics');
+                                }}
+                                title="Exportovat moje akce do kalendáře (.ics)"
+                                style={{
+                                    marginLeft: 'auto',
+                                    padding: '0.25rem 0.65rem',
+                                    borderRadius: '20px',
+                                    border: '1px solid #ced4da',
+                                    background: 'white',
+                                    color: '#495057',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    display: 'flex', alignItems: 'center', gap: '0.3rem'
+                                }}
+                            >
+                                📅 Export
                             </button>
                         </div>
                     )}

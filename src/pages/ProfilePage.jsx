@@ -254,19 +254,14 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* Quick Actions / System */}
-                    <div className="card" style={{ background: '#fafafa' }}>
-                        <h3 style={{ fontSize: '1rem', color: '#666', marginBottom: '1rem', textTransform: 'uppercase' }}>
-                            Systémové akce
-                        </h3>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <Link to="/statistiky" className="btn btn-secondary" style={{ flex: 1 }}>
-                                📊 Moje Statistiky
-                            </Link>
-                            <button onClick={handleExportAll} className="btn btn-secondary" style={{ flex: 1 }}>
-                                📅 Export kalendáře
-                            </button>
-                        </div>
+                    {/* Quick Actions */}
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <Link to="/statistiky" className="btn btn-secondary" style={{ flex: 1, minWidth: '140px', textAlign: 'center' }}>
+                            📊 Moje statistiky
+                        </Link>
+                        <button onClick={handleExportAll} className="btn btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
+                            📅 Export kalendáře
+                        </button>
                     </div>
                 </div>
             </div>

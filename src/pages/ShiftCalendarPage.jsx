@@ -237,28 +237,23 @@ export default function ShiftCalendarPage() {
           >
             →
           </button>
-          <button
-            onClick={handleExportShifts}
-            title="Exportovat mé služby do kalendáře"
-            style={{
-              background: 'rgba(255,255,255,0.08)',
-              color: 'rgba(255,255,255,0.75)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              padding: '0.4rem 0.6rem',
-              fontSize: '0.85rem',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              lineHeight: 1
-            }}
-          >
-            📅
-          </button>
         </div>
       </div>
 
-      {/* Retro Mode Toggle (admin only) */}
-      {isStrictAdmin && (
-        <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'flex-end' }}>
+      {/* Export + Retro row */}
+      <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button
+          onClick={handleExportShifts}
+          title="Exportovat mé služby do kalendáře"
+          style={{
+            background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px',
+            padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem',
+            color: '#555', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.35rem'
+          }}
+        >
+          📅 <span>Export služeb</span>
+        </button>
+        {isStrictAdmin && (
           <button
             onClick={() => setRetroMode(r => !r)}
             style={{
@@ -273,8 +268,8 @@ export default function ShiftCalendarPage() {
           >
             {retroMode ? '⏱ Admin mód: ZAP' : '⏱ Admin mód: VYP'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Retro Mode Banner */}
       {retroMode && (
