@@ -30,8 +30,6 @@ export default function ShiftCalendarPage() {
     setNewDayShiftDate,
     zalohaModal,
     setZalohaModal,
-    toast,
-    setToast,
     modal,
     absencesData,
     absenceModal,
@@ -142,35 +140,6 @@ export default function ShiftCalendarPage() {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '900px', position: 'relative' }}>
-
-      {/* Toast Notification */}
-      {toast && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          right: '20px',
-          padding: '1rem 1.5rem',
-          borderRadius: '8px',
-          background: toast.type === 'error' ? '#FFEBEE' :
-            toast.type === 'warning' ? '#FFF8E1' :
-              toast.type === 'success' ? '#E8F5E9' : '#E3F2FD',
-          color: toast.type === 'error' ? '#B71C1C' :
-            toast.type === 'warning' ? '#F57C00' :
-              toast.type === 'success' ? '#1B5E20' : '#1565C0',
-          border: `1px solid ${toast.type === 'error' ? '#EF9A9A' :
-            toast.type === 'warning' ? '#FFCC80' :
-              toast.type === 'success' ? '#81C784' : '#64B5F6'
-            }`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          maxWidth: '350px',
-          fontSize: '0.9rem',
-          fontWeight: 500,
-          animation: 'fadeIn 0.3s ease'
-        }} onClick={() => setToast(null)}>
-          {toast.message}
-        </div>
-      )}
 
       {/* Confirmation Modal */}
       {modal && (

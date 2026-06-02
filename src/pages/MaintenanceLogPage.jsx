@@ -28,7 +28,6 @@ export default function MaintenanceLogPage() {
         setDeleteModal,
         requestDelete,
         confirmDelete,
-        toast,
         onlyMine,
         setOnlyMine
     } = useDailyLog('maintenanceLogs', 'maintenance', 'údržby');
@@ -47,12 +46,6 @@ export default function MaintenanceLogPage() {
 
     return (
         <>
-            {toast && (
-                <div className={`toast toast--${toast.type}`}>
-                    {toast.message}
-                </div>
-            )}
-
             <MonthlyLogTable
                 title="🔧 Údržba VPPO a PT"
                 accentColor={ACCENT}

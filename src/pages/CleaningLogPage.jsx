@@ -28,7 +28,6 @@ export default function CleaningLogPage() {
         setDeleteModal,
         requestDelete,
         confirmDelete,
-        toast,
         onlyMine,
         setOnlyMine
     } = useDailyLog('cleaningLogs', 'cleaning', 'úklidu');
@@ -47,12 +46,6 @@ export default function CleaningLogPage() {
 
     return (
         <>
-            {toast && (
-                <div className={`toast toast--${toast.type}`}>
-                    {toast.message}
-                </div>
-            )}
-
             <MonthlyLogTable
                 title="🧹 Úklid na stanici"
                 accentColor={ACCENT}

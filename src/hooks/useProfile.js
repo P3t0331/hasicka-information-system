@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { logAction } from '../utils/logger';
 
 export default function useProfile() {
     const { currentUser, userData, logout } = useAuth();
+    const { addToast } = useToast();
 
     // Edit Profile State
     const [isEditing, setIsEditing] = useState(false);
@@ -18,11 +20,9 @@ export default function useProfile() {
 
     // Notifications and Modals
     const [confirmModal, setConfirmModal] = useState(null);
-    const [notification, setNotification] = useState(null);
 
     function showNotification(type, message) {
-        setNotification({ type, message });
-        setTimeout(() => setNotification(null), 4000);
+        addToast(type, message);
     }
 
     function requestConfirm(message, onConfirm) {
@@ -160,7 +160,6 @@ export default function useProfile() {
         setCurrentEq,
         confirmModal,
         setConfirmModal,
-        notification,
         handleLogout,
         handleUpdateProfile,
         handleSaveEquipment,

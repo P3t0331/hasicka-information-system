@@ -3,9 +3,11 @@ import { db } from '../firebase';
 import { collection, doc, addDoc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function useDailyLog(collectionName, logCategory, logLabel) {
     const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
     const [entries, setEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -13,7 +15,6 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
     const [editingEntry, setEditingEntry] = useState(null);
     const [editorPrefillDate, setEditorPrefillDate] = useState(null);
     const [deleteModal, setDeleteModal] = useState(null);
-    const [toast, setToast] = useState(null);
     const [onlyMine, setOnlyMine] = useState(false);
 
     const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
@@ -33,14 +34,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
         return unsubscribe;
     }, [collectionName]);
 
-    useEffect(() => {
-        if (toast) {
-            const timer = setTimeout(() => setToast(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [toast]);
-
-    const showToast = (type, message) => setToast({ type, message });
+    const showToast = (type, message) => addToast(type, message);
 
     const monthPrefix = useMemo(() => {
         const y = currentDate.getFullYear();
@@ -180,8 +174,6 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
         setDeleteModal,
         requestDelete,
         confirmDelete,
-        toast,
-        showToast,
         onlyMine,
         setOnlyMine
     };

@@ -14,8 +14,6 @@ export default function TrainingsPage() {
         setShowCreateModal,
         showPast,
         setShowPast,
-        toast,
-        setToast,
         deleteModal,
         setDeleteModal,
         editTraining,
@@ -32,7 +30,6 @@ export default function TrainingsPage() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
-        showToast
     } = useTrainings();
 
     const { filteredMembers: members } = useMembers();
@@ -78,13 +75,6 @@ export default function TrainingsPage() {
 
     return (
         <div className="container mt-4" style={{ maxWidth: '800px', paddingBottom: '3rem' }}>
-            {/* Toast */}
-            {toast && (
-                <div className={`toast toast--${toast.type}`} onClick={() => setToast(null)}>
-                    {toast.message}
-                </div>
-            )}
-
             {/* Page Header */}
             <div className="page-header">
                 <div className="page-header__content">
@@ -370,7 +360,6 @@ export default function TrainingsPage() {
                     onClose={handleClose}
                     currentUser={currentUser}
                     userData={userData}
-                    showToast={showToast}
                     initialData={activeTemplate ?? editTraining}
                     members={members}
                     onSaveAsTemplate={saveAsTemplate}

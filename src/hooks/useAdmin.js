@@ -4,12 +4,14 @@ import { getAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } f
 import { db, auth } from '../firebase';
 import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
 import { logAction } from '../utils/logger';
 import { ROLE_OPTIONS, CERTIFICATION_OPTIONS } from '../components/admin/constants';
 
 export default function useAdmin() {
   const { currentUser, userData } = useAuth();
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -36,15 +38,12 @@ export default function useAdmin() {
   const [stats, setStats] = useState({ roles: {}, certs: {} });
 
   // Alerts & Dialogs
-  const [notification, setNotification] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
 
   const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
   const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
 
-  const showNotification = useCallback((type, message) => {
-    setNotification({ type, message });
-  }, []);
+  const showNotification = useCallback((type, message) => addToast(type, message), [addToast]);
 
   // Fetch admin data
   const fetchAdminData = useCallback(async (isRetry = false) => {
@@ -117,14 +116,6 @@ export default function useAdmin() {
     });
     setStats({ roles: roleCounts, certs: certCounts });
   }, [allUsers]);
-
-  // Toast Auto-Dismiss
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
 
   function requestConfirm(message, onConfirm) {
     setConfirmModal({ message, onConfirm });
@@ -720,7 +711,6 @@ export default function useAdmin() {
     logFilterCategory,
     setLogFilterCategory,
     stats,
-    notification,
     confirmModal,
     setConfirmModal,
     userRoles,

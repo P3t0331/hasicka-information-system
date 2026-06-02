@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { logAction } from '../../utils/logger';
 
 const DEFAULT_LINKS = [
@@ -82,11 +83,11 @@ function LinkFormFields({ value, onChange }) {
 
 export default function LinksTab() {
     const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
     const [links, setLinks] = useState(null);
     const [form, setForm] = useState(EMPTY_FORM);
     const [editLink, setEditLink] = useState(null);
     const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState(null);
     const [confirmRemove, setConfirmRemove] = useState(null);
 
     useEffect(() => {
@@ -101,10 +102,7 @@ export default function LinksTab() {
         return () => unsub();
     }, []);
 
-    const showToast = (type, msg) => {
-        setToast({ type, msg });
-        setTimeout(() => setToast(null), 3000);
-    };
+    const showToast = (type, msg) => addToast(type, msg);
 
     const userName = () => `${userData?.firstName} ${userData?.lastName}`.trim();
 
@@ -187,18 +185,6 @@ export default function LinksTab() {
                             <button className="btn btn-primary" style={{ flex: 1, background: '#d32f2f', borderColor: '#d32f2f' }} onClick={() => handleRemove(confirmRemove.id)}>Odebrat</button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {toast && (
-                <div style={{
-                    position: 'fixed', top: '20px', right: '20px', zIndex: 2000,
-                    padding: '0.75rem 1.5rem', borderRadius: '8px',
-                    background: toast.type === 'success' ? '#E8F5E9' : '#FFEBEE',
-                    color: toast.type === 'success' ? '#2E7D32' : '#C62828',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                }}>
-                    {toast.type === 'success' ? '✓' : '⚠'} {toast.msg}
                 </div>
             )}
 

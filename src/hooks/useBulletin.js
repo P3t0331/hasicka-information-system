@@ -3,15 +3,16 @@ import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function useBulletin() {
     const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showEditor, setShowEditor] = useState(false);
     const [editingPost, setEditingPost] = useState(null);
     const [deleteModal, setDeleteModal] = useState(null);
-    const [toast, setToast] = useState(null);
 
     const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
     const canCreate = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
@@ -33,14 +34,7 @@ export default function useBulletin() {
         return unsubscribe;
     }, []);
 
-    useEffect(() => {
-        if (toast) {
-            const timer = setTimeout(() => setToast(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [toast]);
-
-    const showToastMsg = (type, message) => setToast({ type, message });
+    const showToastMsg = (type, message) => addToast(type, message);
 
     const unseenPosts = useMemo(() => {
         if (!currentUser) return [];
@@ -173,6 +167,5 @@ export default function useBulletin() {
         requestDelete,
         confirmDelete,
         togglePin,
-        toast,
     };
 }

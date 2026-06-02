@@ -13,8 +13,6 @@ export default function EventsPage() {
         setShowCreateModal,
         showPast,
         setShowPast,
-        toast,
-        setToast,
         deleteModal,
         setDeleteModal,
         editEvent,
@@ -31,7 +29,6 @@ export default function EventsPage() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
-        showToast
     } = useEvents();
 
     const [filterYear, setFilterYear] = React.useState('all');
@@ -75,13 +72,6 @@ export default function EventsPage() {
 
     return (
         <div className="container mt-4" style={{ maxWidth: '800px', paddingBottom: '3rem' }}>
-            {/* Toast */}
-            {toast && (
-                <div className={`toast toast--${toast.type}`} onClick={() => setToast(null)}>
-                    {toast.message}
-                </div>
-            )}
-
             {/* Page Header */}
             <div className="page-header">
                 <div className="page-header__content">
@@ -368,7 +358,6 @@ export default function EventsPage() {
                     onClose={handleClose}
                     currentUser={currentUser}
                     userData={userData}
-                    showToast={showToast}
                     initialData={activeTemplate ?? editEvent}
                     onSaveAsTemplate={saveAsTemplate}
                 />

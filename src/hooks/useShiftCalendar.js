@@ -12,8 +12,10 @@ import {
 } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { DAYS_CZ, MONTHS_CZ, SLOT_TYPES, getSlotBaseType } from '../components/shifts/constants';
+import { useToast } from '../contexts/ToastContext';
 
 export default function useShiftCalendar(currentUser, userData) {
+  const { addToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [shiftsData, setShiftsData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -23,9 +25,6 @@ export default function useShiftCalendar(currentUser, userData) {
 
   // For adding new Zaloha/Staz
   const [zalohaModal, setZalohaModal] = useState(null);
-
-  // Toast notification state
-  const [toast, setToast] = useState(null); // { type: 'error'|'warning'|'success'|'info', message: string }
 
   // Modal state for confirmations
   const [modal, setModal] = useState(null); // { title, message, onConfirm, onCancel }
@@ -94,10 +93,7 @@ export default function useShiftCalendar(currentUser, userData) {
     setCollapsedWeeks(collapsed);
   }, [currentDate.getFullYear(), currentDate.getMonth()]);
 
-  const showToast = (type, message) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
-  };
+  const showToast = (type, message) => addToast(type, message);
 
   const showConfirm = (title, message) => {
     return new Promise((resolve) => {
@@ -792,8 +788,6 @@ export default function useShiftCalendar(currentUser, userData) {
     setNewDayShiftDate,
     zalohaModal,
     setZalohaModal,
-    toast,
-    setToast,
     modal,
     setModal,
     absencesData,
@@ -834,6 +828,5 @@ export default function useShiftCalendar(currentUser, userData) {
     handleDeleteAbsence,
     handleAddZaloha,
     handleRetroAssign,
-    showToast
   };
 }

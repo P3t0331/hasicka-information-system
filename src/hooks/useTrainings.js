@@ -3,15 +3,16 @@ import { db } from '../firebase';
 import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function useTrainings() {
     const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
     const [trainings, setTrainings] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showPast, setShowPast] = useState(false);
-    const [toast, setToast] = useState(null);
     const [deleteModal, setDeleteModal] = useState(null);
     const [editTraining, setEditTraining] = useState(null);
 
@@ -40,14 +41,7 @@ export default function useTrainings() {
         return unsub;
     }, []);
 
-    useEffect(() => {
-        if (toast) {
-            const timer = setTimeout(() => setToast(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [toast]);
-
-    const showToast = (type, message) => setToast({ type, message });
+    const showToast = (type, message) => addToast(type, message);
 
     const upcomingTrainings = trainings.filter(t => t.date >= todayISO);
     const pastTrainings = trainings.filter(t => t.date < todayISO).reverse();
@@ -163,8 +157,6 @@ export default function useTrainings() {
         setShowCreateModal,
         showPast,
         setShowPast,
-        toast,
-        setToast,
         deleteModal,
         setDeleteModal,
         editTraining,
@@ -181,6 +173,5 @@ export default function useTrainings() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
-        showToast
     };
 }

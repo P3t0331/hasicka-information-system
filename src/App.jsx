@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import UpdatePrompt from './components/UpdatePrompt';
@@ -31,7 +32,8 @@ function PageLoader() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <ToastProvider>
+        <Router>
         <div className="app-container">
           <UpdatePrompt />
           <Routes>
@@ -58,7 +60,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-      </Router>
+        </Router>
+      </ToastProvider>
       <Analytics />
     </AuthProvider>
   );

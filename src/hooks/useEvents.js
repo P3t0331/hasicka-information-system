@@ -3,15 +3,16 @@ import { db } from '../firebase';
 import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function useEvents() {
     const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
     const [events, setEvents] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showPast, setShowPast] = useState(false);
-    const [toast, setToast] = useState(null);
     const [deleteModal, setDeleteModal] = useState(null);
     const [editEvent, setEditEvent] = useState(null);
 
@@ -40,14 +41,7 @@ export default function useEvents() {
         return unsub;
     }, []);
 
-    useEffect(() => {
-        if (toast) {
-            const timer = setTimeout(() => setToast(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [toast]);
-
-    const showToast = (type, message) => setToast({ type, message });
+    const showToast = (type, message) => addToast(type, message);
 
     const upcomingEvents = events.filter(t => t.date >= todayISO);
     const pastEvents = events.filter(t => t.date < todayISO).reverse();
@@ -163,8 +157,6 @@ export default function useEvents() {
         setShowCreateModal,
         showPast,
         setShowPast,
-        toast,
-        setToast,
         deleteModal,
         setDeleteModal,
         editEvent,
@@ -181,6 +173,5 @@ export default function useEvents() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
-        showToast
     };
 }

@@ -34,7 +34,6 @@ export default function AdminPage() {
     logFilterCategory,
     setLogFilterCategory,
     stats,
-    notification,
     confirmModal,
     setConfirmModal,
     userRoles,
@@ -73,22 +72,6 @@ export default function AdminPage() {
 
   return (
     <div className="container mt-4 mb-5">
-      {/* Notifications */}
-      {notification && (
-        <div style={{
-          position: 'fixed', top: '20px', right: '20px', zIndex: 1000,
-          padding: '1rem 2rem', borderRadius: '8px',
-          background: notification.type === 'success' ? '#E8F5E9' : '#FFEBEE',
-          color: notification.type === 'success' ? '#2E7D32' : '#C62828',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          display: 'flex', alignItems: 'center', gap: '0.5rem',
-          animation: 'fadeIn 0.3s ease-out'
-        }}>
-          <strong>{notification.type === 'success' ? '✓' : '⚠'}</strong>
-          {notification.message}
-        </div>
-      )}
-
       {/* Confirm Modal */}
       {confirmModal && (
         <div style={{

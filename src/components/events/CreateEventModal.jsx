@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
+import { useToast } from '../../contexts/ToastContext';
 
-export default function CreateEventModal({ onClose, currentUser, userData, showToast, initialData, onSaveAsTemplate }) {
+export default function CreateEventModal({ onClose, currentUser, userData, initialData, onSaveAsTemplate }) {
+    const { addToast: showToast } = useToast();
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [date, setDate] = useState(initialData?.date || '');

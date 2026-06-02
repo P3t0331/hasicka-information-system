@@ -37,7 +37,6 @@ export default function BulletinTab({ allUsers = [] }) {
         requestDelete,
         confirmDelete,
         togglePin,
-        toast,
         currentUser,
     } = useBulletin();
 
@@ -47,12 +46,6 @@ export default function BulletinTab({ allUsers = [] }) {
 
     return (
         <div>
-            {toast && (
-                <div className={`toast toast--${toast.type}`} style={{ position: 'fixed', top: '80px', right: '20px', zIndex: 2000 }}>
-                    {toast.message}
-                </div>
-            )}
-
             {showEditor && (
                 <CreateBulletinModal
                     initialPost={editingPost}

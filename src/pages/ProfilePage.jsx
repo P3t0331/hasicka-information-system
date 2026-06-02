@@ -20,7 +20,6 @@ export default function ProfilePage() {
         setCurrentEq,
         confirmModal,
         setConfirmModal,
-        notification,
         handleLogout,
         handleUpdateProfile,
         handleSaveEquipment,
@@ -56,22 +55,6 @@ export default function ProfilePage() {
 
     return (
         <div className="container mt-4" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
-            {/* Notifications */}
-            {notification && (
-                <div style={{
-                    position: 'fixed', top: '20px', right: '20px', zIndex: 1000,
-                    padding: '1rem 2rem', borderRadius: '8px',
-                    background: notification.type === 'success' ? '#E8F5E9' : '#FFEBEE',
-                    color: notification.type === 'success' ? '#2E7D32' : '#C62828',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    animation: 'fadeIn 0.3s ease-out'
-                }}>
-                    <strong>{notification.type === 'success' ? '✓' : '⚠'}</strong>
-                    {notification.message}
-                </div>
-            )}
-
             {/* Confirm Modal */}
             {confirmModal && (
                 <ConfirmModal
