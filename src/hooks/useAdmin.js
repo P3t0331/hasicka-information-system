@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
 import { db, auth } from '../firebase';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc, enableNetwork, disableNetwork } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
@@ -45,58 +45,38 @@ export default function useAdmin() {
 
   const showNotification = useCallback((type, message) => addToast(type, message), [addToast]);
 
-  // Fetch admin data
-  const fetchAdminData = useCallback(async (isRetry = false) => {
-    setLoading(true);
-    setDataLoading(true);
-    try {
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 8000)
-      );
+  // Fetch admin data via real-time listeners (serves cache instantly on mobile)
+  useEffect(() => {
+    if (!userData) return;
+    if (!isAdminOrVJ) {
+      setDataLoading(false);
+      return;
+    }
 
-      const q = query(collection(db, "users"));
-      const querySnapshot = await Promise.race([getDocs(q), timeout]);
-      const allFetchedUsers = [];
-      querySnapshot.forEach((doc) => {
-        allFetchedUsers.push(doc.data());
-      });
-
+    const usersUnsub = onSnapshot(query(collection(db, "users")), (snapshot) => {
+      const allFetchedUsers = snapshot.docs.map(d => d.data());
       const pending = allFetchedUsers.filter(u => u.approved === false);
       const confirmed = allFetchedUsers.filter(u => u.approved === true);
-
       confirmed.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
-
       setPendingUsers(pending);
       setAllUsers(confirmed);
+      setDataLoading(false);
+    }, (error) => {
+      console.error("Error fetching admin data:", error);
+      showNotification('error', 'Chyba při načítání dat.');
+      setDataLoading(false);
+    });
 
-      const eqDoc = await getDoc(doc(db, "settings", "equipmentTypes"));
+    const eqUnsub = onSnapshot(doc(db, "settings", "equipmentTypes"), (eqDoc) => {
       if (eqDoc.exists()) {
         setEquipmentTypes(eqDoc.data().types || []);
       }
-    } catch (error) {
-      if (error.message === 'timeout' && !isRetry) {
-        await disableNetwork(db).catch(() => {});
-        await enableNetwork(db).catch(() => {});
-        setLoading(false);
-        setDataLoading(false);
-        return fetchAdminData(true);
-      }
-      console.error("Error fetching admin data:", error);
-      showNotification('error', 'Chyba při načítání dat.');
-    } finally {
-      setLoading(false);
-      setDataLoading(false);
-    }
-  }, [showNotification]);
+    }, (error) => {
+      console.error("Error fetching equipment types:", error);
+    });
 
-  useEffect(() => {
-    if (!userData) return;
-    if (isAdminOrVJ) {
-      fetchAdminData();
-    } else {
-      setDataLoading(false);
-    }
-  }, [isAdminOrVJ, userData, fetchAdminData]);
+    return () => { usersUnsub(); eqUnsub(); };
+  }, [isAdminOrVJ, userData, showNotification]);
 
   // Calculate statistics
   useEffect(() => {
@@ -267,8 +247,6 @@ export default function useAdmin() {
       } else {
         showNotification('success', 'Uživatel schválen (email nebyl nalezen).');
       }
-
-      fetchAdminData();
     } catch (error) {
       console.error("Error approving user:", error);
       showNotification('error', 'Chyba při schvalování.');
@@ -282,7 +260,6 @@ export default function useAdmin() {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'ADMIN_REJECTED_USER', 'admin',
           `Zamítl a smazal registraci uživatele ${user.firstName} ${user.lastName} (${user.email})`);
-        fetchAdminData();
         showNotification('success', 'Žádost zamítnuta.');
       } catch (e) {
         console.error(e);
@@ -595,7 +572,6 @@ export default function useAdmin() {
         `Vytvořil účet pro ${firstName} ${lastName} (${email})`);
 
       showNotification('success', `Účet pro ${firstName} ${lastName} byl úspěšně vytvořen.`);
-      await fetchAdminData();
       return true;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -715,7 +691,6 @@ export default function useAdmin() {
     setConfirmModal,
     userRoles,
     isAdminOrVJ,
-    fetchAdminData,
     handleAddEq,
     handleRemoveEq,
     reorderEquipmentTypes,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, enableNetwork, disableNetwork } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const ROLE_LABELS = {
@@ -18,42 +18,21 @@ export default function useMembers() {
     const [roleFilter, setRoleFilter] = useState('all');
 
     useEffect(() => {
-        fetchMembers();
-    }, []);
-
-    const fetchMembers = async (isRetry = false) => {
-        try {
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('approved', '==', true));
-
-            const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('timeout')), 8000)
-            );
-
-            const snapshot = await Promise.race([getDocs(q), timeout]);
-
+        const q = query(collection(db, 'users'), where('approved', '==', true));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const membersData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-
-            membersData.sort((a, b) =>
-                (a.lastName || '').localeCompare(b.lastName || '')
-            );
-
+            membersData.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
             setMembers(membersData);
-        } catch (error) {
-            if (error.message === 'timeout' && !isRetry) {
-                // Force Firestore reconnect and retry once
-                await disableNetwork(db).catch(() => {});
-                await enableNetwork(db).catch(() => {});
-                return fetchMembers(true);
-            }
-            console.error('Error fetching members:', error);
-        } finally {
             setLoading(false);
-        }
-    };
+        }, (error) => {
+            console.error('Error fetching members:', error);
+            setLoading(false);
+        });
+        return unsubscribe;
+    }, []);
 
     // Filter members based on search and role
     const filteredMembers = members.filter(member => {
