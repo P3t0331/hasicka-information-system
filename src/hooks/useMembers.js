@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -19,6 +19,7 @@ export default function useMembers() {
 
     useEffect(() => {
         fetchMembers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchMembers = async (isRetry = false) => {
@@ -72,6 +73,12 @@ export default function useMembers() {
 
     const allRoles = ['VJ', 'Zástupce VJ', 'VD', 'Strojník', 'Hasič'];
 
+    const refresh = useCallback(() => {
+        setLoading(true);
+        return fetchMembers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return {
         loading,
         searchTerm,
@@ -80,6 +87,7 @@ export default function useMembers() {
         setRoleFilter,
         filteredMembers,
         allRoles,
-        roleLabels: ROLE_LABELS
+        roleLabels: ROLE_LABELS,
+        refresh
     };
 }

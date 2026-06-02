@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
@@ -8,6 +8,8 @@ import AbsencesTab from '../components/statistics/AbsencesTab';
 import ShiftsTab from '../components/statistics/ShiftsTab';
 import LogStatsTab from '../components/statistics/LogStatsTab';
 import YearTab from '../components/statistics/YearTab';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -21,6 +23,14 @@ export default function StatisticsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [shiftsData, setShiftsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = useCallback(() => {
+    return new Promise(resolve => {
+      setRefreshKey(k => k + 1);
+      setTimeout(resolve, 1200);
+    });
+  }, []);
 
   // New state for tabs and additional data
   const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences' | 'maintenance' | 'cleaning' | 'year'
@@ -30,6 +40,8 @@ export default function StatisticsPage() {
   const [absencesData, setAbsencesData] = useState([]);
   const [maintenanceMonth, setMaintenanceMonth] = useState([]);
   const [cleaningMonth, setCleaningMonth] = useState([]);
+
+  const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
   const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
   const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Velitel', 'VD'].includes(r));
@@ -53,7 +65,7 @@ export default function StatisticsPage() {
     });
 
     return unsubscribe;
-  }, [currentDocId]);
+  }, [currentDocId, refreshKey]);
 
   // Fetch events, trainings, and absences for current month
   useEffect(() => {
@@ -112,7 +124,7 @@ export default function StatisticsPage() {
       maintenanceUnsub();
       cleaningUnsub();
     };
-  }, [currentDocId, currentDate]);
+  }, [currentDocId, currentDate, refreshKey]);
 
   const handleMonthChange = (offset) => {
     setLoading(true);
@@ -130,6 +142,7 @@ export default function StatisticsPage() {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '1200px', paddingBottom: '3rem' }}>
+      <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
 
       {/* 1. Navigation Header */}
       <div style={{

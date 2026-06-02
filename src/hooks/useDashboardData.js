@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '../firebase';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,6 +22,14 @@ export default function useDashboardData() {
     // For the new Záloha/Stáž notification banner
     const [newZalohaShifts, setNewZalohaShifts] = useState([]);
     const [newActivities, setNewActivities] = useState([]);
+
+    const [refreshKey, setRefreshKey] = useState(0);
+    const refresh = useCallback(() => {
+        return new Promise(resolve => {
+            setRefreshKey(k => k + 1);
+            setTimeout(resolve, 1200);
+        });
+    }, []);
 
     useEffect(() => {
         if (!currentUser) return;
@@ -332,7 +340,7 @@ export default function useDashboardData() {
             absencesUnsub();
             if (statsUnsub) statsUnsub();
         };
-    }, [currentUser, sessionLastAppVisit]);
+    }, [currentUser, sessionLastAppVisit, refreshKey]);
 
     // Separate effect to calculate events, trainings, and absences (depends on absences state)
     useEffect(() => {
@@ -392,7 +400,7 @@ export default function useDashboardData() {
             eventsUnsub();
             trainingsUnsub();
         };
-    }, [currentUser, absences]);
+    }, [currentUser, absences, refreshKey]);
 
     return {
         currentUser,
@@ -403,6 +411,7 @@ export default function useDashboardData() {
         absences,
         newZalohaShifts,
         newActivities,
-        updateSessionVisitTime
+        updateSessionVisitTime,
+        refresh
     };
 }

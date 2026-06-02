@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { db } from '../firebase';
 import { collection, doc, addDoc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
@@ -16,6 +16,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
     const [editorPrefillDate, setEditorPrefillDate] = useState(null);
     const [deleteModal, setDeleteModal] = useState(null);
     const [onlyMine, setOnlyMine] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
     const canEditAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
@@ -32,7 +33,14 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
             setLoading(false);
         });
         return unsubscribe;
-    }, [collectionName]);
+    }, [collectionName, refreshKey]);
+
+    const refresh = useCallback(() => {
+        return new Promise(resolve => {
+            setRefreshKey(k => k + 1);
+            setTimeout(resolve, 1200);
+        });
+    }, []);
 
     const showToast = (type, message) => addToast(type, message);
 
@@ -175,6 +183,7 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
         requestDelete,
         confirmDelete,
         onlyMine,
-        setOnlyMine
+        setOnlyMine,
+        refresh
     };
 }

@@ -728,6 +728,7 @@ export default function useAdmin() {
     updateRegistrationNumber,
     onSaveEquipment,
     onDeleteEquipment,
-    createUserForOther
+    createUserForOther,
+    refresh: fetchAdminData
   };
 }

@@ -3,6 +3,8 @@ import useDailyLog from '../hooks/useDailyLog';
 import useMembers from '../hooks/useMembers';
 import MonthlyLogTable from '../components/logs/MonthlyLogTable';
 import LogEntryEditor from '../components/logs/LogEntryEditor';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 const ACCENT = { from: '#FF6F00', to: '#E65100' };
 
@@ -29,12 +31,14 @@ export default function MaintenanceLogPage() {
         requestDelete,
         confirmDelete,
         onlyMine,
-        setOnlyMine
+        setOnlyMine,
+        refresh
     } = useDailyLog('maintenanceLogs', 'maintenance', 'údržby');
 
     const { filteredMembers: members } = useMembers();
 
     const presets = useMemo(() => buildPresets(entries), [entries]);
+    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     if (loading) {
         return (
@@ -46,6 +50,7 @@ export default function MaintenanceLogPage() {
 
     return (
         <>
+            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             <MonthlyLogTable
                 title="🔧 Údržba VPPO a PT"
                 accentColor={ACCENT}

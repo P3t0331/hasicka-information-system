@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { db } from '../firebase';
 import {
   doc,
@@ -49,6 +49,14 @@ export default function useShiftCalendar(currentUser, userData) {
   const [daySectionOpen, setDaySectionOpen] = useState(false);
   const [nightSectionOpen, setNightSectionOpen] = useState(true);
   const sectionsInitialized = useRef(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = useCallback(() => {
+    return new Promise(resolve => {
+      setRefreshKey(k => k + 1);
+      setTimeout(resolve, 1200);
+    });
+  }, []);
 
   const groupWeeks = (daysArray) => {
     const weeks = [];
@@ -127,7 +135,7 @@ export default function useShiftCalendar(currentUser, userData) {
     });
 
     return unsubscribe;
-  }, [currentDocId]);
+  }, [currentDocId, refreshKey]);
 
   // 2. Subscribe to Absences (global collection) and filter for current month view
   useEffect(() => {
@@ -156,7 +164,7 @@ export default function useShiftCalendar(currentUser, userData) {
     });
 
     return unsubscribe;
-  }, [currentDate]);
+  }, [currentDate, refreshKey]);
 
   // 3. Subscribe to Trainings
   useEffect(() => {
@@ -171,7 +179,7 @@ export default function useShiftCalendar(currentUser, userData) {
       setTrainingsData(currentMonthTrainings);
     });
     return unsubscribe;
-  }, [currentDate]);
+  }, [currentDate, refreshKey]);
 
   // 4. Subscribe to Events
   useEffect(() => {
@@ -186,7 +194,7 @@ export default function useShiftCalendar(currentUser, userData) {
       setEventsData(currentMonthEvents);
     });
     return unsubscribe;
-  }, [currentDate]);
+  }, [currentDate, refreshKey]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -828,5 +836,7 @@ export default function useShiftCalendar(currentUser, userData) {
     handleDeleteAbsence,
     handleAddZaloha,
     handleRetroAssign,
+    showToast,
+    refresh,
   };
 }

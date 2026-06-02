@@ -8,6 +8,8 @@ import LogsTab from '../components/admin/LogsTab';
 import BulletinTab from '../components/admin/BulletinTab';
 import LinksTab from '../components/admin/LinksTab';
 import AddEquipmentTypeModal from '../components/admin/modals/AddEquipmentTypeModal';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 export default function AdminPage() {
   const {
@@ -51,8 +53,11 @@ export default function AdminPage() {
     onSaveEquipment,
     onDeleteEquipment,
     createUserForOther,
-    loading
+    loading,
+    refresh
   } = useAdmin();
+
+  const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
   if (!userData) return <div className="p-4 text-center">Načítání profilu...</div>;
 
@@ -72,6 +77,7 @@ export default function AdminPage() {
 
   return (
     <div className="container mt-4 mb-5">
+      <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
       {/* Confirm Modal */}
       {confirmModal && (
         <div style={{

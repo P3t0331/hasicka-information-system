@@ -3,6 +3,8 @@ import useEvents from '../hooks/useEvents';
 import EventCard from '../components/events/EventCard';
 import CreateEventModal from '../components/events/CreateEventModal';
 import { MONTHS_CZ_FILTER } from '../utils/constants';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 export default function EventsPage() {
     const {
@@ -29,7 +31,10 @@ export default function EventsPage() {
         handleCloseModal,
         saveAsTemplate,
         deleteTemplate,
+        refresh,
     } = useEvents();
+
+    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     const [filterYear, setFilterYear] = React.useState('all');
     const [filterMonth, setFilterMonth] = React.useState('all');
@@ -72,6 +77,7 @@ export default function EventsPage() {
 
     return (
         <div className="container mt-4" style={{ maxWidth: '800px', paddingBottom: '3rem' }}>
+            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             {/* Page Header */}
             <div className="page-header">
                 <div className="page-header__content">

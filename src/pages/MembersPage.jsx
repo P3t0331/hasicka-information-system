@@ -1,6 +1,8 @@
 import React from 'react';
 import useMembers from '../hooks/useMembers';
 import MemberCard from '../components/members/MemberCard';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 export default function MembersPage() {
     const {
@@ -11,8 +13,11 @@ export default function MembersPage() {
         setRoleFilter,
         filteredMembers,
         allRoles,
-        roleLabels
+        roleLabels,
+        refresh
     } = useMembers();
+
+    const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
     if (loading) {
         return (
@@ -26,6 +31,7 @@ export default function MembersPage() {
 
     return (
         <div className="container" style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
+            <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
             {/* Header */}
             <div style={{
                 marginBottom: '2rem',

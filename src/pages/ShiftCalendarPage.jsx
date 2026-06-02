@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useShiftCalendar from '../hooks/useShiftCalendar';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import { MONTHS_CZ } from '../components/shifts/constants';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -68,8 +70,11 @@ export default function ShiftCalendarPage() {
     handleDeleteAbsence,
     handleAddZaloha,
     handleRetroAssign,
-    showToast
+    showToast,
+    refresh,
   } = useShiftCalendar(currentUser, userData);
+
+  const { isRefreshing, pullProgress } = usePullToRefresh(refresh);
 
   const [retroMode, setRetroMode] = useState(false);
   const [retroAssignModal, setRetroAssignModal] = useState(null);
@@ -140,6 +145,7 @@ export default function ShiftCalendarPage() {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '900px', position: 'relative' }}>
+      <PullToRefreshIndicator isRefreshing={isRefreshing} pullProgress={pullProgress} />
 
       {/* Confirmation Modal */}
       {modal && (
