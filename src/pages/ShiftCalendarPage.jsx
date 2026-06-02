@@ -152,6 +152,11 @@ export default function ShiftCalendarPage() {
       });
     });
 
+    if (events.length === 0) {
+      showToast('info', 'V tomto měsíci nemáte žádné služby k exportu.');
+      return;
+    }
+
     const pad = n => String(n).padStart(2, '0');
     downloadICS(generateICS(events), `sluzby-${year}-${pad(month)}.ics`);
   };
@@ -223,7 +228,7 @@ export default function ShiftCalendarPage() {
         <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px', flex: 1, textAlign: 'center' }}>
           {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
           <button
             className="btn"
             onClick={() => handleMonthChange(1)}
@@ -240,18 +245,19 @@ export default function ShiftCalendarPage() {
         </div>
       </div>
 
-      {/* Export + Retro row */}
+      {/* Export + optional retro row */}
       <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button
           onClick={handleExportShifts}
-          title="Exportovat mé služby do kalendáře"
+          title="Exportovat mé služby do kalendáře (.ics)"
           style={{
             background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px',
-            padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem',
-            color: '#555', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.35rem'
+            padding: '0.4rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem',
+            color: '#555', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem',
+            transition: 'all 0.2s'
           }}
         >
-          📅 <span>Export služeb</span>
+          📅 Export do kalendáře
         </button>
         {isStrictAdmin && (
           <button
