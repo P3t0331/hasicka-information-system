@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const THRESHOLD = 65;
-const MAX_PULL = 120;
+const THRESHOLD = 110;
+const MAX_PULL = 180;
 
 export function usePullToRefresh(onRefresh) {
     const [isRefreshing, setIsRefreshing] = useState(false);
