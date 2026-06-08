@@ -13,7 +13,7 @@ export default function AbsencePanel({
   retroMode,
   onAddAbsenceForOther
 }) {
-  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
+  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Přístup do Administrace'].includes(r));
   const [showPast, setShowPast] = useState(false);
 
   const today = new Date();
@@ -81,7 +81,7 @@ export default function AbsencePanel({
           ) : (
             <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {displayAbsences.map((absence, index) => {
-                const canDelete = absence.uid === currentUser?.uid || userRoles.includes('Admin') || userRoles.includes('VJ');
+                const canDelete = absence.uid === currentUser?.uid || userRoles.includes('Admin') || userRoles.includes('VJ') || userRoles.includes('Přístup do Administrace');
                 const isMine = absence.uid === currentUser?.uid;
 
                 const isPast = absence.endDate < todayISO;

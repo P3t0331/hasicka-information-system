@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
+import { getEffectiveRoles } from '../utils/roles';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
@@ -16,9 +17,9 @@ export default function useTrainings() {
     const [deleteModal, setDeleteModal] = useState(null);
     const [editTraining, setEditTraining] = useState(null);
 
-    const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
-    const canCreate = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'VD'].includes(r));
-    const canDeleteAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
+    const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
+    const canCreate = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
+    const canDeleteAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
 
     const today = new Date();
     const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

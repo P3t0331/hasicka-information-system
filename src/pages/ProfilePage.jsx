@@ -112,8 +112,151 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="container mt-4" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
-            {/* Confirm Modal */}
+        <>
+            <style>{`
+                .profile-hero {
+                    background: linear-gradient(160deg, #181818 0%, #2a0e0e 55%, #1a1a1a 100%);
+                    border-bottom: 3px solid var(--primary-red);
+                    padding: 2.75rem 2rem;
+                    color: white;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .profile-hero::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background:
+                        radial-gradient(ellipse at 75% 50%, rgba(211,47,47,0.14) 0%, transparent 60%),
+                        radial-gradient(ellipse at 10% 80%, rgba(211,47,47,0.06) 0%, transparent 50%);
+                    pointer-events: none;
+                }
+                .profile-hero-inner {
+                    max-width: 1300px;
+                    margin: 0 auto;
+                    display: flex;
+                    align-items: center;
+                    gap: 2rem;
+                    position: relative;
+                    z-index: 1;
+                }
+                .profile-avatar {
+                    width: 100px;
+                    height: 100px;
+                    background: linear-gradient(135deg, var(--primary-red) 0%, var(--primary-red-dark) 100%);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: white;
+                    font-family: 'Oswald', sans-serif;
+                    letter-spacing: 2px;
+                    box-shadow: 0 0 0 4px rgba(211,47,47,0.25), 0 8px 28px rgba(0,0,0,0.5);
+                    flex-shrink: 0;
+                    user-select: none;
+                }
+                .profile-hero-name {
+                    font-family: 'Oswald', sans-serif;
+                    font-size: 2.6rem;
+                    font-weight: 700;
+                    color: white;
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                    line-height: 1.05;
+                    margin-bottom: 0.8rem;
+                }
+                .profile-badges {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.45rem;
+                    align-items: center;
+                }
+                .profile-badge {
+                    padding: 0.28rem 0.8rem;
+                    border-radius: 50px;
+                    font-size: 0.78rem;
+                    font-weight: 600;
+                    letter-spacing: 0.3px;
+                    line-height: 1.5;
+                }
+                .profile-layout {
+                    max-width: 1300px;
+                    margin: 0 auto;
+                    padding: 2rem 1.5rem 3rem;
+                    display: grid;
+                    grid-template-columns: 320px 1fr;
+                    gap: 1.75rem;
+                    align-items: start;
+                }
+                .profile-sidebar {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.25rem;
+                    position: sticky;
+                    top: 76px;
+                }
+                .profile-cert-card {
+                    background: var(--glass-bg);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    padding: 1.5rem;
+                    border-radius: var(--radius);
+                    box-shadow: var(--shadow-soft);
+                    border: var(--glass-border);
+                }
+                .profile-cert-heading {
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    color: #999;
+                    text-transform: uppercase;
+                    letter-spacing: 0.8px;
+                    margin-bottom: 0.85rem;
+                    padding-bottom: 0.75rem;
+                    border-bottom: 1px solid #efefef;
+                }
+                .profile-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.6rem;
+                }
+                @media (max-width: 920px) {
+                    .profile-layout {
+                        grid-template-columns: 1fr;
+                    }
+                    .profile-sidebar {
+                        position: static;
+                    }
+                    .profile-actions {
+                        flex-direction: row;
+                    }
+                    .profile-actions .btn {
+                        flex: 1;
+                    }
+                }
+                @media (max-width: 640px) {
+                    .profile-hero {
+                        padding: 1.75rem 1.25rem;
+                    }
+                    .profile-hero-name {
+                        font-size: 1.8rem;
+                    }
+                    .profile-avatar {
+                        width: 72px;
+                        height: 72px;
+                        font-size: 1.8rem;
+                    }
+                    .profile-layout {
+                        padding: 1.25rem 1rem 2.5rem;
+                        gap: 1.25rem;
+                    }
+                    .profile-actions {
+                        flex-direction: column;
+                    }
+                }
+            `}</style>
+
             {confirmModal && (
                 <ConfirmModal
                     message={confirmModal.message}
@@ -122,95 +265,54 @@ export default function ProfilePage() {
                 />
             )}
 
-            {/* HERO HEADER */}
-            <div style={{
-                background: 'linear-gradient(135deg, #263238 0%, #37474F 100%)',
-                borderRadius: 'var(--radius)',
-                padding: '2.5rem 2rem',
-                color: 'white',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                marginBottom: '2rem',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '2rem',
-                alignItems: 'center',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Background Decorative Element */}
-                <div style={{
-                    position: 'absolute', top: '-50%', right: '-10%', width: '300px', height: '300px',
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
-                    borderRadius: '50%', pointerEvents: 'none'
-                }} />
-
-                {/* Avatar Circle */}
-                <div style={{
-                    width: '100px', height: '100px',
-                    background: 'linear-gradient(135deg, var(--primary-red), var(--primary-red-dark))',
-                    borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '2.5rem', fontWeight: 700,
-                    color: 'white',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-                    border: '4px solid rgba(255,255,255,0.1)'
-                }}>
-                    {(userData.firstName?.[0] || '') + (userData.lastName?.[0] || '')}
-                </div>
-
-                {/* User Info */}
-                <div style={{ flex: 1, minWidth: '200px' }}>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', color: 'white' }}>
-                        {userData.firstName} {userData.lastName}
-                    </h1>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {userData.registrationNumber && (
-                            <span style={{
-                                background: 'rgba(255, 193, 7, 0.15)',
-                                color: '#FFD54F',
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '50px',
-                                fontSize: '0.85rem', fontWeight: 600,
-                                border: '1px solid rgba(255, 193, 7, 0.3)'
-                            }}>
-                                Ev. č. {userData.registrationNumber}
-                            </span>
-                        )}
-                        {userRoles.map(role => (
-                            <span key={role} style={{
-                                background: 'rgba(255,255,255,0.15)',
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '50px',
-                                fontSize: '0.85rem', fontWeight: 600,
-                                border: '1px solid rgba(255,255,255,0.2)'
-                            }}>
-                                {role}
-                            </span>
-                        ))}
-                        {userData.approved && (
-                            <span style={{
-                                background: 'rgba(76, 175, 80, 0.2)',
-                                color: '#81C784',
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '50px',
-                                fontSize: '0.85rem', fontWeight: 600,
-                                border: '1px solid rgba(76, 175, 80, 0.3)'
-                            }}>
-                                ✓ Aktivní účet
-                            </span>
-                        )}
+            {/* HERO */}
+            <div className="profile-hero">
+                <div className="profile-hero-inner">
+                    <div className="profile-avatar">
+                        {(userData.firstName?.[0] || '') + (userData.lastName?.[0] || '')}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="profile-hero-name">
+                            {userData.firstName} {userData.lastName}
+                        </div>
+                        <div className="profile-badges">
+                            {userData.registrationNumber && (
+                                <span className="profile-badge" style={{
+                                    background: 'rgba(255,193,7,0.13)',
+                                    color: '#FFD54F',
+                                    border: '1px solid rgba(255,193,7,0.32)'
+                                }}>
+                                    Ev. č.&nbsp;{userData.registrationNumber}
+                                </span>
+                            )}
+                            {userRoles.map(role => (
+                                <span key={role} className="profile-badge" style={{
+                                    background: 'rgba(255,255,255,0.1)',
+                                    color: 'rgba(255,255,255,0.88)',
+                                    border: '1px solid rgba(255,255,255,0.18)'
+                                }}>
+                                    {role}
+                                </span>
+                            ))}
+                            {userData.approved && (
+                                <span className="profile-badge" style={{
+                                    background: 'rgba(76,175,80,0.18)',
+                                    color: '#81C784',
+                                    border: '1px solid rgba(76,175,80,0.32)'
+                                }}>
+                                    ✓ Aktivní
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* MAIN GRID CONTENT */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                gap: '1.5rem'
-            }}>
-                {/* Left Col: Personal Info & Equipment */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* MAIN LAYOUT */}
+            <div className="profile-layout">
+
+                {/* SIDEBAR */}
+                <div className="profile-sidebar">
                     <ProfileInfo
                         userData={userData}
                         isEditing={isEditing}
@@ -220,6 +322,43 @@ export default function ProfilePage() {
                         handleUpdateProfile={handleUpdateProfile}
                     />
 
+                    <div className="profile-cert-card">
+                        <div className="profile-cert-heading">Kvalifikace a oprávnění</div>
+                        {userData.certifications?.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                {userData.certifications.map(cert => (
+                                    <span key={cert} style={{
+                                        background: '#FFF3E0',
+                                        color: '#E65100',
+                                        padding: '0.38rem 0.85rem',
+                                        borderRadius: '8px',
+                                        fontSize: '0.88rem',
+                                        fontWeight: 600,
+                                        border: '1px solid #FFCC80'
+                                    }}>
+                                        {cert}
+                                    </span>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: '0.88rem', margin: 0 }}>
+                                Žádné kvalifikace.
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="profile-actions">
+                        <Link to="/statistiky" className="btn btn-secondary" style={{ textAlign: 'center', fontSize: '0.9rem', padding: '0.7rem 1.25rem' }}>
+                            Moje statistiky
+                        </Link>
+                        <button onClick={handleExportAll} className="btn btn-secondary" style={{ fontSize: '0.9rem', padding: '0.7rem 1.25rem' }}>
+                            Export kalendáře
+                        </button>
+                    </div>
+                </div>
+
+                {/* EQUIPMENT */}
+                <div>
                     <EquipmentSection
                         equipmentTypes={equipmentTypes}
                         allEquipment={allEquipment}
@@ -228,45 +367,8 @@ export default function ProfilePage() {
                         handleDeleteEquipment={handleDeleteEquipment}
                     />
                 </div>
-
-                {/* Right Col: Certifications & System Info */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {/* Certifications Card */}
-                    <div className="card">
-                        <h3 style={{ fontSize: '1.25rem', color: '#333', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
-                            🎓 Kvalifikace a Oprávnění
-                        </h3>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                            {userData.certifications && userData.certifications.length > 0 ? (
-                                userData.certifications.map(cert => (
-                                    <span key={cert} style={{
-                                        background: '#FFF3E0', color: '#E65100',
-                                        padding: '0.5rem 1rem', borderRadius: '8px',
-                                        fontWeight: 600, border: '1px solid #ffe0b2',
-                                        display: 'flex', alignItems: 'center', gap: '0.5rem'
-                                    }}>
-                                        {cert}
-                                    </span>
-                                ))
-                            ) : (
-                                <p style={{ color: '#888', fontStyle: 'italic' }}>Žádané kvalifikace.</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        <Link to="/statistiky" className="btn btn-secondary" style={{ flex: 1, minWidth: '140px', textAlign: 'center' }}>
-                            📊 Moje statistiky
-                        </Link>
-                        <button onClick={handleExportAll} className="btn btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
-                            📅 Export kalendáře
-                        </button>
-                    </div>
-                </div>
             </div>
 
-            {/* EQUIPMENT MODAL */}
             {showEqModal && (
                 <EquipmentModal
                     onClose={() => setShowEqModal(false)}
@@ -276,6 +378,6 @@ export default function ProfilePage() {
                     handleSaveEquipment={handleSaveEquipment}
                 />
             )}
-        </div>
+        </>
     );
 }

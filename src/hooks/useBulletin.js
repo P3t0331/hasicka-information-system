@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
+import { getEffectiveRoles } from '../utils/roles';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
@@ -14,9 +15,9 @@ export default function useBulletin() {
     const [editingPost, setEditingPost] = useState(null);
     const [deleteModal, setDeleteModal] = useState(null);
 
-    const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
-    const canCreate = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
-    const canDeleteAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
+    const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
+    const canCreate = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
+    const canDeleteAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
 
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, 'bulletinPosts'), (snapshot) => {

@@ -8,6 +8,7 @@ import { useToast } from '../contexts/ToastContext';
 import { sendApprovalEmail, sendDeactivationEmail } from '../utils/emailService';
 import { logAction } from '../utils/logger';
 import { ROLE_OPTIONS, CERTIFICATION_OPTIONS } from '../components/admin/constants';
+import { getEffectiveRoles } from '../utils/roles';
 
 export default function useAdmin() {
   const { currentUser, userData } = useAuth();
@@ -40,8 +41,8 @@ export default function useAdmin() {
   // Alerts & Dialogs
   const [confirmModal, setConfirmModal] = useState(null);
 
-  const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
-  const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
+  const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
+  const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
 
   const showNotification = useCallback((type, message) => addToast(type, message), [addToast]);
 

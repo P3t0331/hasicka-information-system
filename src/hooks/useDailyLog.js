@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { collection, doc, addDoc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
+import { getEffectiveRoles } from '../utils/roles';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
@@ -17,8 +18,8 @@ export default function useDailyLog(collectionName, logCategory, logLabel) {
     const [deleteModal, setDeleteModal] = useState(null);
     const [onlyMine, setOnlyMine] = useState(false);
 
-    const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
-    const canEditAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
+    const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
+    const canEditAny = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
     const canCreate = !!currentUser && !!userData && !userData.disabled && userData.approved !== false;
 
     useEffect(() => {

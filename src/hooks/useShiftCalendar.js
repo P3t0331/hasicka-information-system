@@ -11,6 +11,7 @@ import {
   collection
 } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
+import { getEffectiveRoles } from '../utils/roles';
 import { DAYS_CZ, MONTHS_CZ, SLOT_TYPES, getSlotBaseType } from '../components/shifts/constants';
 import { useToast } from '../contexts/ToastContext';
 
@@ -111,7 +112,7 @@ export default function useShiftCalendar(currentUser, userData) {
   };
 
   const currentDocId = getMonthDocId(currentDate);
-  const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
+  const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
 
   // 1. Subscribe to Shifts
   useEffect(() => {
@@ -286,7 +287,7 @@ export default function useShiftCalendar(currentUser, userData) {
     };
 
     if (section === 'zalohaStaz') {
-      const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
+      const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
       
       if (!isAdmin) {
         showToast('error', 'Na pozice u Stáže/Zálohy může přiřazovat pouze velitel. Použijte tlačítko "Mám zájem".');
@@ -660,7 +661,7 @@ export default function useShiftCalendar(currentUser, userData) {
   };
 
   const handleDeleteAbsence = async (absence) => {
-    const isAdmin = userRoles.includes('Admin') || userRoles.includes('VJ');
+    const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
     if (absence.uid !== currentUser.uid && !isAdmin) {
       showToast('error', 'Můžete mazat pouze své vlastní absence.');
       return;

@@ -1,83 +1,318 @@
 import React from 'react';
-import { WEAR_OPTIONS, getWearStyle } from '../../utils/constants';
+import { WEAR_OPTIONS } from '../../utils/constants';
+
+const WEAR_COLORS = {
+    1: { bg: '#E8F5E9', color: '#2E7D32', border: '#A5D6A7' },
+    2: { bg: '#E3F2FD', color: '#1565C0', border: '#90CAF9' },
+    3: { bg: '#FFF8E1', color: '#E65100', border: '#FFE082' },
+    4: { bg: '#FFF3E0', color: '#BF360C', border: '#FFCC80' },
+    5: { bg: '#FFEBEE', color: '#B71C1C', border: '#EF9A9A' },
+};
+
+function pluralPolozek(n) {
+    if (n === 1) return 'položka';
+    if (n >= 2 && n <= 4) return 'položky';
+    return 'položek';
+}
+
+function EmptyState({ message }) {
+    return (
+        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: '#bbb' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.4 }}>🧰</div>
+            <p style={{ fontStyle: 'italic', margin: 0, fontSize: '0.9rem' }}>{message}</p>
+        </div>
+    );
+}
+
 
 export default function EquipmentSection({ equipmentTypes, allEquipment, setCurrentEq, setShowEqModal, handleDeleteEquipment }) {
+    const sortedEquipment = [...allEquipment].sort((a, b) => {
+        const ai = equipmentTypes.findIndex(t => t.id === a.typeId);
+        const bi = equipmentTypes.findIndex(t => t.id === b.typeId);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+
     return (
-        <div className="card" style={{ height: 'fit-content' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.25rem', color: '#333' }}>🧰 Přidělené vybavení</h3>
-                {equipmentTypes.length > 0 && (
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => {
-                            setCurrentEq({ typeId: equipmentTypes[0]?.id, ownership: 'jsdh' });
-                            setShowEqModal(true);
-                        }}
-                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                    >
-                        + Přidat vybavení
-                    </button>
-                )}
-            </div>
+        <>
+            <style>{`
+                .eq-wrap {
+                    background: var(--glass-bg);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border-radius: var(--radius);
+                    box-shadow: var(--shadow-soft);
+                    border: var(--glass-border);
+                    overflow: hidden;
+                }
+                .eq-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 1rem;
+                    padding: 1.35rem 1.75rem;
+                    background: rgba(255,255,255,0.55);
+                    border-bottom: 1px solid rgba(0,0,0,0.07);
+                }
+                .eq-header-title {
+                    font-family: 'Oswald', sans-serif;
+                    font-size: 1.05rem;
+                    font-weight: 600;
+                    color: #222;
+                    text-transform: uppercase;
+                    letter-spacing: 0.7px;
+                    margin: 0 0 0.15rem;
+                }
+                .eq-header-sub {
+                    font-size: 0.8rem;
+                    color: #bbb;
+                    margin: 0;
+                }
+                .eq-list {
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                }
+                .eq-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.1rem;
+                    padding: 1.05rem 1.75rem;
+                    border-bottom: 1px solid #f2f2f2;
+                    transition: background 0.12s;
+                    position: relative;
+                }
+                .eq-item:last-child { border-bottom: none; }
+                .eq-item::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: 3px;
+                    background: transparent;
+                    transition: background 0.12s;
+                    border-radius: 0 2px 2px 0;
+                }
+                .eq-item:hover { background: #fef7f7; }
+                .eq-item:hover::before { background: var(--primary-red); }
+                .eq-info {
+                    flex: 0 0 auto;
+                    min-width: 150px;
+                    max-width: 200px;
+                }
+                .eq-name {
+                    font-size: 1.05rem;
+                    font-weight: 700;
+                    color: #1a1a1a;
+                    line-height: 1.3;
+                    margin-bottom: 0.35rem;
+                }
+                .eq-badges {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.3rem;
+                }
+                .eq-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    font-size: 0.7rem;
+                    padding: 0.18rem 0.58rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    border: 1px solid;
+                    line-height: 1.6;
+                    white-space: nowrap;
+                }
+                .eq-divider {
+                    width: 1px;
+                    height: 36px;
+                    background: #ebebeb;
+                    flex-shrink: 0;
+                }
+                .eq-details {
+                    flex: 1;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem 1.25rem;
+                    min-width: 0;
+                }
+                .eq-detail-pair {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.05rem;
+                    min-width: 60px;
+                }
+                .eq-detail-label {
+                    font-size: 0.64rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: #c8c8c8;
+                    white-space: nowrap;
+                }
+                .eq-detail-value {
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: #444;
+                    white-space: nowrap;
+                }
+                .eq-actions {
+                    display: flex;
+                    gap: 0.2rem;
+                    flex-shrink: 0;
+                    margin-left: auto;
+                    padding-left: 2rem;
+                    opacity: 0;
+                    transition: opacity 0.15s;
+                }
+                .eq-item:hover .eq-actions { opacity: 1; }
+                .eq-act-btn {
+                    background: none;
+                    border: 1px solid transparent;
+                    cursor: pointer;
+                    padding: 0.32rem 0.72rem;
+                    border-radius: 7px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    font-family: 'Inter', sans-serif;
+                    transition: background 0.12s, border-color 0.12s;
+                    white-space: nowrap;
+                }
+                .eq-act-btn.edit { color: #1565C0; }
+                .eq-act-btn.edit:hover { background: #E3F2FD; border-color: #90CAF9; }
+                .eq-act-btn.del { color: #B71C1C; }
+                .eq-act-btn.del:hover { background: #FFEBEE; border-color: #EF9A9A; }
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                @media (max-width: 900px) {
+                    .eq-divider { display: none; }
+                    .eq-info { min-width: 0; max-width: none; flex: 0 0 160px; }
+                }
+                @media (max-width: 640px) {
+                    .eq-header { padding: 1.1rem 1.25rem; }
+                    .eq-item {
+                        padding: 1rem 1.25rem;
+                        flex-wrap: wrap;
+                        gap: 0.75rem;
+                    }
+                    .eq-info { flex: 1; min-width: 0; max-width: none; }
+                    .eq-divider { display: none; }
+                    .eq-details {
+                        width: 100%;
+                        gap: 0.5rem 1rem;
+                    }
+                    .eq-actions {
+                        opacity: 1;
+                        padding-left: 0;
+                        margin-left: 0;
+                        width: 100%;
+                    }
+                    .eq-item::before { display: none; }
+                }
+            `}</style>
+
+            <div className="eq-wrap">
+                <div className="eq-header">
+                    <div>
+                        <p className="eq-header-title">Přidělené vybavení</p>
+                        <p className="eq-header-sub">{allEquipment.length} {pluralPolozek(allEquipment.length)}</p>
+                    </div>
+                    {equipmentTypes.length > 0 && (
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                                setCurrentEq({ typeId: equipmentTypes[0]?.id, ownership: 'jsdh' });
+                                setShowEqModal(true);
+                            }}
+                            style={{ padding: '0.58rem 1.2rem', fontSize: '0.88rem', flexShrink: 0 }}
+                        >
+                            + Přidat
+                        </button>
+                    )}
+                </div>
+
                 {equipmentTypes.length === 0 ? (
-                    <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Vybavení není nastaveno administrátorem.</p>
+                    <EmptyState message="Vybavení není nastaveno administrátorem." />
                 ) : allEquipment.length === 0 ? (
-                    <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>Zatím nemáte evidováno žádné vybavení.</p>
+                    <EmptyState message="Zatím nemáte evidováno žádné vybavení." />
                 ) : (
-                    [...allEquipment]
-                        .sort((a, b) => {
-                            const ai = equipmentTypes.findIndex(t => t.id === a.typeId);
-                            const bi = equipmentTypes.findIndex(t => t.id === b.typeId);
-                            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-                        })
-                        .map(item => {
-                        const eqType = equipmentTypes.find(t => t.id === item.typeId);
-                        if (!eqType) return null;
-                        const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);
+                    <ul className="eq-list">
+                        {sortedEquipment.map(item => {
+                            const eqType = equipmentTypes.find(t => t.id === item.typeId);
+                            if (!eqType) return null;
 
-                        return (
-                            <div key={item.id} style={{ padding: '1rem', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div style={{ flex: '1 1 200px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                                        <span style={{ fontWeight: 700, color: '#222', fontSize: '1rem' }}>{eqType.name}</span>
-                                        <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: item.ownership === 'vlastni' ? '#E3F2FD' : '#E8F5E9', color: item.ownership === 'vlastni' ? '#1565C0' : '#2E7D32', fontWeight: 600 }}>
-                                            {item.ownership === 'vlastni' ? 'Vlastní' : 'JSDH'}
-                                        </span>
-                                        {wearOption && eqType.hasWear && (
-                                            <span style={{ ...getWearStyle(item.wear), fontSize: '0.75rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 600 }}>
-                                                {wearOption.label}
+                            const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);
+                            const wearColors = item.wear != null ? WEAR_COLORS[item.wear] : null;
+                            const isJSDH = item.ownership !== 'vlastni';
+
+                            const details = [
+                                eqType.hasBrand && item.brand && { label: 'Značka', value: item.brand },
+                                eqType.hasSize && item.size && { label: 'Velikost', value: item.size },
+                                eqType.hasAmount && { label: 'Počet', value: `${item.amount || 1} ks` },
+                                eqType.hasInventoryNumber && item.inventoryNumber && { label: 'Evid. č.', value: item.inventoryNumber },
+                                eqType.hasSerialNumber && item.serialNumber && { label: 'S/N', value: item.serialNumber },
+                                eqType.hasManufactureYear && item.manufactureYear && { label: 'Rok výroby', value: item.manufactureYear },
+                                eqType.hasIssueYear && item.issueYear && { label: 'Nafasováno', value: item.issueYear },
+                                eqType.hasPolep && item.polep != null && { label: 'Polep', value: item.polep ? 'ANO' : 'NE' },
+                            ].filter(Boolean);
+
+                            return (
+                                <li key={item.id} className="eq-item">
+
+                                    <div className="eq-info">
+                                        <div className="eq-name">{eqType.name}</div>
+                                        <div className="eq-badges">
+                                            <span className="eq-badge" style={{
+                                                background: isJSDH ? '#FFEBEE' : '#E8F4FD',
+                                                color: isJSDH ? '#C62828' : '#1565C0',
+                                                borderColor: isJSDH ? '#EF9A9A' : '#90CAF9',
+                                            }}>
+                                                {isJSDH ? 'JSDH' : 'Vlastní'}
                                             </span>
-                                        )}
+                                            {wearOption && eqType.hasWear && wearColors && (
+                                                <span className="eq-badge" style={{
+                                                    background: wearColors.bg,
+                                                    color: wearColors.color,
+                                                    borderColor: wearColors.border,
+                                                }}>
+                                                    {wearOption.label}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.85rem', color: '#555' }}>
-                                        {eqType.hasBrand && item.brand && <div><span style={{ color: '#999' }}>Značka:</span> <strong>{item.brand}</strong></div>}
-                                        {eqType.hasSize && item.size && <div><span style={{ color: '#999' }}>Velikost:</span> <strong>{item.size}</strong></div>}
-                                        {eqType.hasAmount && <div><span style={{ color: '#999' }}>Ks:</span> <strong>{item.amount || 1}</strong></div>}
-                                        {eqType.hasInventoryNumber && item.inventoryNumber && <div><span style={{ color: '#999' }}>Evid. č.:</span> <strong>{item.inventoryNumber}</strong></div>}
-                                        {eqType.hasSerialNumber && item.serialNumber && <div><span style={{ color: '#999' }}>S/N:</span> <strong>{item.serialNumber}</strong></div>}
-                                        {eqType.hasManufactureYear && item.manufactureYear && <div><span style={{ color: '#999' }}>Vyrobeno:</span> <strong>{item.manufactureYear}</strong></div>}
-                                        {eqType.hasIssueYear && item.issueYear && <div><span style={{ color: '#999' }}>Nafasováno:</span> <strong>{item.issueYear}</strong></div>}
-                                        {eqType.hasPolep && item.polep != null && <div><span style={{ color: '#999' }}>Polep:</span> <strong>{item.polep ? 'ANO' : 'NE'}</strong></div>}
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, width: '100%', justifyContent: 'flex-end', borderTop: '1px solid #f0f0f0', paddingTop: '0.5rem', marginTop: '0.5rem' }} className="mobile-only-border-top">
-                                    <button onClick={() => { setCurrentEq(item); setShowEqModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#1976D2' }}>✏️</button>
-                                    <button onClick={() => handleDeleteEquipment(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }}>×</button>
-                                </div>
+                                    {details.length > 0 && <div className="eq-divider" />}
 
-                                <style dangerouslySetInnerHTML={{__html: `
-                                    @media (min-width: 600px) {
-                                        .mobile-only-border-top { border-top: none !important; padding-top: 0 !important; margin-top: 0 !important; width: auto !important; justify-content: flex-start !important; }
-                                    }
-                                `}} />
-                            </div>
-                        );
-                    })
+                                    {details.length > 0 && (
+                                        <div className="eq-details">
+                                            {details.map(d => (
+                                                <div key={d.label} className="eq-detail-pair">
+                                                    <span className="eq-detail-label">{d.label}</span>
+                                                    <span className="eq-detail-value">{d.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="eq-actions">
+                                        <button
+                                            className="eq-act-btn edit"
+                                            onClick={() => { setCurrentEq(item); setShowEqModal(true); }}
+                                        >
+                                            Upravit
+                                        </button>
+                                        <button
+                                            className="eq-act-btn del"
+                                            onClick={() => handleDeleteEquipment(item.id)}
+                                        >
+                                            Smazat
+                                        </button>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 )}
             </div>
-        </div>
+        </>
     );
 }

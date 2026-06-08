@@ -1,4 +1,4 @@
-export const ROLE_OPTIONS = ['Hasič', 'Strojník', 'VD', 'Zástupce VJ', 'VJ', 'Admin'];
+export const ROLE_OPTIONS = ['Hasič', 'Strojník', 'VD', 'Zástupce VJ', 'VJ', 'Přístup do Administrace', 'Admin'];
 
 export const CERTIFICATION_OPTIONS = [
   'NDT-16', // Nositel dýchací techniky

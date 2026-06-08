@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { enableNetwork, disableNetwork } from 'firebase/firestore';
 import { db } from '../firebase';
+import { getEffectiveRoles } from '../utils/roles';
 
 // Navigation Items Component for reuse
 const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
@@ -64,8 +65,8 @@ export default function Layout() {
   const isActive = (path) => location.pathname === path;
 
   // Check admin access
-  const userRoles = userData ? (userData.roles || [userData.role || 'Hasič']) : [];
-  const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
+  const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
+  const isAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'Přístup do Administrace'].includes(r));
 
   // Close menu when route changes
   React.useEffect(() => {

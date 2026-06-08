@@ -75,8 +75,25 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
         }
 
         setSaving(true);
+        const now = new Date().toISOString();
+        const instructors = buildInstructors();
+
+        const instructorParticipants = instructors.map(i => ({
+            uid: i.uid,
+            name: i.name,
+            joinedAt: now
+        }));
+
         try {
             if (isEdit) {
+                const currentParticipants = initialData.participants || [];
+                const mergedParticipants = [...currentParticipants];
+                for (const ip of instructorParticipants) {
+                    if (!mergedParticipants.some(p => p.uid === ip.uid)) {
+                        mergedParticipants.push(ip);
+                    }
+                }
+
                 await updateDoc(doc(db, 'trainings', initialData.id), {
                     title: title.trim(),
                     description: description.trim(),
@@ -87,8 +104,9 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
                     vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
-                    instructors: buildInstructors(),
-                    instructor: null
+                    instructors,
+                    instructor: null,
+                    participants: mergedParticipants
                 });
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_UPDATED_TRAINING', 'admin',
@@ -105,10 +123,10 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
                     vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
-                    instructors: buildInstructors(),
+                    instructors,
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
-                    createdAt: new Date().toISOString(),
-                    participants: []
+                    createdAt: now,
+                    participants: instructorParticipants
                 });
                 fetch('/api/send-notification', {
                     method: 'POST',

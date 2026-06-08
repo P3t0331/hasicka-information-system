@@ -108,8 +108,8 @@ export default function ShiftCalendarPage() {
     setActivityPickerOpen(null);
   };
 
-  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r));
-  const isStrictAdmin = userRoles.includes('Admin');
+  const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
+  const isStrictAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
   const [joinShiftModal, setJoinShiftModal] = useState(null); // { day, section, slotKey }
 
   const handleShiftSlotClick = useCallback((day, section, slotKey) => {

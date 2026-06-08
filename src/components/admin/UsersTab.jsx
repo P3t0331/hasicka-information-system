@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ROLE_OPTIONS, CERTIFICATION_OPTIONS } from './constants';
 import CreateUserModal from './modals/CreateUserModal';
+import { getEffectiveRoles } from '../../utils/roles';
 
 export default function UsersTab({
   allUsers,
@@ -19,6 +20,7 @@ export default function UsersTab({
   loading
 }) {
   const currentUserIsAdmin = userRoles.includes('Admin');
+  const currentUserIsAdminOrVJ = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(r));
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [revealedPasswords, setRevealedPasswords] = useState(new Set());
 
@@ -206,6 +208,7 @@ export default function UsersTab({
             <tbody>
               {allUsers.map(user => {
                 const roles = user.roles || [user.role || 'Hasič'];
+                const effectiveRoles = getEffectiveRoles(roles);
                 const certs = user.certifications || [];
                 const isDisabled = user.disabled;
                 const isAdmin = roles.includes('Admin');
@@ -274,30 +277,38 @@ export default function UsersTab({
                     <td data-label="Funkce" className="mobile-col">
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                         {ROLE_OPTIONS.map(roleOption => {
-                          const isAssigned = roles.includes(roleOption);
+                          const isAssigned = effectiveRoles.includes(roleOption);
+                          const isAutoGranted = isAssigned && !roles.includes(roleOption);
                           const isRoleAdmin = roleOption === 'Admin';
                           const isProtectedRole = ['VJ', 'Zástupce VJ', 'Zastupce VJ'].includes(roleOption);
+                          const isAccessRole = roleOption === 'Přístup do Administrace';
 
                           // Admin role: never editable via UI
                           // VJ/Zástupce VJ: only Admin can change
-                          const disabled = isDisabled || isRoleAdmin || (isProtectedRole && !currentUserIsAdmin);
+                          // Přístup do Administrace: only Admin/VJ/Zastupce VJ can assign (not the new role itself)
+                          // Auto-granted roles: shown as checked but not toggleable
+                          const disabled = isDisabled || isRoleAdmin || isAutoGranted || (isProtectedRole && !currentUserIsAdmin) || (isAccessRole && !currentUserIsAdminOrVJ);
                           const tooltip = isRoleAdmin
                             ? "Roli Admina nelze měnit zde"
+                            : isAutoGranted
+                              ? "Automaticky uděleno díky jiné roli"
                             : (isProtectedRole && !currentUserIsAdmin)
                               ? "Tuto roli může měnit pouze Admin"
-                              : "";
+                              : (isAccessRole && !currentUserIsAdminOrVJ)
+                                ? "Tuto roli mohou nastavit pouze Admin, VJ a Zástupce VJ"
+                                : "";
 
                           return (
                             <label
                               key={roleOption}
                               style={{
                                 display: 'inline-flex', alignItems: 'center', padding: '0.2rem 0.6rem', borderRadius: '99px',
-                                border: isAssigned ? `1px solid ${isRoleAdmin ? '#d32f2f' : (isProtectedRole ? '#F57C00' : '#1976D2')}` : '1px solid #e0e0e0',
-                                background: isAssigned ? (isRoleAdmin ? '#ffebee' : (isProtectedRole ? '#FFF3E0' : '#e3f2fd')) : 'transparent',
-                                color: isAssigned ? (isRoleAdmin ? '#c62828' : (isProtectedRole ? '#E65100' : '#1565c0')) : '#777',
+                                border: isAssigned ? `1px solid ${isRoleAdmin ? '#d32f2f' : (isProtectedRole ? '#F57C00' : (isAccessRole ? '#6A1B9A' : '#1976D2'))}` : '1px solid #e0e0e0',
+                                background: isAssigned ? (isRoleAdmin ? '#ffebee' : (isProtectedRole ? '#FFF3E0' : (isAccessRole ? '#F3E5F5' : '#e3f2fd'))) : 'transparent',
+                                color: isAssigned ? (isRoleAdmin ? '#c62828' : (isProtectedRole ? '#E65100' : (isAccessRole ? '#6A1B9A' : '#1565c0'))) : '#777',
                                 fontSize: '0.75rem', fontWeight: 600,
                                 cursor: disabled ? 'default' : 'pointer',
-                                opacity: disabled && !isAssigned ? 0.5 : 1,
+                                opacity: (disabled && !isAssigned) ? 0.5 : (isAutoGranted ? 0.7 : 1),
                                 transition: 'all 0.2s'
                               }}
                               title={tooltip}
