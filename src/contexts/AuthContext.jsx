@@ -7,7 +7,7 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
-import { doc, setDoc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, getDocFromCache, onSnapshot, updateDoc } from "firebase/firestore";
 import { logAction } from "../utils/logger";
 
 const AuthContext = React.createContext();
@@ -150,7 +150,12 @@ export function AuthProvider({ children }) {
           const docRef = doc(db, "users", user.uid);
 
           // Initial check for approval/disabled status
-          const docSnap = await getDoc(docRef);
+          let docSnap;
+          try {
+            docSnap = await getDocFromCache(docRef);
+          } catch {
+            docSnap = await getDoc(docRef);
+          }
 
           if (!docSnap.exists()) {
             console.error("No user profile found!");
