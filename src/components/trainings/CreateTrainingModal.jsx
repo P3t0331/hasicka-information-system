@@ -33,6 +33,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
     const [instructorSearch, setInstructorSearch] = useState('');
     const [saving, setSaving] = useState(false);
     const [saveTemplate, setSaveTemplate] = useState(false);
+    const [sendNotification, setSendNotification] = useState(false);
 
     const isEdit = !!(initialData?.id);
 
@@ -128,6 +129,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     createdAt: now,
                     participants: instructorParticipants
                 });
+                if (sendNotification) {
                 fetch('/api/send-notification', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -143,6 +145,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                         tag: 'skoleni',
                     }),
                 });
+                }
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_TRAINING', 'admin',
                     `Vytvořil nové školení „${title.trim()}” (${date})`);
@@ -369,6 +372,12 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                         </div>
                     </div>
 
+                    {!isEdit && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                            <input type="checkbox" checked={sendNotification} onChange={e => setSendNotification(e.target.checked)} />
+                            🔔 Odeslat push notifikaci členům
+                        </label>
+                    )}
                     {!isEdit && onSaveAsTemplate && (
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
                             <input type="checkbox" checked={saveTemplate} onChange={e => setSaveTemplate(e.target.checked)} />

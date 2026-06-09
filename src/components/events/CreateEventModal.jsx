@@ -28,6 +28,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
     };
     const [saving, setSaving] = useState(false);
     const [saveTemplate, setSaveTemplate] = useState(false);
+    const [sendNotification, setSendNotification] = useState(false);
 
     const isEdit = !!(initialData?.id);
 
@@ -83,6 +84,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                     createdAt: new Date().toISOString(),
                     participants: []
                 });
+                if (sendNotification) {
                 fetch('/api/send-notification', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -98,6 +100,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                         tag: 'akce',
                     }),
                 });
+                }
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                     'ADMIN_CREATED_EVENT', 'admin',
                     `Vytvořil novou akci „${title.trim()}” (${date})`);
@@ -273,11 +276,17 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                         </div>
                     </div>
 
-                    <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-                        <input type="checkbox" id="isImportant" checked={isImportant} onChange={e => setIsImportant(e.target.checked)} style={{ cursor: 'pointer', width: '1.1rem', height: '1.1rem', margin: 0 }} />
-                        <label htmlFor="isImportant" style={{ fontSize: '0.9rem', color: '#333', fontWeight: 'bold', cursor: 'pointer', userSelect: 'none' }}>Důležitá akce (zvýraznit oranžově)</label>
-                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                        <input type="checkbox" checked={isImportant} onChange={e => setIsImportant(e.target.checked)} />
+                        ⚠️ Důležitá akce (zvýraznit oranžově)
+                    </label>
 
+                    {!isEdit && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                            <input type="checkbox" checked={sendNotification} onChange={e => setSendNotification(e.target.checked)} />
+                            🔔 Odeslat push notifikaci členům
+                        </label>
+                    )}
                     {!isEdit && onSaveAsTemplate && (
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
                             <input type="checkbox" checked={saveTemplate} onChange={e => setSaveTemplate(e.target.checked)} />

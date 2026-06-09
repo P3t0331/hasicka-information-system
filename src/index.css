@@ -940,6 +940,11 @@ h4 {
   text-transform: uppercase;
 }
 
+.event-card__badge--important {
+  background: #FFE0B2;
+  color: #BF360C;
+}
+
 .event-card__badge--joined {
   background: #E8F5E9;
   color: #2E7D32;

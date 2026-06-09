@@ -35,7 +35,7 @@ export default function EventCard({ event, isPast, currentUser, onJoin, onLeave,
                     <div className={`event-card__title ${isPast ? 'event-card__title--past' : ''}`}>
                         <span>{event.title}</span>
                         {event.isImportant && !isPast && (
-                            <span className="event-card__badge" style={{ background: '#FFE082', color: '#E65100' }}>⚠️ Důležité</span>
+                            <span className="event-card__badge event-card__badge--important">⚠️ Důležité</span>
                         )}
                         {isJoined && !isPast && (
                             <span className="event-card__badge event-card__badge--joined">✓ Přihlášen</span>
