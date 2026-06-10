@@ -81,7 +81,7 @@ function LinkFormFields({ value, onChange }) {
     return (
         <>
             <EmojiPicker value={value.emoji} onChange={emoji => onChange({ ...value, emoji })} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <input
                     placeholder="Název *"
                     value={value.label}
