@@ -11,7 +11,9 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
         if (!isoDate) return {};
         const [year, month, day] = isoDate.split('-');
         const MONTHS = ['Led', 'Úno', 'Bře', 'Dub', 'Kvě', 'Čvn', 'Čvc', 'Srp', 'Zář', 'Říj', 'Lis', 'Pro'];
-        return { day: parseInt(day), month: MONTHS[parseInt(month) - 1], year };
+        const DAYS = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
+        const weekday = DAYS[new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).getDay()];
+        return { day: parseInt(day), month: MONTHS[parseInt(month) - 1], year, weekday };
     };
 
     const dateInfo = formatDate(training.date);
@@ -23,6 +25,7 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
         <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
             {/* Date Badge */}
             <div className={dateBadgeClass}>
+                <div className="date-badge__weekday">{dateInfo.weekday}</div>
                 <div className="date-badge__day">{dateInfo.day}</div>
                 <div className="date-badge__month">{dateInfo.month}</div>
             </div>

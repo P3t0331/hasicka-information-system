@@ -75,6 +75,10 @@ export const ACTION_LABELS = {
   ADMIN_ADDED_LINK:          'Přidán důležitý odkaz',
   ADMIN_UPDATED_LINK:        'Upraven důležitý odkaz',
   ADMIN_REMOVED_LINK:        'Odstraněn důležitý odkaz',
+  ADMIN_REORDERED_LINKS:     'Změněno pořadí odkazů',
+  ADMIN_ADDED_LINK_GROUP:    'Přidána skupina odkazů',
+  ADMIN_UPDATED_LINK_GROUP:  'Upravena skupina odkazů',
+  ADMIN_REMOVED_LINK_GROUP:  'Odstraněna skupina odkazů',
 };
 
 export function formatRelativeTime(ts) {

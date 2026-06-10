@@ -12,6 +12,54 @@ const DEFAULT_LINKS = [
     { id: 'spaci', emoji: '🛌', label: 'Spací pořádek', url: 'https://docs.google.com/spreadsheets/d/1fE4WmjSbXR9WRydpOva2nGuK2ksyLrbJQjtXb5zVBSU/edit?gid=0#gid=0', description: '' },
 ];
 
+function GroupLinkItem({ group }) {
+    const [expanded, setExpanded] = useState(false);
+    const count = (group.links || []).length;
+
+    return (
+        <div style={{ borderRadius: '12px', border: '1px solid #eee', overflow: 'hidden' }}>
+            <div
+                onClick={() => setExpanded(!expanded)}
+                style={{ display: 'flex', alignItems: 'center', padding: '1rem', background: '#f0f7ff', cursor: 'pointer', userSelect: 'none' }}
+            >
+                <span style={{ fontSize: '1.75rem', marginRight: '1rem', flexShrink: 0 }}>{group.emoji || '📁'}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{group.label}</div>
+                    {group.description && <div style={{ fontSize: '0.8rem', color: '#666' }}>{group.description}</div>}
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#888', marginRight: '0.5rem', flexShrink: 0 }}>{count} {count === 1 ? 'odkaz' : count < 5 ? 'odkazy' : 'odkazů'}</div>
+                <div style={{
+                    fontSize: '0.9rem', color: '#888', flexShrink: 0,
+                    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease'
+                }}>▼</div>
+            </div>
+            {expanded && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', background: '#f8f9fa' }}>
+                    {count === 0 && (
+                        <div style={{ textAlign: 'center', color: '#aaa', padding: '0.75rem', fontSize: '0.85rem' }}>Žádné odkazy ve skupině</div>
+                    )}
+                    {(group.links || []).map(link => (
+                        <a
+                            key={link.id}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1rem', textDecoration: 'none', color: '#333', background: 'white', borderRadius: '10px', border: '1px solid #eee' }}
+                        >
+                            <span style={{ fontSize: '1.5rem', marginRight: '0.75rem', flexShrink: 0 }}>{link.emoji || '🔗'}</span>
+                            <div>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{link.label}</div>
+                                {link.description && <div style={{ fontSize: '0.78rem', color: '#666' }}>{link.description}</div>}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function ImportantLinks() {
     const [isLinksOpen, setIsLinksOpen] = useState(false);
     const [links, setLinks] = useState(DEFAULT_LINKS);
@@ -71,19 +119,21 @@ export default function ImportantLinks() {
 
                 {isLinksOpen && (
                     <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#fdfdfd' }}>
-                        {links.map((link) => (
+                        {links.map((item) => item.type === 'group' ? (
+                            <GroupLinkItem key={item.id} group={item} />
+                        ) : (
                             <a
-                                key={link.id}
-                                href={link.url}
+                                key={item.id}
+                                href={item.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{ display: 'flex', alignItems: 'center', padding: '1rem', textDecoration: 'none', color: '#333', background: '#f8f9fa', borderRadius: '12px', border: '1px solid #eee' }}
                             >
-                                <span style={{ fontSize: '1.75rem', marginRight: '1rem' }}>{link.emoji || '🔗'}</span>
+                                <span style={{ fontSize: '1.75rem', marginRight: '1rem' }}>{item.emoji || '🔗'}</span>
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{link.label}</div>
-                                    {link.description && (
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>{link.description}</div>
+                                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{item.label}</div>
+                                    {item.description && (
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>{item.description}</div>
                                     )}
                                 </div>
                             </a>

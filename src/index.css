@@ -889,6 +889,15 @@ h4 {
   box-shadow: none;
 }
 
+.date-badge__weekday {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+  margin-bottom: 1px;
+}
+
 .date-badge__day {
   font-size: 1.5rem;
   font-weight: 700;
