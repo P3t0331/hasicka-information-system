@@ -54,13 +54,20 @@ export default function useShiftCalendar(currentUser, userData) {
   const groupWeeks = (daysArray) => {
     const weeks = [];
     let currentWeek = [];
-    daysArray.forEach((day, index) => {
-      currentWeek.push(day);
-      if (day.dayOfWeek === 0 || index === daysArray.length - 1) {
-        weeks.push(currentWeek);
-        currentWeek = [];
+    daysArray.forEach((day) => {
+      if (currentWeek.length > 0) {
+        const prev = currentWeek[currentWeek.length - 1];
+        // Days until the Sunday that closes prev's calendar week
+        const daysUntilSunday = prev.dayOfWeek === 0 ? 0 : 7 - prev.dayOfWeek;
+        // If this day is beyond that Sunday, start a new week group
+        if (prev.date + daysUntilSunday < day.date) {
+          weeks.push(currentWeek);
+          currentWeek = [];
+        }
       }
+      currentWeek.push(day);
     });
+    if (currentWeek.length > 0) weeks.push(currentWeek);
     return weeks;
   };
 
@@ -68,8 +75,9 @@ export default function useShiftCalendar(currentUser, userData) {
     setCollapsedWeeks(prev => ({ ...prev, [weekId]: !prev[weekId] }));
   };
 
-  // Auto-collapse weeks that are fully in the past when month changes
+  // Auto-collapse weeks that are fully in the past when month changes or data loads
   useEffect(() => {
+    if (loading) return;
     const today = new Date();
     const todayDate = today.getDate();
     const isCurrentMonth =
@@ -81,18 +89,24 @@ export default function useShiftCalendar(currentUser, userData) {
       return;
     }
 
-    const weeks = groupWeeks(days);
+    const enabledZ = days.filter(d => shiftsData[d.date]?.zalohaStaz);
+    const enabledD = days.filter(d => shiftsData[d.date]?.dayShiftEnabled || (shiftsData[d.date]?.dayShift && Object.keys(shiftsData[d.date]?.dayShift || {}).length > 0));
+
     const collapsed = {};
-    weeks.forEach((week, index) => {
-      const lastDay = week[week.length - 1].date;
-      if (lastDay < todayDate) {
-        ['zaloha-week', 'day-week', 'night-week'].forEach(prefix => {
-          collapsed[`${prefix}-${index}`] = true;
-        });
-      }
+    groupWeeks(enabledZ).forEach(week => {
+      if (week[week.length - 1].date < todayDate)
+        collapsed[`zaloha-week-${week[0].date}`] = true;
+    });
+    groupWeeks(enabledD).forEach(week => {
+      if (week[week.length - 1].date < todayDate)
+        collapsed[`day-week-${week[0].date}`] = true;
+    });
+    groupWeeks(days).forEach(week => {
+      if (week[week.length - 1].date < todayDate)
+        collapsed[`night-week-${week[0].date}`] = true;
     });
     setCollapsedWeeks(collapsed);
-  }, [currentDate.getFullYear(), currentDate.getMonth()]);
+  }, [currentDate.getFullYear(), currentDate.getMonth(), loading]);
 
   const showToast = (type, message) => addToast(type, message);
 
@@ -449,6 +463,17 @@ export default function useShiftCalendar(currentUser, userData) {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'INTERESTED_IN_STAZ', 'shifts',
           `Projevil zájem o stáž/zálohu dne ${dateLabel}`);
+        fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: '✋ Nový zájemce o zálohu / stáž',
+            body: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''} · ${dateLabel}`,
+            url: '/shifts',
+            tag: 'staz-zajem',
+            targetRoles: ['Admin', 'VJ', 'Zástupce VJ'],
+          }),
+        });
       }
       
       showToast('success', isInterested ? 'Zájem zrušen.' : 'Přidáni do seznamu zájemců.');

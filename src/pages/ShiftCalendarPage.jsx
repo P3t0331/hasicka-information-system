@@ -112,6 +112,14 @@ export default function ShiftCalendarPage() {
   const isStrictAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
   const [joinShiftModal, setJoinShiftModal] = useState(null); // { day, section, slotKey }
 
+  const _today = new Date();
+  const _isCurrentMonth = _today.getFullYear() === currentDate.getFullYear() && _today.getMonth() === currentDate.getMonth();
+  const _isPastMonth = currentDate.getFullYear() < _today.getFullYear() || (currentDate.getFullYear() === _today.getFullYear() && currentDate.getMonth() < _today.getMonth());
+  const _todayDate = _today.getDate();
+  const isZalohaDayPast = (dayDate) => _isPastMonth || (_isCurrentMonth && dayDate < _todayDate);
+  const [showPastZaloha, setShowPastZaloha] = useState(false);
+  const pastZalohaCount = enabledZalohaShifts.filter(d => isZalohaDayPast(d.date)).length;
+
   const handleShiftSlotClick = useCallback((day, section, slotKey) => {
     if (retroMode && isStrictAdmin) {
       const assignee = (shiftsData[day]?.[section] || {})[slotKey];
@@ -339,8 +347,16 @@ export default function ShiftCalendarPage() {
         >
           <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🛡️ ZÁLOHA / STÁŽ</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {pastZalohaCount > 0 && (
+              <button
+                onClick={e => { e.stopPropagation(); setShowPastZaloha(v => !v); }}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+              >
+                {showPastZaloha ? 'Skrýt proběhlé' : `${pastZalohaCount} proběhlé`}
+              </button>
+            )}
             <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-              {enabledZalohaShifts.length} služeb
+              {showPastZaloha ? enabledZalohaShifts.length : enabledZalohaShifts.length - pastZalohaCount} služeb
             </span>
             <span style={{ fontSize: '0.8rem', transition: 'transform 0.2s' }}>
               {zalohaSectionOpen ? '▲' : '▼'}
@@ -350,15 +366,17 @@ export default function ShiftCalendarPage() {
 
         {zalohaSectionOpen && (
           <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-          {enabledZalohaShifts.length > 0 && groupWeeks(enabledZalohaShifts).map((week, index) => {
+          {(() => {
+            const displayedZalohaShifts = showPastZaloha ? enabledZalohaShifts : enabledZalohaShifts.filter(d => !isZalohaDayPast(d.date));
+            return displayedZalohaShifts.length > 0 && groupWeeks(displayedZalohaShifts).map((week, index) => {
             const firstDay = week[0];
             const lastDay = week[week.length - 1];
-            const weekId = `zaloha-week-${index}`;
+            const weekId = `zaloha-week-${firstDay.date}`;
             const isCollapsed = collapsedWeeks[weekId];
             const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 
             return (
-              <div key={weekId} style={{ borderBottom: index < groupWeeks(enabledZalohaShifts).length - 1 ? '1px solid #eee' : 'none' }}>
+              <div key={weekId} style={{ borderBottom: '1px solid #eee' }}>
                 <div
                   onClick={() => toggleWeek(weekId)}
                   style={{
@@ -406,6 +424,7 @@ export default function ShiftCalendarPage() {
                         onRemoveZaloha={handleRemoveZaloha}
                         isAdmin={isAdmin}
                         retroMode={retroMode}
+                        isPast={isZalohaDayPast(day.date)}
                       />
                       {hasActivities && (
                         <InlineActivities
@@ -423,7 +442,8 @@ export default function ShiftCalendarPage() {
                 })}
               </div>
             );
-          })}
+            });
+          })()}
 
           {/* Add Zaloha Form (Only for Admins) */}
           {isAdmin && (
@@ -483,7 +503,7 @@ export default function ShiftCalendarPage() {
           {enabledDayShifts.length > 0 && groupWeeks(enabledDayShifts).map((week, index) => {
             const firstDay = week[0];
             const lastDay = week[week.length - 1];
-            const weekId = `day-week-${index}`;
+            const weekId = `day-week-${firstDay.date}`;
             const isCollapsed = collapsedWeeks[weekId];
             const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 
@@ -608,7 +628,7 @@ export default function ShiftCalendarPage() {
           {groupWeeks(days).map((week, index) => {
             const firstDay = week[0];
             const lastDay = week[week.length - 1];
-            const weekId = `night-week-${index}`;
+            const weekId = `night-week-${firstDay.date}`;
             const isCollapsed = collapsedWeeks[weekId];
             const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 

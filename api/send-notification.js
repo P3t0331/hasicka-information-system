@@ -23,16 +23,23 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).end();
 
-    const { title, body, url, tag, targetUserId } = req.body || {};
+    const { title, body, url, tag, targetUserId, targetRoles } = req.body || {};
     if (!title) return res.status(400).json({ error: 'missing title' });
 
     const db = getFirestore();
     const subs = await db.collection('pushSubscriptions').get();
     const payload = JSON.stringify({ title, body: body || '', url: url || '/' });
 
-    const docs = targetUserId
-        ? subs.docs.filter(d => d.data().userId === targetUserId || d.id === targetUserId || d.id.startsWith(targetUserId + '_'))
-        : subs.docs;
+    let docs;
+    if (targetUserId) {
+        docs = subs.docs.filter(d => d.data().userId === targetUserId || d.id === targetUserId || d.id.startsWith(targetUserId + '_'));
+    } else if (targetRoles && targetRoles.length > 0) {
+        const usersSnap = await db.collection('users').where('roles', 'array-contains-any', targetRoles).get();
+        const targetUids = new Set(usersSnap.docs.map(d => d.id));
+        docs = subs.docs.filter(d => targetUids.has(d.data().userId));
+    } else {
+        docs = subs.docs;
+    }
 
     await Promise.allSettled(
         docs.map(async (docSnap) => {

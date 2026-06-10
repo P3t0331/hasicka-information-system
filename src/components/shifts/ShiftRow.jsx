@@ -12,7 +12,8 @@ function ShiftRow({
   onRemoveDayShift,
   onRemoveZaloha,
   isAdmin,
-  retroMode
+  retroMode,
+  isPast
 }) {
 
   const isEmpty = section === 'zalohaStaz'
@@ -157,28 +158,32 @@ function ShiftRow({
         {/* Zajemci Pool rendering */}
         {section === 'zalohaStaz' && (
           <div style={{ width: '100%', marginTop: '0.5rem', borderTop: '1px dashed #e0e0e0', paddingTop: '0.5rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <button
-                onClick={() => onZalohaInterestedClick(day.date)}
-                style={{
-                  background: isCurrentlyInterested || isAssignedToThis ? '#FFEBEE' : '#E3F2FD',
-                  color: isCurrentlyInterested || isAssignedToThis ? '#D32F2F' : '#1565C0',
-                  border: isCurrentlyInterested || isAssignedToThis ? '1px solid #FFCDD2' : '1px solid #BBDEFB',
-                  padding: '0.4rem 0.75rem',
-                  borderRadius: '20px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.1)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
-              >
-                  {isCurrentlyInterested || isAssignedToThis ? '✕ Zrušit zájem' : '✋ Mám zájem'}
-              </button>
+              {isPast ? (
+                <span style={{ fontSize: '0.78rem', color: '#9E9E9E', fontStyle: 'italic', padding: '0.2rem 0' }}>Proběhlo</span>
+              ) : (
+                <button
+                  onClick={() => onZalohaInterestedClick(day.date)}
+                  style={{
+                    background: isCurrentlyInterested || isAssignedToThis ? '#FFEBEE' : '#E3F2FD',
+                    color: isCurrentlyInterested || isAssignedToThis ? '#D32F2F' : '#1565C0',
+                    border: isCurrentlyInterested || isAssignedToThis ? '1px solid #FFCDD2' : '1px solid #BBDEFB',
+                    padding: '0.4rem 0.75rem',
+                    borderRadius: '20px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.1)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
+                >
+                    {isCurrentlyInterested || isAssignedToThis ? '✕ Zrušit zájem' : '✋ Mám zájem'}
+                </button>
+              )}
               
               {interestedPool.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: '0.5rem', flexWrap: 'wrap' }}>
