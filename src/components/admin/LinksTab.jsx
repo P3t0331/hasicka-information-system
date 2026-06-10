@@ -301,6 +301,15 @@ export default function LinksTab() {
                             ? <GroupFormFields value={editLink} onChange={setEditLink} />
                             : <LinkFormFields value={editLink} onChange={setEditLink} />
                         }
+                        {!editLink.type && !editLink._groupId && groups.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => { setMovingLink({ ...editLink }); setEditLink(null); }}
+                                style={{ width: '100%', marginTop: '0.75rem', padding: '0.5rem', background: '#f0f7ff', border: '1px solid #bbdefb', borderRadius: '8px', color: '#1565c0', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                            >
+                                Přesunout do skupiny…
+                            </button>
+                        )}
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
                             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setEditLink(null)}>Zrušit</button>
                             <button className="btn btn-primary" style={{ flex: 1 }} disabled={saving} onClick={handleEdit}>Uložit</button>
@@ -458,9 +467,6 @@ export default function LinksTab() {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                            {groups.length > 0 && (
-                                <button onClick={() => setMovingLink(item)} disabled={saving} style={{ ...btnEdit, color: '#1565c0', borderColor: '#bbdefb' }}>Přesunout</button>
-                            )}
                             <button onClick={() => setEditLink({ ...item })} disabled={saving} style={btnEdit}>Upravit</button>
                             <button onClick={() => setConfirmRemove(item)} disabled={saving} style={btnRemove}>Odebrat</button>
                         </div>
