@@ -36,9 +36,9 @@ const SEVERITY_LABELS = {
 };
 
 const SEVERITY_COLORS = {
-    'Extreme': '#6A1B9A',
-    'Severe': '#C62828',
-    'Moderate': '#E65100',
+    'Extreme': '#C62828',
+    'Severe': '#E65100',
+    'Moderate': '#F9A825',
     'Minor': '#F9A825',
 };
 
