@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const EVENT_ICONS = {
     'High Temperatures': '🌡️',
+    'Very High Temperatures': '🌡️',
     'Low Temperatures': '🥶',
     'Wind': '💨',
     'Snow/Ice': '🌨️',
     'Thunderstorms': '⛈️',
+    'Strong Thunderstorms': '⛈️',
     'Rain': '🌧️',
     'Fog': '🌫️',
     'Flooding': '🌊',
@@ -16,10 +18,12 @@ const EVENT_ICONS = {
 
 const EVENT_NAMES = {
     'High Temperatures': 'Vysoké teploty',
+    'Very High Temperatures': 'Velmi vysoké teploty',
     'Low Temperatures': 'Nízké teploty',
     'Wind': 'Silný vítr',
     'Snow/Ice': 'Sníh / náledí',
     'Thunderstorms': 'Bouřky',
+    'Strong Thunderstorms': 'Silné bouřky',
     'Rain': 'Silný déšť',
     'Fog': 'Hustá mlha',
     'Flooding': 'Povodně',

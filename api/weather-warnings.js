@@ -30,7 +30,9 @@ export default async function handler(req, res) {
 
             const event = get(entry, 'cap:event');
             const severity = get(entry, 'cap:severity');
-            const key = `${event}|${severity}`;
+            const onset = get(entry, 'cap:onset');
+            const expires = get(entry, 'cap:expires');
+            const key = `${event}|${severity}|${onset}|${expires}`;
             if (seen.has(key)) continue;
             seen.add(key);
 
@@ -41,8 +43,8 @@ export default async function handler(req, res) {
                 key,
                 event,
                 severity,
-                onset: get(entry, 'cap:onset'),
-                expires: get(entry, 'cap:expires'),
+                onset,
+                expires,
                 capLink,
             });
         }
