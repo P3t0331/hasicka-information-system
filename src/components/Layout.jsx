@@ -140,6 +140,27 @@ export default function Layout() {
       }}>
         <div>Hasičský informační systém &copy; {new Date().getFullYear()}</div>
         <div style={{ marginTop: '0.2rem', color: '#ccc' }}>Vytvořil Peter Greguš &middot; Všechna práva vyhrazena</div>
+        <div style={{ marginTop: '0.6rem' }}>
+          <Link
+            to="/navrhy"
+            style={{
+              color: '#bbb',
+              textDecoration: 'none',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.3rem 0.8rem',
+              borderRadius: '50px',
+              border: '1px solid #e8e8e8',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#ccc'; e.currentTarget.style.color = '#888'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e8e8e8'; e.currentTarget.style.color = '#bbb'; }}
+          >
+            💡 Máte návrh nebo zpětnou vazbu?
+          </Link>
+        </div>
       </footer>
     </div>
   );

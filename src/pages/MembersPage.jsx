@@ -9,6 +9,8 @@ export default function MembersPage() {
         setSearchTerm,
         roleFilter,
         setRoleFilter,
+        sortBy,
+        setSortBy,
         filteredMembers,
         allRoles,
         roleLabels
@@ -88,6 +90,23 @@ export default function MembersPage() {
                         {allRoles.map(role => (
                             <option key={role} value={role}>{roleLabels[role] || role}</option>
                         ))}
+                    </select>
+                </div>
+
+                {/* Sort */}
+                <div style={{ flex: '0 0 180px' }}>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="input-field"
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            fontSize: '1rem'
+                        }}
+                    >
+                        <option value="name">Řadit: Jméno</option>
+                        <option value="evidencniCislo">Řadit: Ev. číslo</option>
                     </select>
                 </div>
             </div>

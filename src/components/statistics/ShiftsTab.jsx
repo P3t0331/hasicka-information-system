@@ -110,16 +110,21 @@ export default function ShiftsTab({
                 zalohaHours = zHours;
             }
 
+            const fromHomeHours = (daySlot?.fromHome ? dayHours : 0) + (nightSlot?.fromHome ? nightHours : 0);
+            const shiftTotal = dayHours + nightHours;
+
             return {
                 day: dayHours,
                 night: nightHours,
                 zaloha: zalohaHours,
-                total: dayHours + nightHours, // zaloha not included in regular total
+                fromHome: fromHomeHours,
+                shiftTotal,
+                total: shiftTotal + zalohaHours,
                 isExplicit: !!h
             };
         } catch (err) {
             console.error("Error calculating split hours:", err);
-            return { day: 0, night: 0, zaloha: 0, total: 0, isExplicit: false };
+            return { day: 0, night: 0, zaloha: 0, fromHome: 0, shiftTotal: 0, total: 0, isExplicit: false };
         }
     };
 
@@ -168,8 +173,15 @@ export default function ShiftsTab({
         return days.reduce((acc, day) => {
             if (isDateInFuture(day.date)) return acc;
             const split = getSplitHoursForUser(day.date, uid);
-            return { day: acc.day + split.day, night: acc.night + split.night, zaloha: acc.zaloha + split.zaloha, total: acc.total + split.total };
-        }, { day: 0, night: 0, zaloha: 0, total: 0 });
+            return {
+                day: acc.day + split.day,
+                night: acc.night + split.night,
+                zaloha: acc.zaloha + split.zaloha,
+                fromHome: acc.fromHome + split.fromHome,
+                shiftTotal: acc.shiftTotal + split.shiftTotal,
+                total: acc.total + split.total,
+            };
+        }, { day: 0, night: 0, zaloha: 0, fromHome: 0, shiftTotal: 0, total: 0 });
     };
 
     const getTotalHoursForDay = (day) => {
@@ -199,8 +211,15 @@ export default function ShiftsTab({
     const getGrandSplitTotal = () => {
         return users.reduce((acc, user) => {
             const split = getSplitTotalHoursForUser(user.uid);
-            return { day: acc.day + split.day, night: acc.night + split.night, zaloha: acc.zaloha + split.zaloha, total: acc.total + split.total };
-        }, { day: 0, night: 0, zaloha: 0, total: 0 });
+            return {
+                day: acc.day + split.day,
+                night: acc.night + split.night,
+                zaloha: acc.zaloha + split.zaloha,
+                fromHome: acc.fromHome + split.fromHome,
+                shiftTotal: acc.shiftTotal + split.shiftTotal,
+                total: acc.total + split.total,
+            };
+        }, { day: 0, night: 0, zaloha: 0, fromHome: 0, shiftTotal: 0, total: 0 });
     };
 
     const handleHourEdit = async (day, uid, type, value) => {
@@ -241,14 +260,30 @@ export default function ShiftsTab({
     return (
         <>
             {/* KPI Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
                 <StatCard
                     icon="⏱️"
                     value={getGrandTotal().toString()}
                     label="Celkem hodin"
-                    sublabel="Tento měsíc"
+                    sublabel="Vč. stáží, zálohy a SMS"
                     color="#D32F2F"
                     bg="rgba(211, 47, 47, 0.08)"
+                />
+                <StatCard
+                    icon="🚒"
+                    value={getGrandSplitTotal().shiftTotal.toString()}
+                    label="Služby na hasičce"
+                    sublabel="Denní + noční směny"
+                    color="#F57C00"
+                    bg="rgba(245, 124, 0, 0.08)"
+                />
+                <StatCard
+                    icon="🏠"
+                    value={getGrandSplitTotal().fromHome.toString()}
+                    label="Z toho doma (SMS)"
+                    sublabel="Směny z domova"
+                    color="#388E3C"
+                    bg="rgba(56, 142, 60, 0.08)"
                 />
                 <StatCard
                     icon="👥"
@@ -257,22 +292,6 @@ export default function ShiftsTab({
                     sublabel="S odpracovanými hodinami"
                     color="#1976D2"
                     bg="rgba(25, 118, 210, 0.08)"
-                />
-                <StatCard
-                    icon="📊"
-                    value={(users.filter(u => getTotalHoursForUser(u.uid) > 0).length > 0 ? Math.round(getGrandTotal() / users.filter(u => getTotalHoursForUser(u.uid) > 0).length) : 0).toString()}
-                    label="Průměr na člena"
-                    sublabel="Průměrný počet hodin"
-                    color="#388E3C"
-                    bg="rgba(56, 142, 60, 0.08)"
-                />
-                <StatCard
-                    icon="📅"
-                    value={days.filter(d => getTotalHoursForDay(d.date) > 0).length.toString()}
-                    label="Odsloužených dnů"
-                    sublabel="Dny s alespoň 1 službou"
-                    color="#F57C00"
-                    bg="rgba(245, 124, 0, 0.08)"
                 />
             </div>
 
@@ -386,7 +405,7 @@ export default function ShiftsTab({
                     <div style={{
                         padding: '1rem',
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                         gap: '1rem',
                         maxHeight: '500px',
                         overflowY: 'auto'
@@ -397,91 +416,60 @@ export default function ShiftsTab({
                             .map(user => {
                                 const split = getSplitTotalHoursForUser(user.uid);
                                 const isMe = user.uid === currentUser?.uid;
-                                const hours = getTotalHoursForUser(user.uid);
 
                                 return (
                                     <div key={user.uid} style={{
-                                        padding: '1rem', borderRadius: '10px',
+                                        padding: '0.9rem', borderRadius: '10px',
                                         border: isMe ? '2px solid #81C784' : '1px solid #e0e0e0',
                                         background: isMe ? '#F1F8E9' : 'white',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
                                     }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                            <span style={{ fontWeight: 600, color: '#333' }}>{isMe && '⭐ '}{user.name}</span>
-                                            <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#333' }}>{hours}h</span>
+                                        {/* Name + grand total */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                                            <span style={{ fontWeight: 600, color: '#333', fontSize: '0.9rem' }}>{isMe && '⭐ '}{user.name}</span>
+                                            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#333' }}>{split.total}h</span>
                                         </div>
 
-                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {/* Služby na hasičce */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.72rem', color: '#777' }}>Služby na hasičce</span>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#E65100' }}>{split.shiftTotal}h</span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: (split.fromHome > 0 || split.zaloha > 0) ? '0.5rem' : 0 }}>
                                             {split.day > 0 && (
-                                                <span style={{
-                                                    fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
-                                                    background: '#FFF3E0', color: '#E65100', fontWeight: 600
-                                                }}>
-                                                    ☀️ {split.day}
+                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: '#FFF3E0', color: '#E65100', fontWeight: 600 }}>
+                                                    ☀️ {split.day}h
                                                 </span>
                                             )}
                                             {split.night > 0 && (
-                                                <span style={{
-                                                    fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
-                                                    background: '#E8EAF6', color: '#3949AB', fontWeight: 600
-                                                }}>
-                                                    🌙 {split.night}
-                                                </span>
-                                            )}
-                                            {split.zaloha > 0 && (
-                                                <span style={{
-                                                    fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px',
-                                                    background: '#E3F2FD', color: '#1565C0', fontWeight: 600
-                                                }}>
-                                                    🛡️ {split.zaloha}
+                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: '#E8EAF6', color: '#3949AB', fontWeight: 600 }}>
+                                                    🌙 {split.night}h
                                                 </span>
                                             )}
                                         </div>
+
+                                        {/* Z toho doma (SMS) */}
+                                        {split.fromHome > 0 && (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: split.zaloha > 0 ? '0.25rem' : 0 }}>
+                                                <span style={{ fontSize: '0.72rem', color: '#777', paddingLeft: '0.6rem' }}>↳ Z toho doma (SMS)</span>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2E7D32' }}>🏠 {split.fromHome}h</span>
+                                            </div>
+                                        )}
+
+                                        {/* Záloha/Stáž */}
+                                        {split.zaloha > 0 && (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.35rem', borderTop: '1px dashed #eee', marginTop: '0.35rem' }}>
+                                                <span style={{ fontSize: '0.72rem', color: '#777' }}>Záloha/Stáž</span>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1565C0' }}>🛡️ {split.zaloha}h</span>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
+                        {users.every(u => getTotalHoursForUser(u.uid) === 0) && (
+                            <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
+                        )}
                     </div>
-                </div>
-            </div>
-
-            {/* Separate Stáž/Záloha Members List */}
-            <div className="card" style={{ padding: '0', overflow: 'hidden', marginBottom: '3rem' }}>
-                <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: 'linear-gradient(135deg, #1976D2, #0D47A1)' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'white' }}>🛡️ Přehled členů na Stážích/Zálohách</h3>
-                </div>
-                <div style={{
-                    padding: '1rem',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: '1rem',
-                    maxHeight: '300px',
-                    overflowY: 'auto'
-                }}>
-                    {users
-                        .filter(user => getSplitTotalHoursForUser(user.uid).zaloha > 0)
-                        .sort((a, b) => getSplitTotalHoursForUser(b.uid).zaloha - getSplitTotalHoursForUser(a.uid).zaloha)
-                        .map(user => {
-                            const zalohaHours = getSplitTotalHoursForUser(user.uid).zaloha;
-                            const isMe = user.uid === currentUser?.uid;
-
-                            return (
-                                <div key={'zaloha-' + user.uid} style={{
-                                    padding: '1rem', borderRadius: '10px',
-                                    border: isMe ? '2px solid #81C784' : '1px solid #BBDEFB',
-                                    background: isMe ? '#F1F8E9' : '#F8BBD0',
-                                    backgroundColor: isMe ? '#F1F8E9' : '#f5fafe',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <span style={{ fontWeight: 600, color: '#333' }}>{isMe && '⭐ '}{user.name}</span>
-                                        <span style={{ fontWeight: 800, fontSize: '1.2rem', color: '#1565C0' }}>{zalohaHours}h</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    {users.every(u => getSplitTotalHoursForUser(u.uid).zaloha === 0) && (
-                        <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
-                    )}
                 </div>
             </div>
 
@@ -571,15 +559,31 @@ export default function ShiftsTab({
                                     MĚSÍČNÍ SOUČET
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{getGrandTotal()}h</div>
-                                    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                                        (☀️ {getGrandSplitTotal().day} + 🌙 {getGrandSplitTotal().night})
-                                    </div>
-                                    {getGrandZalohaTotal() > 0 && (
-                                        <div style={{ fontSize: '0.85rem', color: '#90CAF9', fontWeight: 600, marginTop: '0.2rem' }}>
-                                            + {getGrandZalohaTotal()}h (Stáž)
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const grand = getGrandSplitTotal();
+                                        return (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'center' }}>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{grand.total}h</div>
+                                                <div style={{ fontSize: '0.72rem', opacity: 0.75 }}>Celkem (vč. zálohy)</div>
+                                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FFCC80', marginTop: '0.15rem' }}>
+                                                    🚒 Služby {grand.shiftTotal}h
+                                                    <span style={{ opacity: 0.7, marginLeft: '0.4rem' }}>
+                                                        (☀️ {grand.day} + 🌙 {grand.night})
+                                                    </span>
+                                                </div>
+                                                {grand.fromHome > 0 && (
+                                                    <div style={{ fontSize: '0.8rem', color: '#A5D6A7', fontWeight: 600 }}>
+                                                        🏠 Z toho doma {grand.fromHome}h
+                                                    </div>
+                                                )}
+                                                {grand.zaloha > 0 && (
+                                                    <div style={{ fontSize: '0.8rem', color: '#90CAF9', fontWeight: 600 }}>
+                                                        🛡️ Záloha/Stáž {grand.zaloha}h
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
                                 </td>
                                 {isAdmin && <td></td>}
                             </tr>

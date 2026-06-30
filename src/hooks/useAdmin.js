@@ -458,7 +458,7 @@ export default function useAdmin() {
     const roles = currentRoles || [];
     let newRoles;
 
-    const uniqueRoles = ['VJ', 'Zástupce VJ', 'Zastupce VJ'];
+    const uniqueRoles = ['VJ'];
     const isAddingRole = !roles.includes(roleToToggle);
 
     if (isAddingRole && uniqueRoles.includes(roleToToggle)) {

@@ -7,6 +7,7 @@ import DetailedInventoryTab from '../components/admin/DetailedInventoryTab';
 import LogsTab from '../components/admin/LogsTab';
 import BulletinTab from '../components/admin/BulletinTab';
 import LinksTab from '../components/admin/LinksTab';
+import SuggestionsAdminTab from '../components/admin/SuggestionsAdminTab';
 import AddEquipmentTypeModal from '../components/admin/modals/AddEquipmentTypeModal';
 
 export default function AdminPage() {
@@ -140,6 +141,7 @@ export default function AdminPage() {
           { id: 'vybaveni', label: `🧰 Vybavení ${equipmentTypes.length > 0 ? `(${equipmentTypes.length})` : ''}` },
           { id: 'prehled', label: '📋 Přehled vybavení' },
           { id: 'nastevnka', label: '📌 Nástěnka' },
+          ...(userRoles.includes('Admin') ? [{ id: 'navrhy', label: '💡 Návrhy' }] : []),
           { id: 'odkazy', label: '🔗 Odkazy' },
           { id: 'logy', label: '📜 Logy' }
         ].map(tab => (
@@ -213,6 +215,10 @@ export default function AdminPage() {
 
       {activeTab === 'nastevnka' && (
         <BulletinTab allUsers={allUsers} />
+      )}
+
+      {activeTab === 'navrhy' && userRoles.includes('Admin') && (
+        <SuggestionsAdminTab />
       )}
 
       {activeTab === 'odkazy' && (

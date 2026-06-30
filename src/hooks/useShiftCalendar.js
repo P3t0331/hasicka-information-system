@@ -8,7 +8,8 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  collection
+  collection,
+  runTransaction
 } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { getEffectiveRoles } from '../utils/roles';
@@ -261,6 +262,7 @@ export default function useShiftCalendar(currentUser, userData) {
   const handleSlotClick = async (day, section, slotKey, joinParams = {}) => {
     if (!userData || !userData.approved) return;
 
+    // Phase 1: Read local state only for UI — confirmations and validation.
     const dayData = shiftsData[day] || { dayShift: {}, nightShift: {} };
     const sectionData = dayData[section] || {};
     const currentAssignee = sectionData[slotKey];
@@ -273,45 +275,19 @@ export default function useShiftCalendar(currentUser, userData) {
       ...(joinParams.timeFrom ? { timeFrom: joinParams.timeFrom, timeTo: joinParams.timeTo } : {})
     };
 
-    let newData = { ...dayData };
-    if (!newData[section]) newData[section] = {};
-
-    const cleanupHours = (targetUid) => {
-      if (!newData.hours) newData.hours = {};
-
-      const checkPresence = (shiftType) => {
-        const slots = newData[shiftType] || {};
-        return Object.values(slots).some(u => u && u.uid === targetUid);
-      };
-
-      const inDay = checkPresence('dayShift');
-      const inNight = checkPresence('nightShift');
-
-      const wipeDay = (section === 'dayShift') || !inDay;
-      const wipeNight = (section === 'nightShift') || !inNight;
-
-      if (wipeDay && wipeNight) {
-        newData.hours[targetUid] = deleteField();
-      } else {
-        const patch = {};
-        if (wipeDay) patch.day = deleteField();
-        if (wipeNight) patch.night = deleteField();
-        newData.hours[targetUid] = patch;
-      }
-    };
+    // Determine intended action and get user confirmation before touching the database.
+    let actionType; // 'join' | 'leave' | 'move' | 'kick' | 'zaloha-remove'
 
     if (section === 'zalohaStaz') {
       const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
-      
       if (!isAdmin) {
         showToast('error', 'Na pozice u Stáže/Zálohy může přiřazovat pouze velitel. Použijte tlačítko "Mám zájem".');
         return;
       }
-
       if (currentAssignee) {
         const confirmed = await showConfirm('Uvolnit pozici', `Chcete odebrat uživatele ${currentAssignee.name} z této pozice? (Zůstane v seznamu zájemců)`);
         if (!confirmed) return;
-        newData[section] = { ...newData[section], [slotKey]: deleteField() };
+        actionType = 'zaloha-remove';
       } else {
         setZalohaAssignModal({ day, slotKey, section });
         return;
@@ -320,25 +296,21 @@ export default function useShiftCalendar(currentUser, userData) {
       if (currentAssignee && currentAssignee.uid === currentUser.uid) {
         const confirmed = await showConfirm('Zrušit službu', 'Opravdu chcete zrušit svou službu?');
         if (!confirmed) return;
-        newData[section] = { ...newData[section], [slotKey]: deleteField() };
-        cleanupHours(currentUser.uid);
+        actionType = 'leave';
       } else if (currentAssignee) {
         const currentUserIsQualified = isQualifiedFor(slotKey);
         const existingIsUnqualified = currentAssignee.qualified === false;
 
         if (slotKey === 'velitel' && currentUserIsQualified && existingIsUnqualified) {
           const hasicSlots = ['hasic1', 'hasic2', 'hasic3'];
-          const freeHasicSlot = hasicSlots.find(s => !newData[section][s]);
-
+          const freeHasicSlot = hasicSlots.find(s => !sectionData[s]);
           if (freeHasicSlot) {
             const confirmed = await showConfirm(
               'Převzít místo',
               `Převzít pozici Velitele od ${currentAssignee.name}? Bude přesunut na Hasiče.`
             );
             if (!confirmed) return;
-            newData[section][freeHasicSlot] = { ...currentAssignee, qualified: true };
-            newData[section][slotKey] = userCompact;
-            cleanupHours(currentUser.uid);
+            actionType = 'move';
           } else {
             showToast('error', 'Nelze převzít místo - všechny pozice Hasič jsou obsazené.');
             return;
@@ -346,8 +318,7 @@ export default function useShiftCalendar(currentUser, userData) {
         } else if (userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD'].includes(r))) {
           const confirmed = await showConfirm('Odebrat uživatele', `Chcete odebrat uživatele ${currentAssignee.name}?`);
           if (!confirmed) return;
-          newData[section] = { ...newData[section], [slotKey]: deleteField() };
-          cleanupHours(currentAssignee.uid);
+          actionType = 'kick';
         } else {
           showToast('error', 'Toto místo je již obsazeno.');
           return;
@@ -358,12 +329,10 @@ export default function useShiftCalendar(currentUser, userData) {
           showToast('warning', `Již máte službu na této směně (${existingUserSlot}). Nejprve se odhlaste.`);
           return;
         }
-
         if (getSlotBaseType(slotKey) === 'strojnik' && !isQualifiedFor(slotKey)) {
           showToast('error', 'Pro pozici Strojník musíte mít příslušnou kvalifikaci.');
           return;
         }
-
         if (getSlotBaseType(slotKey) === 'velitel' && !isQualifiedFor(slotKey)) {
           const proceed = await showConfirm(
             '⚠️ Chybí kvalifikace',
@@ -372,46 +341,110 @@ export default function useShiftCalendar(currentUser, userData) {
           if (!proceed) return;
           userCompact.qualified = false;
         }
-
-        newData[section][slotKey] = userCompact;
-        cleanupHours(currentUser.uid);
+        actionType = 'join';
       }
     }
 
-    try {
-      const docRef = doc(db, 'shifts', currentDocId);
-      await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
+    // Phase 2: Execute atomically. The transaction reads fresh server data, so stale
+    // local cache can never overwrite a concurrent write from another user.
+    const docRef = doc(db, 'shifts', currentDocId);
 
+    // Mirrors the original cleanupHours logic but uses fresh server data and returns
+    // a flat field-path update object instead of mutating a local copy.
+    const computeHoursCleanup = (freshDayData, targetUid, targetSection) => {
+      const otherSection = targetSection === 'dayShift' ? 'nightShift' : 'dayShift';
+      const inOther = Object.values(freshDayData[otherSection] || {}).some(
+        u => u && typeof u === 'object' && u.uid === targetUid
+      );
+      if (!inOther) {
+        return { [`days.${day}.hours.${targetUid}`]: deleteField() };
+      }
+      const sectionKey = targetSection === 'dayShift' ? 'day' : 'night';
+      return { [`days.${day}.hours.${targetUid}.${sectionKey}`]: deleteField() };
+    };
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const docSnap = await transaction.get(docRef);
+        if (!docSnap.exists()) throw new Error('Dokument neexistuje.');
+
+        const freshDayData = docSnap.data().days?.[day] || {};
+        const freshSection = freshDayData[section] || {};
+        const freshSlot = freshSection[slotKey];
+        const update = {};
+
+        if (actionType === 'join') {
+          // Conflict: slot was taken by someone else while user had stale data.
+          if (freshSlot && freshSlot.uid !== currentUser.uid) {
+            throw Object.assign(new Error('SLOT_TAKEN'), { appError: true });
+          }
+          update[`days.${day}.${section}.${slotKey}`] = userCompact;
+          Object.assign(update, computeHoursCleanup(freshDayData, currentUser.uid, section));
+
+        } else if (actionType === 'leave') {
+          update[`days.${day}.${section}.${slotKey}`] = deleteField();
+          Object.assign(update, computeHoursCleanup(freshDayData, currentUser.uid, section));
+
+        } else if (actionType === 'move') {
+          if (!freshSlot) throw Object.assign(new Error('NO_VELITEL'), { appError: true });
+          const hasicSlots = ['hasic1', 'hasic2', 'hasic3'];
+          // Re-check free hasic slot on fresh server data — may differ from local state.
+          const freshFreeHasicSlot = hasicSlots.find(s => !freshSection[s]);
+          if (!freshFreeHasicSlot) throw Object.assign(new Error('NO_FREE_HASIC_SLOT'), { appError: true });
+          update[`days.${day}.${section}.${freshFreeHasicSlot}`] = { ...freshSlot, qualified: true };
+          update[`days.${day}.${section}.${slotKey}`] = userCompact;
+          Object.assign(update, computeHoursCleanup(freshDayData, currentUser.uid, section));
+
+        } else if (actionType === 'kick') {
+          const kickedUid = freshSlot?.uid;
+          update[`days.${day}.${section}.${slotKey}`] = deleteField();
+          if (kickedUid) Object.assign(update, computeHoursCleanup(freshDayData, kickedUid, section));
+
+        } else if (actionType === 'zaloha-remove') {
+          update[`days.${day}.${section}.${slotKey}`] = deleteField();
+        }
+
+        transaction.update(docRef, update);
+      });
+
+      // Phase 3: Post-transaction side-effects (logging is fire-and-forget, safe outside transaction).
       const shiftLabel = section === 'dayShift' ? 'denní' : section === 'nightShift' ? 'noční' : 'záloha/stáž';
-      const slotLabel = slotKey;
       const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-      
-      if (section === 'zalohaStaz') {
+
+      if (actionType === 'zaloha-remove') {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'ADMIN_REMOVED_USER_FROM_STAZ', 'shifts',
-          `Odebral uživatele z pozice ${slotLabel} – ${shiftLabel} sloužba ${dateLabel}`);
-      } else {
-        const wasRemoved = currentAssignee && currentAssignee.uid === currentUser.uid;
-        const wasKicked = currentAssignee && currentAssignee.uid !== currentUser.uid;
-        if (wasKicked) {
-          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-            'REMOVED_USER_FROM_SHIFT', 'shifts',
-            `Odebral ${currentAssignee.name} z pozice ${slotLabel} – ${shiftLabel} sloužba ${dateLabel}`);
-        } else if (wasRemoved) {
-          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-            'LEFT_SHIFT', 'shifts',
-            `Odhlásil se z ${shiftLabel} služby ${dateLabel} (${slotLabel})`);
-        } else {
-          logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-            'JOINED_SHIFT', 'shifts',
-            `Přihlásil se na ${shiftLabel} službu ${dateLabel} – pozice: ${slotLabel}`);
-        }
+          `Odebral uživatele z pozice ${slotKey} – ${shiftLabel} sloužba ${dateLabel}`);
+      } else if (actionType === 'leave') {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'LEFT_SHIFT', 'shifts',
+          `Odhlásil se z ${shiftLabel} služby ${dateLabel} (${slotKey})`);
+      } else if (actionType === 'kick' || actionType === 'move') {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'REMOVED_USER_FROM_SHIFT', 'shifts',
+          `Odebral ${currentAssignee.name} z pozice ${slotKey} – ${shiftLabel} sloužba ${dateLabel}`);
+      } else if (actionType === 'join') {
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'JOINED_SHIFT', 'shifts',
+          `Přihlásil se na ${shiftLabel} službu ${dateLabel} – pozice: ${slotKey}`);
       }
 
       showToast('success', 'Služba uložena.');
     } catch (err) {
-      console.error("Error updating shift:", err);
-      showToast('error', 'Chyba při ukládání služby.');
+      if (err.appError) {
+        if (err.message === 'SLOT_TAKEN') {
+          showToast('error', 'Toto místo bylo mezitím obsazeno. Zkuste to znovu.');
+        } else if (err.message === 'NO_FREE_HASIC_SLOT') {
+          showToast('error', 'Všechny pozice Hasič jsou nyní obsazené. Nelze přesunout Velitele.');
+        } else if (err.message === 'NO_VELITEL') {
+          showToast('error', 'Pozice Velitele je nyní prázdná.');
+        } else {
+          showToast('error', 'Chyba: ' + err.message);
+        }
+      } else {
+        console.error("Error updating shift:", err);
+        showToast('error', 'Chyba při ukládání služby.');
+      }
     }
   };
 
@@ -421,45 +454,55 @@ export default function useShiftCalendar(currentUser, userData) {
     const dayData = shiftsData[day] || {};
     const sectionData = dayData.zalohaStaz || { interested: [] };
     const interested = sectionData.interested || [];
-    
     const isInterested = interested.some(u => u.uid === currentUser.uid);
 
-    let newInterested;
-    let newData = { ...dayData };
-    if (!newData.zalohaStaz) newData.zalohaStaz = {};
+    const docRef = doc(db, 'shifts', currentDocId);
+    const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
     if (isInterested) {
       const confirmed = await showConfirm('Zrušit zájem', 'Opravdu chcete zrušit svůj zájem o tuto Stáž/Zálohu? Budete odebráni i z případné přiřazené pozice.');
       if (!confirmed) return;
-      newInterested = interested.filter(u => u.uid !== currentUser.uid);
-      
-      const slots = Object.keys(newData.zalohaStaz).filter(k => k !== 'config' && k !== 'interested');
-      for (const s of slots) {
-        if (newData.zalohaStaz[s] && newData.zalohaStaz[s].uid === currentUser.uid) {
-          newData.zalohaStaz[s] = deleteField();
-        }
+
+      try {
+        // Transaction needed: removing interest also clears any assigned slots.
+        await runTransaction(db, async (transaction) => {
+          const docSnap = await transaction.get(docRef);
+          if (!docSnap.exists()) throw new Error('Dokument neexistuje.');
+
+          const freshZalohaStaz = docSnap.data().days?.[day]?.zalohaStaz || {};
+          const freshInterested = freshZalohaStaz.interested || [];
+          const update = {
+            [`days.${day}.zalohaStaz.interested`]: freshInterested.filter(u => u.uid !== currentUser.uid),
+          };
+          const slots = Object.keys(freshZalohaStaz).filter(k => k !== 'config' && k !== 'interested');
+          for (const s of slots) {
+            if (freshZalohaStaz[s]?.uid === currentUser.uid) {
+              update[`days.${day}.zalohaStaz.${s}`] = deleteField();
+            }
+          }
+          transaction.update(docRef, update);
+        });
+
+        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+          'CANCELLED_INTEREST_IN_STAZ', 'shifts',
+          `Zrušil zájem o stáž/zálohu dne ${dateLabel}`);
+        showToast('success', 'Zájem zrušen.');
+      } catch (err) {
+        console.error("Error updating interested:", err);
+        showToast('error', 'Chyba při ukládání.');
       }
     } else {
-      newInterested = [...interested, {
+      // arrayUnion atomically appends without a read — safe for concurrent clicks from different users.
+      const newInterestEntry = {
         uid: currentUser.uid,
         name: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''}`,
         qualifiedVelitel: isQualifiedFor('velitel'),
         qualifiedStrojnik: isQualifiedFor('strojnik')
-      }];
-    }
-    
-    newData.zalohaStaz.interested = newInterested;
-
-    try {
-      const docRef = doc(db, 'shifts', currentDocId);
-      await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
-      
-      const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-      if (isInterested) {
-        logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
-          'CANCELLED_INTEREST_IN_STAZ', 'shifts',
-          `Zrušil zájem o stáž/zálohu dne ${dateLabel}`);
-      } else {
+      };
+      try {
+        await updateDoc(docRef, {
+          [`days.${day}.zalohaStaz.interested`]: arrayUnion(newInterestEntry),
+        });
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'INTERESTED_IN_STAZ', 'shifts',
           `Projevil zájem o stáž/zálohu dne ${dateLabel}`);
@@ -474,28 +517,25 @@ export default function useShiftCalendar(currentUser, userData) {
             targetRoles: ['Admin', 'VJ', 'Zástupce VJ'],
           }),
         });
+        showToast('success', 'Přidáni do seznamu zájemců.');
+      } catch (err) {
+        console.error("Error updating interested:", err);
+        showToast('error', 'Chyba při ukládání.');
       }
-      
-      showToast('success', isInterested ? 'Zájem zrušen.' : 'Přidáni do seznamu zájemců.');
-    } catch (err) {
-      console.error("Error updating interested:", err);
-      showToast('error', 'Chyba při ukládání.');
     }
   };
 
   const handleZalohaAssignUser = async (targetUser) => {
     if (!zalohaAssignModal) return;
-    
+
     const { day, slotKey, section } = zalohaAssignModal;
-    const dayData = shiftsData[day] || {};
-    let newData = { ...dayData };
-    
+
     const baseType = getSlotBaseType(slotKey);
     if (baseType === 'strojnik' && !targetUser.qualifiedStrojnik) {
       showToast('error', 'Pro pozici Strojník musí mít uživatel příslušnou kvalifikaci.');
       return;
     }
-    
+
     let qualified = true;
     if (baseType === 'velitel' && !targetUser.qualifiedVelitel) {
       const proceed = await showConfirm(
@@ -506,25 +546,31 @@ export default function useShiftCalendar(currentUser, userData) {
       qualified = false;
     }
 
-    if (!newData[section]) newData[section] = {};
-    
-    const slots = Object.keys(newData[section]).filter(k => k !== 'config' && k !== 'interested');
-    for (const s of slots) {
-      if (newData[section][s] && newData[section][s].uid === targetUser.uid) {
-        newData[section][s] = deleteField();
-      }
-    }
-
-    newData[section][slotKey] = {
-      uid: targetUser.uid,
-      name: targetUser.name,
-      qualified
-    };
-
+    const docRef = doc(db, 'shifts', currentDocId);
     try {
-      const docRef = doc(db, 'shifts', currentDocId);
-      await setDoc(docRef, { days: { [day]: newData } }, { merge: true });
-      
+      await runTransaction(db, async (transaction) => {
+        const docSnap = await transaction.get(docRef);
+        if (!docSnap.exists()) throw new Error('Dokument neexistuje.');
+
+        const freshZalohaStaz = docSnap.data().days?.[day]?.[section] || {};
+        const update = {};
+
+        // Remove user from any other slot they're already in (uses fresh server data).
+        const slots = Object.keys(freshZalohaStaz).filter(k => k !== 'config' && k !== 'interested');
+        for (const s of slots) {
+          if (freshZalohaStaz[s]?.uid === targetUser.uid) {
+            update[`days.${day}.${section}.${s}`] = deleteField();
+          }
+        }
+        update[`days.${day}.${section}.${slotKey}`] = {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          qualified,
+        };
+
+        transaction.update(docRef, update);
+      });
+
       const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ASSIGNED_USER_TO_STAZ', 'shifts',

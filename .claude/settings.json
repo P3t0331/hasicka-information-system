@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx\\)$\")",
+      "Bash(sed 's/.*collection\\(db, //')",
+      "Bash(sed \"s/'//g\")",
+      "Bash(sed 's/,.*$//')",
+      "Bash(sed \"s/.*collection\\(db, '//\")",
+      "Bash(sed \"s/'.*$//\")"
+    ]
+  }
+}

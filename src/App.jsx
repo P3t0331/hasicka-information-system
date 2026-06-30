@@ -6,6 +6,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import UpdatePrompt from './components/UpdatePrompt';
+import ChangelogModal from './components/ChangelogModal';
 
 const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
@@ -18,6 +19,7 @@ const EventsPage = React.lazy(() => import('./pages/EventsPage'));
 const MembersPage = React.lazy(() => import('./pages/MembersPage'));
 const MaintenanceLogPage = React.lazy(() => import('./pages/MaintenanceLogPage'));
 const CleaningLogPage = React.lazy(() => import('./pages/CleaningLogPage'));
+const SuggestionsPage = React.lazy(() => import('./pages/SuggestionsPage'));
 
 function PageLoader() {
   return (
@@ -36,6 +38,7 @@ function App() {
         <Router>
         <div className="app-container">
           <UpdatePrompt />
+          <ChangelogModal />
           <Routes>
             <Route path="/login" element={<Suspense fallback={<PageLoader />}><AuthPage /></Suspense>} />
 
@@ -54,6 +57,7 @@ function App() {
               <Route path="/uklid" element={<Suspense fallback={<PageLoader />}><CleaningLogPage /></Suspense>} />
               <Route path="/statistiky" element={<Suspense fallback={<PageLoader />}><StatisticsPage /></Suspense>} />
               <Route path="/clenove" element={<Suspense fallback={<PageLoader />}><MembersPage /></Suspense>} />
+              <Route path="/navrhy" element={<Suspense fallback={<PageLoader />}><SuggestionsPage /></Suspense>} />
               <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
             </Route>
 
