@@ -1,3 +1,5 @@
+import { getZalohaKindLabel } from '../components/shifts/constants';
+
 function formatICSDateTime(dateStr, timeStr) {
   const [y, m, d] = dateStr.split('-');
   const [hh, mm] = (timeStr || '00:00').split(':');
@@ -129,7 +131,7 @@ export function shiftSlotToICSEvent(year, month, day, section, slotKey, slotData
     // zalohaStaz
     const startTime = zalohaConfig?.timeFrom || '08:00';
     const endTime = zalohaConfig?.timeTo || '16:00';
-    summary = 'Záloha/stáž';
+    summary = getZalohaKindLabel(zalohaConfig);
     dtstart = formatICSDateTime(dateStr, startTime);
     dtend = formatICSDateTime(dateStr, endTime);
   }

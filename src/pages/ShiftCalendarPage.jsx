@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useShiftCalendar from '../hooks/useShiftCalendar';
-import { MONTHS_CZ } from '../components/shifts/constants';
+import { MONTHS_CZ, getZalohaKind, getZalohaKindForms } from '../components/shifts/constants';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from '../utils/logger';
@@ -68,6 +68,7 @@ export default function ShiftCalendarPage() {
     handleAddAbsence,
     handleDeleteAbsence,
     handleAddZaloha,
+    handleEditZaloha,
     handleRetroAssign,
     showToast,
   } = useShiftCalendar(currentUser, userData);
@@ -324,8 +325,11 @@ export default function ShiftCalendarPage() {
       {zalohaModal && (
         <AddZalohaModal
           date={zalohaModal.date}
+          mode={zalohaModal.mode || 'add'}
+          initialConfig={zalohaModal.config}
+          sectionData={shiftsData[zalohaModal.date]?.zalohaStaz}
           onClose={() => setZalohaModal(null)}
-          onSubmit={(config) => handleAddZaloha(config)}
+          onSubmit={(config) => zalohaModal.mode === 'edit' ? handleEditZaloha(config) : handleAddZaloha(config)}
         />
       )}
 
@@ -409,9 +413,35 @@ export default function ShiftCalendarPage() {
 
                   return (
                     <React.Fragment key={`zaloha-${day.date}`}>
-                      {config && (
-                        <div style={{ background: '#E3F2FD', padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#1565C0', fontWeight: 600, borderBottom: '1px solid #BBDEFB' }}>
-                          ⏰ {config.timeFrom} – {config.timeTo}
+                      {(config || isAdmin) && (
+                        <div style={{ background: '#E3F2FD', padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#1565C0', fontWeight: 600, borderBottom: '1px solid #BBDEFB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{
+                              background: getZalohaKind(config) === 'staz' ? '#EDE7F6' : '#E8F5E9',
+                              color: getZalohaKind(config) === 'staz' ? '#4527A0' : '#2E7D32',
+                              border: `1px solid ${getZalohaKind(config) === 'staz' ? '#B39DDB' : '#A5D6A7'}`,
+                              padding: '0.1rem 0.5rem', borderRadius: '12px', fontSize: '0.72rem',
+                              textTransform: 'uppercase', letterSpacing: '0.5px'
+                            }}>
+                              {getZalohaKindForms(config).icon} {getZalohaKindForms(config).label}
+                            </span>
+                            <span>
+                              ⏰ {config?.timeFrom && config?.timeTo ? `${config.timeFrom} – ${config.timeTo}` : 'Čas neuveden'}
+                            </span>
+                          </span>
+                          {isAdmin && (
+                            <button
+                              onClick={() => setZalohaModal({ date: day.date, mode: 'edit', config: config || {} })}
+                              title="Upravit čas a počet pozic"
+                              style={{
+                                background: 'white', border: '1px solid #90CAF9', color: '#1565C0',
+                                padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem',
+                                fontWeight: 600, cursor: 'pointer'
+                              }}
+                            >
+                              ✏️ Upravit
+                            </button>
+                          )}
                         </div>
                       )}
                       <ShiftRow
@@ -452,7 +482,7 @@ export default function ShiftCalendarPage() {
               <select
                 onChange={(e) => {
                   if (e.target.value) {
-                    setZalohaModal({ date: parseInt(e.target.value) });
+                    setZalohaModal({ date: parseInt(e.target.value), mode: 'add' });
                     e.target.value = "";
                   }
                 }}

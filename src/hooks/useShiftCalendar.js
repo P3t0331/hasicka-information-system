@@ -13,7 +13,16 @@ import {
 } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { getEffectiveRoles } from '../utils/roles';
-import { DAYS_CZ, MONTHS_CZ, SLOT_TYPES, getSlotBaseType } from '../components/shifts/constants';
+import {
+  DAYS_CZ,
+  MONTHS_CZ,
+  SLOT_TYPES,
+  getSlotBaseType,
+  getSlotLabel,
+  getZalohaSlots,
+  getZalohaAssignedSlots,
+  getZalohaKindForms
+} from '../components/shifts/constants';
 import { useToast } from '../contexts/ToastContext';
 
 export default function useShiftCalendar(currentUser, userData) {
@@ -281,7 +290,7 @@ export default function useShiftCalendar(currentUser, userData) {
     if (section === 'zalohaStaz') {
       const isAdmin = userRoles.some(r => ['Admin', 'VJ', 'Zástupce VJ', 'VD', 'Přístup do Administrace'].includes(r));
       if (!isAdmin) {
-        showToast('error', 'Na pozice u Stáže/Zálohy může přiřazovat pouze velitel. Použijte tlačítko "Mám zájem".');
+        showToast('error', `Na pozice u ${getZalohaKindForms(sectionData.config).genitive} může přiřazovat pouze velitel. Použijte tlačítko "Mám zájem".`);
         return;
       }
       if (currentAssignee) {
@@ -408,25 +417,29 @@ export default function useShiftCalendar(currentUser, userData) {
       });
 
       // Phase 3: Post-transaction side-effects (logging is fire-and-forget, safe outside transaction).
-      const shiftLabel = section === 'dayShift' ? 'denní' : section === 'nightShift' ? 'noční' : 'záloha/stáž';
+      // A Záloha/Stáž is named by its kind ("Záloha"), day/night shifts by their adjective.
+      const zalohaKind = section === 'zalohaStaz' ? getZalohaKindForms(sectionData.config) : null;
+      const shiftNom = zalohaKind ? zalohaKind.label : (section === 'dayShift' ? 'denní služba' : 'noční služba');
+      const shiftAcc = zalohaKind ? zalohaKind.accusative : (section === 'dayShift' ? 'denní službu' : 'noční službu');
+      const shiftGen = zalohaKind ? `ze ${zalohaKind.genitive}` : (section === 'dayShift' ? 'z denní služby' : 'z noční služby');
       const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
       if (actionType === 'zaloha-remove') {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'ADMIN_REMOVED_USER_FROM_STAZ', 'shifts',
-          `Odebral uživatele z pozice ${slotKey} – ${shiftLabel} sloužba ${dateLabel}`);
+          `Odebral uživatele z pozice ${slotKey} – ${shiftNom} ${dateLabel}`);
       } else if (actionType === 'leave') {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'LEFT_SHIFT', 'shifts',
-          `Odhlásil se z ${shiftLabel} služby ${dateLabel} (${slotKey})`);
+          `Odhlásil se ${shiftGen} ${dateLabel} (${slotKey})`);
       } else if (actionType === 'kick' || actionType === 'move') {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'REMOVED_USER_FROM_SHIFT', 'shifts',
-          `Odebral ${currentAssignee.name} z pozice ${slotKey} – ${shiftLabel} sloužba ${dateLabel}`);
+          `Odebral ${currentAssignee.name} z pozice ${slotKey} – ${shiftNom} ${dateLabel}`);
       } else if (actionType === 'join') {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'JOINED_SHIFT', 'shifts',
-          `Přihlásil se na ${shiftLabel} službu ${dateLabel} – pozice: ${slotKey}`);
+          `Přihlásil se na ${shiftAcc} ${dateLabel} – pozice: ${slotKey}`);
       }
 
       showToast('success', 'Služba uložena.');
@@ -458,9 +471,10 @@ export default function useShiftCalendar(currentUser, userData) {
 
     const docRef = doc(db, 'shifts', currentDocId);
     const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    const kind = getZalohaKindForms(sectionData.config);
 
     if (isInterested) {
-      const confirmed = await showConfirm('Zrušit zájem', 'Opravdu chcete zrušit svůj zájem o tuto Stáž/Zálohu? Budete odebráni i z případné přiřazené pozice.');
+      const confirmed = await showConfirm('Zrušit zájem', `Opravdu chcete zrušit svůj zájem o tuto ${kind.accusative}? Budete odebráni i z případné přiřazené pozice.`);
       if (!confirmed) return;
 
       try {
@@ -485,7 +499,7 @@ export default function useShiftCalendar(currentUser, userData) {
 
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'CANCELLED_INTEREST_IN_STAZ', 'shifts',
-          `Zrušil zájem o stáž/zálohu dne ${dateLabel}`);
+          `Zrušil zájem o ${kind.accusative} dne ${dateLabel}`);
         showToast('success', 'Zájem zrušen.');
       } catch (err) {
         console.error("Error updating interested:", err);
@@ -505,12 +519,12 @@ export default function useShiftCalendar(currentUser, userData) {
         });
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'INTERESTED_IN_STAZ', 'shifts',
-          `Projevil zájem o stáž/zálohu dne ${dateLabel}`);
+          `Projevil zájem o ${kind.accusative} dne ${dateLabel}`);
         fetch('/api/send-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: '✋ Nový zájemce o zálohu / stáž',
+            title: `✋ Nový zájemce o ${kind.accusative}`,
             body: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''} · ${dateLabel}`,
             url: '/shifts',
             tag: 'staz-zajem',
@@ -572,14 +586,15 @@ export default function useShiftCalendar(currentUser, userData) {
       });
 
       const dateLabel = `${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+      const kind = getZalohaKindForms(shiftsData[day]?.[section]?.config);
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ASSIGNED_USER_TO_STAZ', 'shifts',
-        `Přiřadil ${targetUser.name} na pozici ${slotKey} – stáž ${dateLabel}`);
+        `Přiřadil ${targetUser.name} na pozici ${slotKey} – ${kind.label} ${dateLabel}`);
       fetch('/api/send-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: '📋 Přiřazen na zálohu / stáž',
+          title: `📋 Přiřazen na ${kind.accusative}`,
           body: `Pozice: ${slotKey} · ${dateLabel}`,
           url: '/shifts',
           tag: 'staz-assign',
@@ -630,14 +645,15 @@ export default function useShiftCalendar(currentUser, userData) {
   const handleRemoveZaloha = async (date) => {
     const dayData = shiftsData[date] || {};
     const currentShift = dayData.zalohaStaz || {};
-    
+    const kind = getZalohaKindForms(currentShift.config);
+
     const takenSlots = Object.keys(currentShift).filter(k => k !== 'config' && k !== 'interested');
-    let warningMsg = `Opravdu chcete zrušit stáž/zálohu pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`;
+    let warningMsg = `Opravdu chcete zrušit ${kind.accusative} pro ${date}. ${MONTHS_CZ[currentDate.getMonth()]}?`;
     if (takenSlots.length > 0) {
-      warningMsg = `POZOR: Tato stáž/záloha má obsazené pozice! Opravdu chcete směnu ZRUŠIT a odebrat lidi?`;
+      warningMsg = `POZOR: Tato ${kind.label.toLowerCase()} má obsazené pozice! Opravdu chcete směnu ZRUŠIT a odebrat lidi?`;
     }
 
-    const confirmed = await showConfirm('Odebrat stáž/zálohu', warningMsg);
+    const confirmed = await showConfirm(`Odebrat ${kind.accusative}`, warningMsg);
     if (!confirmed) return;
 
     try {
@@ -651,8 +667,8 @@ export default function useShiftCalendar(currentUser, userData) {
       }, { merge: true });
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_REMOVED_SHIFT', 'admin',
-        `Zrušil stáž/zálohu pro den ${date}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`);
-      showToast('success', 'Stáž/záloha odebrána.');
+        `Zrušil ${kind.accusative} pro den ${date}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`);
+      showToast('success', `${kind.label} odebrána.`);
     } catch (err) {
       console.error("Error removing zaloha shift:", err);
       showToast('error', 'Chyba při odebírání služby.');
@@ -779,14 +795,15 @@ export default function useShiftCalendar(currentUser, userData) {
           }
         }
       }, { merge: true });
+      const kind = getZalohaKindForms(config);
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ADDED_SHIFT', 'admin',
-        `Vytvořil zálohu/stáž pro den ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()} (${config.timeFrom}-${config.timeTo})`);
+        `Vytvořil ${kind.accusative} pro den ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()} (${config.timeFrom}-${config.timeTo})`);
       fetch('/api/send-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: '🚑 Nová záloha / stáž',
+          title: `🚑 Nová ${kind.label.toLowerCase()}`,
           body: [
             `${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
             config.timeFrom && config.timeTo ? `${config.timeFrom}–${config.timeTo}` : null,
@@ -795,11 +812,162 @@ export default function useShiftCalendar(currentUser, userData) {
           tag: 'staz',
         }),
       });
-      showToast('success', `Záloha/Stáž vytvořena.`);
+      showToast('success', `${kind.label} vytvořena.`);
       setZalohaModal(null);
     } catch (err) {
       console.error("Error adding zaloha shift:", err);
       showToast('error', 'Chyba při vytváření zálohy/stáže.');
+    }
+  };
+
+
+
+  const handleEditZaloha = async (config) => {
+    if (!zalohaModal) return;
+    const dateNum = zalohaModal.date;
+    const existing = shiftsData[dateNum]?.zalohaStaz;
+    if (!existing) {
+      showToast('error', 'Záloha/Stáž pro tento den neexistuje.');
+      return;
+    }
+
+    const oldConfig = existing.config || {};
+    const keptSlots = getZalohaSlots(config);
+
+    // Describe what actually changed — an edit with no changes is not worth a write.
+    const changes = [];
+    const oldKind = getZalohaKindForms(oldConfig);
+    const newKind = getZalohaKindForms(config);
+    const kindChanged = oldKind.value !== newKind.value;
+    if (kindChanged) changes.push(`typ ${oldKind.label} → ${newKind.label}`);
+    if ((oldConfig.timeFrom || '') !== config.timeFrom || (oldConfig.timeTo || '') !== config.timeTo) {
+      changes.push(`čas ${oldConfig.timeFrom || '?'}–${oldConfig.timeTo || '?'} → ${config.timeFrom}–${config.timeTo}`);
+    }
+    const countLabels = { velitelCount: 'Velitel', strojnikCount: 'Strojník', hasicCount: 'Hasič' };
+    const countDefaults = { velitelCount: 1, strojnikCount: 1, hasicCount: 2 };
+    Object.keys(countLabels).forEach(key => {
+      const before = oldConfig[key] ?? countDefaults[key];
+      if (before !== config[key]) changes.push(`${countLabels[key]} ${before} → ${config[key]}`);
+    });
+    const timeChanged = (oldConfig.timeFrom || '') !== config.timeFrom || (oldConfig.timeTo || '') !== config.timeTo;
+
+    if (changes.length === 0) {
+      showToast('info', 'Žádné změny k uložení.');
+      setZalohaModal(null);
+      return;
+    }
+
+    // Confirm dropping people out of positions that the new config no longer has.
+    const droppedSlots = getZalohaAssignedSlots(existing).filter(([slotKey]) => !keptSlots.includes(slotKey));
+    if (droppedSlots.length > 0) {
+      const names = droppedSlots.map(([slotKey, assignee]) => `${getSlotLabel(slotKey)} – ${assignee.name}`).join(', ');
+      const confirmed = await showConfirm(
+        'Snížení počtu pozic',
+        `Z pozic budou odebráni: ${names}. Zůstanou v seznamu zájemců. Pokračovat?`
+      );
+      if (!confirmed) return;
+    }
+    const confirmedDroppedKeys = droppedSlots.map(([slotKey]) => slotKey);
+
+    const docRef = doc(db, 'shifts', currentDocId);
+    const dateLabel = `${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    let dropped = [];
+    let keptAssignees = [];
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const docSnap = await transaction.get(docRef);
+        if (!docSnap.exists()) throw new Error('Dokument neexistuje.');
+
+        const fresh = docSnap.data().days?.[dateNum]?.zalohaStaz;
+        if (!fresh) throw Object.assign(new Error('NO_ZALOHA'), { appError: true });
+
+        const freshAssigned = getZalohaAssignedSlots(fresh);
+        dropped = freshAssigned.filter(([slotKey]) => !keptSlots.includes(slotKey));
+        keptAssignees = freshAssigned.filter(([slotKey]) => keptSlots.includes(slotKey));
+
+        // Someone was assigned to a disappearing slot after the confirmation dialog —
+        // don't silently remove a person the admin never saw.
+        if (dropped.some(([slotKey]) => !confirmedDroppedKeys.includes(slotKey))) {
+          throw Object.assign(new Error('ASSIGNEES_CHANGED'), { appError: true });
+        }
+
+        const update = {
+          [`days.${dateNum}.zalohaStaz.config`]: {
+            ...(fresh.config || {}),
+            ...config,
+            // createdAt drives the "new shift" dashboard badge — an edit must not reset it.
+            createdAt: fresh.config?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            updatedBy: `${userData.firstName} ${userData.lastName}`
+          }
+        };
+        dropped.forEach(([slotKey]) => {
+          update[`days.${dateNum}.zalohaStaz.${slotKey}`] = deleteField();
+        });
+
+        transaction.update(docRef, update);
+      });
+
+      const logDetail = [
+        `Upravil ${oldKind.accusative} pro den ${dateLabel}: ${changes.join(', ')}`,
+        dropped.length > 0
+          ? `odebráni z pozic: ${dropped.map(([slotKey, a]) => `${getSlotLabel(slotKey)} – ${a.name}`).join(', ')}`
+          : null
+      ].filter(Boolean).join('; ');
+      logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
+        'ADMIN_UPDATED_SHIFT', 'admin', logDetail);
+
+      dropped.forEach(([slotKey, assignee]) => {
+        fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `⚠️ Odebrán ze ${newKind.genitive}`,
+            body: `${getSlotLabel(slotKey)} · ${dateLabel} – počet pozic byl snížen`,
+            url: '/shifts',
+            tag: 'staz-edit',
+            targetUserId: assignee.uid,
+          }),
+        });
+      });
+      if (timeChanged || kindChanged) {
+        keptAssignees.forEach(([, assignee]) => {
+          fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: kindChanged && !timeChanged
+                ? `🔄 Změna typu služby na ${newKind.label.toLowerCase()}`
+                : `🕒 Změna času ${newKind.genitive}`,
+              body: [
+                dateLabel,
+                kindChanged ? `nově ${newKind.label.toLowerCase()}` : null,
+                timeChanged ? `nově ${config.timeFrom}–${config.timeTo}` : null,
+              ].filter(Boolean).join(' · '),
+              url: '/shifts',
+              tag: 'staz-edit',
+              targetUserId: assignee.uid,
+            }),
+          });
+        });
+      }
+
+      showToast('success', `${newKind.label} upravena.`);
+      setZalohaModal(null);
+    } catch (err) {
+      if (err.appError) {
+        if (err.message === 'NO_ZALOHA') {
+          showToast('error', 'Záloha/Stáž pro tento den již neexistuje.');
+        } else if (err.message === 'ASSIGNEES_CHANGED') {
+          showToast('error', 'Obsazení pozic se mezitím změnilo. Otevřete úpravu znovu.');
+        } else {
+          showToast('error', 'Chyba: ' + err.message);
+        }
+      } else {
+        console.error("Error editing zaloha shift:", err);
+        showToast('error', 'Chyba při úpravě zálohy/stáže.');
+      }
     }
   };
 
@@ -837,7 +1005,7 @@ export default function useShiftCalendar(currentUser, userData) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: '📋 Přiřazen na zálohu / stáž',
+            title: `📋 Přiřazen na ${getZalohaKindForms(shiftsData[day]?.zalohaStaz?.config).accusative}`,
             body: `Pozice: ${slotKey} · ${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
             url: '/shifts',
             tag: 'staz-assign',
@@ -899,6 +1067,7 @@ export default function useShiftCalendar(currentUser, userData) {
     handleAddAbsence,
     handleDeleteAbsence,
     handleAddZaloha,
+    handleEditZaloha,
     handleRetroAssign,
     showToast,
   };

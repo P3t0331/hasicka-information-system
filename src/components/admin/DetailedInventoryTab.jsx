@@ -11,6 +11,7 @@ export default function DetailedInventoryTab({
   const [filterUser, setFilterUser] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [filterWear, setFilterWear] = useState('all');
+  const [sortBy, setSortBy] = useState('user');
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEq, setCurrentEq] = useState(null);
   const [targetUserId, setTargetUserId] = useState(null);
@@ -37,6 +38,20 @@ export default function DetailedInventoryTab({
     }
     return true;
   });
+
+  // Evidenční čísla look like "123-45", so compare them naturally rather than as
+  // plain numbers. Items without a number (types that don't track one) go last.
+  const byInventoryNumber = (a, b) => {
+    const av = (a.inventoryNumber || '').trim();
+    const bv = (b.inventoryNumber || '').trim();
+    if (!av && !bv) return 0;
+    if (!av) return 1;
+    if (!bv) return -1;
+    return av.localeCompare(bv, 'cs', { numeric: true, sensitivity: 'base' });
+  };
+
+  // 'user' keeps the original grouping by member — no sorting applied.
+  const sorted = sortBy === 'inventoryNumber' ? [...filtered].sort(byInventoryNumber) : filtered;
 
   const handleOpenAddModal = () => {
     const firstUser = allUsers.filter(u => !u.disabled)[0];
@@ -84,6 +99,13 @@ export default function DetailedInventoryTab({
             ))}
           </select>
         </div>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label className="input-label">Řazení</label>
+          <select className="input-field" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="user">Řadit: Člen</option>
+            <option value="inventoryNumber">Řadit: Ev. číslo</option>
+          </select>
+        </div>
         <div>
           <button
             className="btn btn-primary"
@@ -112,13 +134,13 @@ export default function DetailedInventoryTab({
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {sorted.length === 0 ? (
               <tr>
                 <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
                   Žádné vybavení neodpovídá filtru.
                 </td>
               </tr>
-            ) : filtered.map((item, i) => {
+            ) : sorted.map((item, i) => {
               const eqType = equipmentTypes.find(t => t.id === item.typeId) || { name: 'Neznámý' };
               const showWear = !!eqType.hasWear;
               const wearRowStyle = showWear ? getWearRowStyle(item.wear) : null;

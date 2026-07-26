@@ -20,10 +20,10 @@ export default function ZalohaNotificationBanner({ newZalohaShifts, onDismiss })
                 <div>
                     <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Nová důležitá služba (Záloha/Stáž)</h3>
                     <div style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '0.2rem' }}>
-                        Byla vypsána nová stáž od vaší poslední návštěvy:
+                        Od vaší poslední návštěvy byly vypsány nové služby:
                         {newZalohaShifts.map((s, i) => (
                             <span key={i} style={{ display: 'block', fontWeight: 600, marginTop: '0.2rem' }}>
-                                • {s.date} ({s.timeFrom} - {s.timeTo})
+                                • {s.kindLabel || 'Záloha'} – {s.date} ({s.timeFrom} - {s.timeTo})
                             </span>
                         ))}
                     </div>

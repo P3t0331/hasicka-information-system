@@ -1,6 +1,6 @@
 import React from 'react';
 import SlotChip from './SlotChip';
-import { SLOT_TYPES } from './constants';
+import { SLOT_TYPES, getZalohaSlots } from './constants';
 
 function ShiftRow({
   day,
@@ -25,10 +25,7 @@ function ShiftRow({
   // Dynamic Slot Visibility Logic
   let visibleSlots = [];
   if (section === 'zalohaStaz' && sectionData?.config) {
-    const { velitelCount = 1, strojnikCount = 1, hasicCount = 2 } = sectionData.config;
-    for (let i = 1; i <= velitelCount; i++) visibleSlots.push(i === 1 ? 'velitel' : `velitel${i}`);
-    for (let i = 1; i <= strojnikCount; i++) visibleSlots.push(i === 1 ? 'strojnik' : `strojnik${i}`);
-    for (let i = 1; i <= hasicCount; i++) visibleSlots.push(`hasic${i}`);
+    visibleSlots = getZalohaSlots(sectionData.config);
   } else {
     visibleSlots = SLOT_TYPES.filter(type => {
       // Always show core slots

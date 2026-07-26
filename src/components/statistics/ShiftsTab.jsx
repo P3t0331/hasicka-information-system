@@ -5,6 +5,7 @@ import { logAction } from '../../utils/logger';
 import StatCard from './StatCard';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChartBlock, ChartTooltip, PieLabel } from './ChartComponents';
+import { getZalohaKindLabel } from '../shifts/constants';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -146,7 +147,7 @@ export default function ShiftsTab({
         }
         if (dayData.zalohaStaz) {
             const crew = Object.values(dayData.zalohaStaz).filter(u => u && u.uid).map(u => u?.name?.split(' ')[0]).filter(Boolean).join(', ');
-            if (crew) parts.push(`Stáž: ${crew}`);
+            if (crew) parts.push(`${getZalohaKindLabel(dayData.zalohaStaz.config)}: ${crew}`);
         }
 
         return parts.join(' | ') || '-';

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { getZalohaKindLabel } from '../components/shifts/constants';
 
 export default function useDashboardData() {
     const { currentUser, userData, sessionLastAppVisit, updateSessionVisitTime } = useAuth();
@@ -109,7 +110,7 @@ export default function useDashboardData() {
                     const colleagues = zalohaUsers
                         .filter(u => u.uid !== currentUser.uid)
                         .map(u => u.name || 'Neznámý');
-                    monthShifts.push({ date: dateStr, type: 'stáž/záloha', start: zalohaShift.config?.timeFrom || '07:00', end: zalohaShift.config?.timeTo || '19:00', colleagues });
+                    monthShifts.push({ date: dateStr, type: getZalohaKindLabel(zalohaShift.config).toLowerCase(), start: zalohaShift.config?.timeFrom || '07:00', end: zalohaShift.config?.timeTo || '19:00', colleagues });
                 }
             });
 
@@ -140,7 +141,8 @@ export default function useDashboardData() {
                             newShifts.push({
                                 date: `${dayNum}. ${monthStr}.`,
                                 timeFrom: zalohaShift.config.timeFrom,
-                                timeTo: zalohaShift.config.timeTo
+                                timeTo: zalohaShift.config.timeTo,
+                                kindLabel: getZalohaKindLabel(zalohaShift.config)
                             });
                         }
                     }

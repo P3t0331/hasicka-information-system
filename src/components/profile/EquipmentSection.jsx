@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { WEAR_OPTIONS } from '../../utils/constants';
 
 const WEAR_COLORS = {
@@ -26,7 +26,21 @@ function EmptyState({ message }) {
 
 
 export default function EquipmentSection({ equipmentTypes, allEquipment, setCurrentEq, setShowEqModal, handleDeleteEquipment }) {
+    const [sortBy, setSortBy] = useState('type');
+
+    // Sorting by evidenční číslo only makes sense once something actually has one.
+    const canSortByInventory = allEquipment.length > 1
+        && allEquipment.some(item => (item.inventoryNumber || '').trim());
+
     const sortedEquipment = [...allEquipment].sort((a, b) => {
+        if (sortBy === 'inventoryNumber') {
+            // "123-45" style numbers — natural compare, items without one go last.
+            const av = (a.inventoryNumber || '').trim();
+            const bv = (b.inventoryNumber || '').trim();
+            if (av && bv) return av.localeCompare(bv, 'cs', { numeric: true, sensitivity: 'base' });
+            if (av) return -1;
+            if (bv) return 1;
+        }
         const ai = equipmentTypes.findIndex(t => t.id === a.typeId);
         const bi = equipmentTypes.findIndex(t => t.id === b.typeId);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
@@ -66,6 +80,17 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     font-size: 0.8rem;
                     color: #bbb;
                     margin: 0;
+                }
+                .eq-sort {
+                    padding: 0.5rem 0.7rem;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 8px;
+                    background: white;
+                    color: #555;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    cursor: pointer;
                 }
                 .eq-list {
                     list-style: none;
@@ -216,18 +241,31 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                         <p className="eq-header-title">Přidělené vybavení</p>
                         <p className="eq-header-sub">{allEquipment.length} {pluralPolozek(allEquipment.length)}</p>
                     </div>
-                    {equipmentTypes.length > 0 && (
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => {
-                                setCurrentEq({ typeId: equipmentTypes[0]?.id, ownership: 'jsdh' });
-                                setShowEqModal(true);
-                            }}
-                            style={{ padding: '0.58rem 1.2rem', fontSize: '0.88rem', flexShrink: 0 }}
-                        >
-                            + Přidat
-                        </button>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexShrink: 0 }}>
+                        {canSortByInventory && (
+                            <select
+                                className="eq-sort"
+                                value={sortBy}
+                                onChange={e => setSortBy(e.target.value)}
+                                aria-label="Řazení vybavení"
+                            >
+                                <option value="type">Řadit: Druh</option>
+                                <option value="inventoryNumber">Řadit: Ev. číslo</option>
+                            </select>
+                        )}
+                        {equipmentTypes.length > 0 && (
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    setCurrentEq({ typeId: equipmentTypes[0]?.id, ownership: 'jsdh' });
+                                    setShowEqModal(true);
+                                }}
+                                style={{ padding: '0.58rem 1.2rem', fontSize: '0.88rem', flexShrink: 0 }}
+                            >
+                                + Přidat
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {equipmentTypes.length === 0 ? (

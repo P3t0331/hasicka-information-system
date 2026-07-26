@@ -43,18 +43,14 @@ export const DAYS_CZ_FULL = [
   'neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'
 ];
 
+// Rychlá volba v deníku údržby/úklidu záměrně obsahuje jen základní, opakované
+// úkony. Složitější činnosti si každý popíše vlastními slovy a do seznamu se
+// nepřidávají.
 export const LOG_PRESETS_MAINTENANCE = [
   'Mytí CAS-30',
   'Mytí OA Toyota',
   'Mytí DA',
   'Kontrola IDP',
-  'Nachystání IDP na plnění',
-  'Dovezení IDP z plnění',
-  'Přemotání lan a označení objímek na hadice',
-  'Přezutí PNEU na letní',
-  'Přezutí PNEU na zimní',
-  'Nachystání kapesních RDST a matry',
-  'Odvoz radiostanic na Lídickou',
   'Údržba motorové stříkačky',
   'Drobná oprava techniky'
 ];

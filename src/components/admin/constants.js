@@ -57,6 +57,7 @@ export const ACTION_LABELS = {
   ADMIN_ASSIGNED_USER_TO_STAZ: 'Přiřazení na stáž/zálohu',
   ADMIN_REMOVED_USER_FROM_STAZ: 'Odebrání ze stáže/zálohy',
   ADMIN_ADDED_SHIFT:         'Vytvořena stáž/záloha',
+  ADMIN_UPDATED_SHIFT:       'Upravena stáž/záloha',
   ADMIN_REMOVED_SHIFT:       'Zrušena stáž/záloha',
   INTERESTED_IN_STAZ:        'Projeven zájem o stáž/zálohu',
   CANCELLED_INTEREST_IN_STAZ: 'Zrušen zájem o stáž/zálohu',
