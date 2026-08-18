@@ -200,8 +200,15 @@ function isElevated() {
 
 match /{collection}/{document=**} {
   allow read, write: if isSignedIn()
+    && collection != 'quizzes'
     && collection != 'quizAnswerKeys'
     && collection != 'quizAttempts';
+}
+
+// Kvíz čte každý přihlášený, zakládat a měnit ho smí jen správce.
+match /quizzes/{quizId} {
+  allow read: if isSignedIn();
+  allow write: if isElevated();
 }
 
 match /quizAnswerKeys/{quizId} {
@@ -228,7 +235,7 @@ match /pushSubscriptions/{userId} {
 
 Pozor na jeden detail: `isElevated()` čte pole `roles` z dokumentu uživatele. Pokud některý starší účet má jen legacy pole `role`, výraz selže a přístup se zamítne. Implementace proto musí počítat s oběma tvary — před nasazením pravidel je nutné ověřit, že všechny účty s elevovanými rolemi mají pole `roles`.
 
-Pokrytí zůstává pro všechny stávající kolekce nezměněné — mění se jen zápis wildcardu a vyjímají se dvě nové kolekce. Klient tak nemůže sám přepnout pokus do stavu `passed` ani si posunout `startedAt` a obejít časový limit.
+Pokrytí zůstává pro všechny stávající kolekce nezměněné — mění se jen zápis wildcardu a vyjímají se tři nové kolekce. Klient tak nemůže sám přepnout pokus do stavu `passed` ani si posunout `startedAt` a obejít časový limit, a běžný člen nemůže zasahovat do zadání kvízu.
 
 ### 6.3 Serverové vyhodnocení
 
