@@ -16,11 +16,18 @@ service cloud.firestore {
         && userDoc().roles.hasAny(['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ']);
     }
 
-    // Všechny stávající kolekce beze změny chování, kromě dvou vyjmutých.
+    // Všechny stávající kolekce beze změny chování, kromě tří vyjmutých.
     match /{collection}/{document=**} {
       allow read, write: if isSignedIn()
+        && collection != 'quizzes'
         && collection != 'quizAnswerKeys'
         && collection != 'quizAttempts';
+    }
+
+    // Kvíz čte každý přihlášený, zakládat a měnit ho smí jen správce.
+    match /quizzes/{quizId} {
+      allow read: if isSignedIn();
+      allow write: if isElevated();
     }
 
     // Správné odpovědi — jen správci kvízů. Serverová funkce používá Admin SDK a pravidla obchází.
@@ -37,10 +44,7 @@ service cloud.firestore {
       allow update: if isElevated()
         || (resource.data.uid == request.auth.uid
             && resource.data.status == 'in_progress'
-            && request.resource.data.status == 'in_progress'
-            && request.resource.data.uid == resource.data.uid
-            && request.resource.data.startedAt == resource.data.startedAt
-            && request.resource.data.attemptNumber == resource.data.attemptNumber);
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'lastSavedAt']));
       allow delete: if isElevated();
     }
 
