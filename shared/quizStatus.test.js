@@ -20,6 +20,11 @@ describe('deriveMemberStatus', () => {
     expect(deriveMemberStatus(attempts)).toBe(MEMBER_STATUS.PASSED);
   });
 
+  it('splněný pokus přebíjí i čekání na vyhodnocení', () => {
+    expect(deriveMemberStatus([{ status: 'pending_review' }, { status: 'passed' }]))
+      .toBe(MEMBER_STATUS.PASSED);
+  });
+
   it('čekání na vyhodnocení má přednost před rozpracovaným', () => {
     expect(deriveMemberStatus([{ status: 'in_progress' }, { status: 'pending_review' }]))
       .toBe(MEMBER_STATUS.PENDING_REVIEW);
