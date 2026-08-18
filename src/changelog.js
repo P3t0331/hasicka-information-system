@@ -5,9 +5,29 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.0.2';
+export const APP_VERSION = '1.0.3';
 
 export const CHANGELOG = [
+  {
+    version: '1.0.3',
+    date: '18. 8. 2026',
+    sections: [
+      {
+        label: 'Nové funkce',
+        changes: [
+          'Školení lze označit jako důležité – stejně jako u akcí se zvýrazní oranžově a dostane odznak ⚠️ Důležité',
+          'Odkazy v nástěnce jsou nyní klikatelné, včetně adres psaných bez http:// (např. www.hasici.cz)',
+        ],
+      },
+      {
+        label: 'Vylepšení',
+        changes: [
+          'Statistiky: noční služby jsou nyní černé stejně jako v záložce Služby – už se nepletou se zálohami',
+          'Menu: záložka SLUŽBY je zvýrazněná červeně, aby byla na první pohled k nalezení',
+        ],
+      },
+    ],
+  },
   {
     version: '1.0.2',
     date: '26. 7. 2026',

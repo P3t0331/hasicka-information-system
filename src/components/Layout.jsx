@@ -11,7 +11,7 @@ const NavItems = ({ mobile = false, isActive, isAdminOrVJ, handleLogout }) => (
   <>
     <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Domů</Link>
     <Link to="/profile" className={`nav-link ${isActive('/profile') ? 'active' : ''}`}>Profil</Link>
-    <Link to="/shifts" className={`nav-link ${isActive('/shifts') ? 'active' : ''}`}>Služby</Link>
+    <Link to="/shifts" className={`nav-link nav-link--highlight ${isActive('/shifts') ? 'active' : ''}`}>Služby</Link>
     <NavLink to="/skoleni" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Školení</NavLink>
     <NavLink to="/akce" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Akce</NavLink>
     <NavLink to="/udrzba" className={({ isActive: isLinkActive }) => `nav-link ${isLinkActive ? 'active' : ''}`}>Údržba</NavLink>

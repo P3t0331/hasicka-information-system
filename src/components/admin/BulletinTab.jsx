@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useBulletin from '../../hooks/useBulletin';
 import CreateBulletinModal from './modals/CreateBulletinModal';
+import LinkifiedText from '../LinkifiedText';
 
 const PRIORITY_CONFIG = {
     normal:    { label: 'Normální', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
@@ -164,7 +165,7 @@ export default function BulletinTab({ allUsers = [] }) {
                                     </div>
 
                                     <p style={{ margin: '0.6rem 0 0', fontSize: '0.9rem', color: '#333', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                        {post.content}
+                                        <LinkifiedText text={post.content} />
                                     </p>
                                 </div>
 

@@ -133,6 +133,7 @@ export default function TrainingsPage() {
                                             {t.time}{t.timeEnd ? ` – ${t.timeEnd}` : ''}
                                             {t.location ? ` · ${t.location}` : ''}
                                             {t.vehicles ? ` · ${t.vehicles}` : ''}
+                                            {t.isImportant ? ' · ⚠️ Důležité' : ''}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>

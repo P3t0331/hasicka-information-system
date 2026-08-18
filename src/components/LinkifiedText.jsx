@@ -1,39 +1,62 @@
 import React from 'react';
 
+// http(s) links and bare www. addresses - people paste both, so both need to
+// come out clickable.
+const URL_REGEX = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+const IS_URL = /^(?:https?:\/\/|www\.)/i;
+// Punctuation at the very end usually belongs to the sentence, not the address.
+const TRAILING_PUNCTUATION = /[.,;:!?]+$/;
+
 /**
  * Component that renders text with clickable links.
- * Detects http/https URLs and wraps them in <a> tags.
+ * Detects http/https URLs and www. addresses and wraps them in <a> tags.
  */
 export default function LinkifiedText({ text }) {
     if (!text) return null;
 
-    // Regex to find URLs (starting with http:// or https://)
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-    const parts = text.split(urlRegex);
+    const parts = String(text).split(URL_REGEX);
 
     return (
         <>
             {parts.map((part, i) => {
-                if (part.match(urlRegex)) {
-                    return (
+                if (!IS_URL.test(part)) return part;
+
+                let url = part;
+                let trailing = '';
+
+                // A closing bracket only belongs to the URL if it opened inside it,
+                // otherwise it closes something the author wrote around the link.
+                while (url.endsWith(')') && !url.includes('(')) {
+                    trailing = ')' + trailing;
+                    url = url.slice(0, -1);
+                }
+
+                const punctuation = url.match(TRAILING_PUNCTUATION)?.[0];
+                if (punctuation) {
+                    trailing = punctuation + trailing;
+                    url = url.slice(0, -punctuation.length);
+                }
+
+                const href = url.toLowerCase().startsWith('www.') ? `https://${url}` : url;
+
+                return (
+                    <React.Fragment key={i}>
                         <a
-                            key={i}
-                            href={part}
+                            href={href}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()} // Prevent parent click actions
                             style={{
                                 textDecoration: 'underline',
-                                color: 'inherit', // Keep parent color (usually inherited from description)
+                                color: '#1565C0',
                                 wordBreak: 'break-all'
                             }}
                         >
-                            {part}
+                            {url}
                         </a>
-                    );
-                }
-                return part;
+                        {trailing}
+                    </React.Fragment>
+                );
             })}
         </>
     );

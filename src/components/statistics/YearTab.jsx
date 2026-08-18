@@ -247,7 +247,7 @@ export default function YearTab({ year }) {
                             <Tooltip content={<ChartTooltip unit="h" />} />
                             <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
                             <Bar dataKey="Den" stackId="a" fill="#F57C00" />
-                            <Bar dataKey="Noc" stackId="a" fill="#3949AB" />
+                            <Bar dataKey="Noc" stackId="a" fill="#263238" />
                             <Bar dataKey="Záloha" stackId="a" fill="#1565C0" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>

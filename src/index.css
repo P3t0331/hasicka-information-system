@@ -492,6 +492,18 @@ h4 {
   padding: 1rem;
 }
 
+/* Služby is the most used tab - keep it red so it stands out in the menu */
+.nav-link--highlight {
+  color: #FF5252;
+  font-weight: 700;
+}
+
+.nav-link--highlight:hover,
+.nav-link--highlight.active {
+  color: #FF5252;
+  background: rgba(255, 82, 82, 0.15);
+}
+
 /* Responsive Table Pattern */
 .responsive-table {
   width: 100%;

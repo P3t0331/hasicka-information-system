@@ -21,8 +21,10 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
     const dateBadgeClass = isPast ? 'date-badge date-badge--past' :
         isJoined ? 'date-badge date-badge--joined' : 'date-badge';
 
+    const cardClass = `event-card ${isPast ? 'event-card--past' : training.isImportant ? 'event-card--important' : ''}`;
+
     return (
-        <div className={`event-card ${isPast ? 'event-card--past' : ''}`}>
+        <div className={cardClass}>
             {/* Date Badge */}
             <div className={dateBadgeClass}>
                 <div className="date-badge__weekday">{dateInfo.weekday}</div>
@@ -35,6 +37,9 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                 <div className="event-card__header">
                     <div className={`event-card__title ${isPast ? 'event-card__title--past' : ''}`}>
                         <span>{training.title}</span>
+                        {training.isImportant && !isPast && (
+                            <span className="event-card__badge event-card__badge--important">⚠️ Důležité</span>
+                        )}
                         {isJoined && !isPast && (
                             <span className="event-card__badge event-card__badge--joined">✓ Přihlášen</span>
                         )}

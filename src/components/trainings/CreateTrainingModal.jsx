@@ -14,6 +14,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
     const [departureTime, setDepartureTime] = useState(initialData?.departureTime || '');
     const [location, setLocation] = useState(initialData?.location || '');
     const [maxParticipants, setMaxParticipants] = useState(initialData?.maxParticipants || '');
+    const [isImportant, setIsImportant] = useState(initialData?.isImportant || false);
     const [vehicles, setVehicles] = useState(() => {
         if (typeof initialData?.vehicles === 'string') return initialData.vehicles.split(',').map(v => v.trim()).filter(Boolean);
         if (Array.isArray(initialData?.vehicles)) return initialData.vehicles;
@@ -104,6 +105,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                    isImportant,
                     vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
                     instructors,
                     instructor: null,
@@ -123,6 +125,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     departureTime: departureTime || null,
                     location: location.trim(),
                     maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+                    isImportant,
                     vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
                     instructors,
                     createdBy: { uid: currentUser.uid, name: `${userData.firstName} ${userData.lastName}` },
@@ -156,6 +159,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                         location: location.trim(),
                         maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
                         vehicles: vehicles.length > 0 ? vehicles.join(', ') : null,
+                        isImportant,
                         instructors: buildInstructors(),
                     });
                 }
@@ -371,6 +375,11 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                             })}
                         </div>
                     </div>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                        <input type="checkbox" checked={isImportant} onChange={e => setIsImportant(e.target.checked)} />
+                        ⚠️ Důležité školení (zvýraznit oranžově)
+                    </label>
 
                     {!isEdit && (
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>

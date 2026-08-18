@@ -301,7 +301,7 @@ export default function ShiftsTab({
                 const splitTotal = getGrandSplitTotal();
                 const donutData = [
                     { name: 'Denní', value: splitTotal.day, color: '#F57C00' },
-                    { name: 'Noční', value: splitTotal.night, color: '#3949AB' },
+                    { name: 'Noční', value: splitTotal.night, color: '#263238' },
                     { name: 'Záloha', value: splitTotal.zaloha, color: '#1565C0' },
                 ].filter(d => d.value > 0);
 
@@ -340,7 +340,7 @@ export default function ShiftsTab({
                                         <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: '#f5f5f5' }} />
                                         <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
                                         <Bar dataKey="Denní" stackId="a" fill="#F57C00" />
-                                        <Bar dataKey="Noční" stackId="a" fill="#3949AB" />
+                                        <Bar dataKey="Noční" stackId="a" fill="#263238" />
                                         <Bar dataKey="Záloha" stackId="a" fill="#1565C0" radius={[3, 3, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
@@ -443,7 +443,7 @@ export default function ShiftsTab({
                                                 </span>
                                             )}
                                             {split.night > 0 && (
-                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: '#E8EAF6', color: '#3949AB', fontWeight: 600 }}>
+                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: '#ECEFF1', color: '#263238', fontWeight: 600 }}>
                                                     🌙 {split.night}h
                                                 </span>
                                             )}

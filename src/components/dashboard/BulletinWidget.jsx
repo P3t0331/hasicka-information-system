@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useBulletin from '../../hooks/useBulletin';
+import LinkifiedText from '../LinkifiedText';
 
 const PRIORITY_CONFIG = {
     normal:    { label: 'Normální', color: '#546E7A', bg: '#fff',     border: '#B0BEC5', accent: '#ECEFF1' },
@@ -108,7 +109,7 @@ export default function BulletinWidget() {
                                         {post.title}
                                     </div>
                                     <div style={{ fontSize: '0.85rem', color: '#444', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.5 }}>
-                                        {post.content}
+                                        <LinkifiedText text={post.content} />
                                     </div>
                                 </div>
                             </div>
