@@ -14,6 +14,9 @@ const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 const ShiftCalendarPage = React.lazy(() => import('./pages/ShiftCalendarPage'));
 const StatisticsPage = React.lazy(() => import('./pages/StatisticsPage'));
 const AdminPage = React.lazy(() => import('./pages/AdminPage'));
+const AdminQuizEditorPage = React.lazy(() => import('./pages/AdminQuizEditorPage'));
+const QuizTakePage = React.lazy(() => import('./pages/QuizTakePage'));
+const QuizProtocolPage = React.lazy(() => import('./pages/QuizProtocolPage'));
 const TrainingsPage = React.lazy(() => import('./pages/TrainingsPage'));
 const EventsPage = React.lazy(() => import('./pages/EventsPage'));
 const MembersPage = React.lazy(() => import('./pages/MembersPage'));
@@ -42,6 +45,15 @@ function App() {
           <Routes>
             <Route path="/login" element={<Suspense fallback={<PageLoader />}><AuthPage /></Suspense>} />
 
+            {/* Tiskový protokol kvízu — mimo Layout záměrně: stránka nesmí
+                obsahovat navigaci, aby se do PDF nevytiskla. Přesto chráněná
+                PrivateRoute jako všechny ostatní stránky. */}
+            <Route path="/kviz/:quizId/protokol" element={
+              <PrivateRoute>
+                <Suspense fallback={<PageLoader />}><QuizProtocolPage /></Suspense>
+              </PrivateRoute>
+            } />
+
             {/* Protected Routes — Layout stays mounted, only page content suspends */}
             <Route element={
               <PrivateRoute>
@@ -52,6 +64,7 @@ function App() {
               <Route path="/profile" element={<Suspense fallback={<PageLoader />}><ProfilePage /></Suspense>} />
               <Route path="/shifts" element={<Suspense fallback={<PageLoader />}><ShiftCalendarPage /></Suspense>} />
               <Route path="/skoleni" element={<Suspense fallback={<PageLoader />}><TrainingsPage /></Suspense>} />
+              <Route path="/skoleni/kviz/:quizId" element={<Suspense fallback={<PageLoader />}><QuizTakePage /></Suspense>} />
               <Route path="/akce" element={<Suspense fallback={<PageLoader />}><EventsPage /></Suspense>} />
               <Route path="/udrzba" element={<Suspense fallback={<PageLoader />}><MaintenanceLogPage /></Suspense>} />
               <Route path="/uklid" element={<Suspense fallback={<PageLoader />}><CleaningLogPage /></Suspense>} />
@@ -59,6 +72,7 @@ function App() {
               <Route path="/clenove" element={<Suspense fallback={<PageLoader />}><MembersPage /></Suspense>} />
               <Route path="/navrhy" element={<Suspense fallback={<PageLoader />}><SuggestionsPage /></Suspense>} />
               <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
+              <Route path="/admin/kviz/:quizId" element={<Suspense fallback={<PageLoader />}><AdminQuizEditorPage /></Suspense>} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

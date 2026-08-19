@@ -10,6 +10,7 @@ import NextShiftCard from '../components/dashboard/NextShiftCard';
 import UpcomingActivities from '../components/dashboard/UpcomingActivities';
 import MyAbsences from '../components/dashboard/MyAbsences';
 import BulletinWidget from '../components/dashboard/BulletinWidget';
+import QuizWidget from '../components/dashboard/QuizWidget';
 
 export default function DashboardPage() {
     const navigate = useNavigate();
@@ -88,6 +89,9 @@ export default function DashboardPage() {
 
             {/* Next Shift Section */}
             <NextShiftCard allShifts={allShifts} userData={userData} />
+
+            {/* Unfinished Quizzes Widget */}
+            <QuizWidget />
 
             {/* Upcoming Activities */}
             <UpcomingActivities upcomingActivities={upcomingActivities} />

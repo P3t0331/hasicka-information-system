@@ -24,3 +24,6 @@ dist-ssr
 .env
 .env.local
 .DS_Store
+
+# SDD scratch workspace
+.superpowers

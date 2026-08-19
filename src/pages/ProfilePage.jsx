@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import useProfile from '../hooks/useProfile';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import EquipmentSection from '../components/profile/EquipmentSection';
+import QuizHistory from '../components/profile/QuizHistory';
 import EquipmentModal from '../components/profile/EquipmentModal';
 import ConfirmModal from '../components/profile/ConfirmModal';
 import { generateICS, downloadICS, activityToICSEvent, shiftSlotToICSEvent } from '../utils/icsExport';
@@ -357,8 +358,8 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* EQUIPMENT */}
-                <div>
+                {/* EQUIPMENT + QUIZ HISTORY */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
                     <EquipmentSection
                         equipmentTypes={equipmentTypes}
                         allEquipment={allEquipment}
@@ -366,6 +367,7 @@ export default function ProfilePage() {
                         setShowEqModal={setShowEqModal}
                         handleDeleteEquipment={handleDeleteEquipment}
                     />
+                    <QuizHistory />
                 </div>
             </div>
 

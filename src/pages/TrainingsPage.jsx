@@ -1,8 +1,10 @@
 import React from 'react';
 import useTrainings from '../hooks/useTrainings';
 import useMembers from '../hooks/useMembers';
+import useMyQuizzes from '../hooks/useMyQuizzes';
 import TrainingCard from '../components/trainings/TrainingCard';
 import CreateTrainingModal from '../components/trainings/CreateTrainingModal';
+import QuizCard from '../components/quizzes/QuizCard';
 import { MONTHS_CZ_FILTER } from '../utils/constants';
 import { generateICS, downloadICS, activityToICSEvent } from '../utils/icsExport';
 import { useToast } from '../contexts/ToastContext';
@@ -35,6 +37,7 @@ export default function TrainingsPage() {
     } = useTrainings();
 
     const { filteredMembers: members } = useMembers();
+    const { myQuizzes } = useMyQuizzes();
     const { addToast } = useToast();
 
     const [filterYear, setFilterYear] = React.useState('all');
@@ -159,6 +162,26 @@ export default function TrainingsPage() {
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* Quizzes */}
+            {myQuizzes.length > 0 && (
+                <section style={{ marginBottom: '1.5rem' }}>
+                    <div className="section-header">
+                        <span className="section-header__title">
+                            <span>📝</span>
+                            <span>Kvízy</span>
+                        </span>
+                        <div className="section-header__meta">
+                            <span className="section-header__count">{myQuizzes.length}</span>
+                        </div>
+                    </div>
+                    <div className="section-body" style={{ padding: '0.85rem', display: 'grid', gap: '0.75rem' }}>
+                        {myQuizzes.map((q) => (
+                            <QuizCard key={q.id} quiz={q} />
+                        ))}
+                    </div>
+                </section>
             )}
 
             {/* Upcoming Trainings */}
