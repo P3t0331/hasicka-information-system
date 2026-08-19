@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import useQuizzes from '../hooks/useQuizzes';
 import useTrainings from '../hooks/useTrainings';
 import QuizSettingsForm from '../components/admin/quizzes/QuizSettingsForm';
 import QuestionEditor, { emptyQuestion, newId } from '../components/admin/quizzes/QuestionEditor';
+import ConfirmModal from '../components/profile/ConfirmModal';
 
 const STATUS_CONFIG = {
   draft: { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
@@ -26,8 +27,12 @@ const QUIZ_SETTINGS_FIELDS = [
 
 export default function AdminQuizEditorPage() {
   const { quizId } = useParams();
+  const navigate = useNavigate();
   const { userData } = useAuth();
-  const { quizzes, loading, canManage, updateQuiz, saveAnswerKey, loadAnswerKey } = useQuizzes();
+  const {
+    quizzes, loading, canManage, updateQuiz, saveAnswerKey, loadAnswerKey,
+    validateForPublish, publishQuiz, closeQuiz, duplicateQuiz, deleteQuiz,
+  } = useQuizzes();
   const { upcomingTrainings, pastTrainings } = useTrainings();
   const trainings = [...upcomingTrainings, ...pastTrainings];
 
@@ -41,6 +46,12 @@ export default function AdminQuizEditorPage() {
   const [workingQuiz, setWorkingQuiz] = useState(null);
   const [workingAnswerKey, setWorkingAnswerKey] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [confirmAction, setConfirmAction] = useState(null); // { message, onConfirm } | null
 
   // useQuizzes() hands back a fresh loadAnswerKey closure on every render.
   // Keep the latest one in a ref instead of an effect dependency, so the
@@ -87,6 +98,28 @@ export default function AdminQuizEditorPage() {
     return () => { cancelled = true; };
   }, [quizId]);
 
+  // Primitives (not the `quiz` object itself, whose identity changes every
+  // render) so effect 4 below can depend on them directly.
+  const liveStatus = quiz?.status;
+  const livePublishedAt = quiz?.publishedAt;
+  const liveClosedAt = quiz?.closedAt;
+
+  // 4) Keep status (and its timestamps) mirrored from the live document.
+  // Publishing/closing happen through Firestore writes below, and this page
+  // deliberately does not resync the rest of the working copy (see effect
+  // 2's comment) — but status is not something the admin edits directly, so
+  // syncing it here is what flips the form to locked/read-only the instant
+  // the write actually lands, with no manual refresh. It also means a
+  // publish/close call that fails server-side simply never flips the UI,
+  // which is the accurate outcome.
+  useEffect(() => {
+    if (liveStatus === undefined) return;
+    setWorkingQuiz(prev => {
+      if (!prev || prev.status === liveStatus) return prev;
+      return { ...prev, status: liveStatus, publishedAt: livePublishedAt, closedAt: liveClosedAt };
+    });
+  }, [liveStatus, livePublishedAt, liveClosedAt]);
+
   if (!userData) return <div className="p-4 text-center">Načítání profilu...</div>;
 
   if (!canManage) {
@@ -119,7 +152,12 @@ export default function AdminQuizEditorPage() {
   }
 
   const statusCfg = STATUS_CONFIG[workingQuiz.status] || STATUS_CONFIG.draft;
+  // published and closed both freeze the questions (a member may already
+  // have attempted them); closed additionally freezes the settings that
+  // stay editable while merely published (title, deadline, assignment...).
   const locked = workingQuiz.status !== 'draft';
+  const readOnly = workingQuiz.status === 'closed';
+  const actionBusy = saving || publishing || closing || duplicating || deleting;
 
   function handleChange(patch) {
     setWorkingQuiz(prev => ({ ...prev, ...patch }));
@@ -244,32 +282,187 @@ export default function AdminQuizEditorPage() {
     }
   }
 
+  // Save first so validation (and, on success, publication) run against
+  // what the admin actually intended to publish rather than stale state —
+  // otherwise a quiz could be refused for a problem the admin just fixed,
+  // or published without a fix that was never written. `validateForPublish`
+  // is called here directly (not left to `publishQuiz`, which only surfaces
+  // its first error) so every problem can be shown at once.
+  async function handlePublishClick() {
+    setPublishing(true);
+    try {
+      await handleSave();
+      const errors = validateForPublish(workingQuiz, workingAnswerKey);
+      setValidationErrors(errors);
+      if (errors.length) return;
+      setConfirmAction({
+        message: 'Zveřejnit kvíz? Po zveřejnění už nepůjde měnit otázky.',
+        onConfirm: doPublish,
+      });
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  // The actual publish call, run only after the confirmation above. If it
+  // fails, `publishQuiz` has already toasted the reason; status then simply
+  // never flips (see effect 4), so the admin is left looking at an accurate,
+  // still-editable draft rather than a UI that claims success it didn't get.
+  async function doPublish() {
+    setPublishing(true);
+    try {
+      await publishQuiz(workingQuiz, workingAnswerKey);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  function handleCloseClick() {
+    setConfirmAction({
+      message: 'Uzavřít kvíz? Členové ho už nebudou moci vyplnit, výsledky zůstanou zachované.',
+      onConfirm: doClose,
+    });
+  }
+
+  async function doClose() {
+    setClosing(true);
+    try {
+      await closeQuiz(quizId);
+    } finally {
+      setClosing(false);
+    }
+  }
+
+  function handleDeleteClick() {
+    setConfirmAction({
+      message: `Koncept „${workingQuiz.title || '(Bez názvu)'}“ bude trvale smazán.`,
+      onConfirm: doDelete,
+    });
+  }
+
+  async function doDelete() {
+    setDeleting(true);
+    try {
+      await deleteQuiz(quizId);
+      navigate('/admin');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  // Saved first for the same reason as publishing: `duplicateQuiz` copies
+  // the answer key straight from Firestore, so an unsaved edit here would
+  // otherwise be silently missing from the copy.
+  async function handleDuplicate() {
+    setDuplicating(true);
+    try {
+      await handleSave();
+      const newQuizId = await duplicateQuiz(workingQuiz);
+      if (newQuizId) navigate(`/admin/kviz/${newQuizId}`);
+    } finally {
+      setDuplicating(false);
+    }
+  }
+
   return (
     <div className="container mt-4 mb-5">
+      {confirmAction && (
+        <ConfirmModal
+          message={confirmAction.message}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
       <Link to="/admin" className="btn btn-secondary mb-3" style={{ display: 'inline-block' }}>← Zpět na kvízy</Link>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.6rem', margin: 0 }}>{workingQuiz.title || '(Bez názvu)'}</h1>
-        <span style={{
-          fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem',
-          borderRadius: '999px', color: statusCfg.color, background: statusCfg.bg, border: `1px solid ${statusCfg.border}`,
-        }}>
-          {statusCfg.label}
-        </span>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <h1 style={{ fontSize: '1.6rem', margin: 0 }}>{workingQuiz.title || '(Bez názvu)'}</h1>
+          <span style={{
+            fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem',
+            borderRadius: '999px', color: statusCfg.color, background: statusCfg.bg, border: `1px solid ${statusCfg.border}`,
+          }}>
+            {statusCfg.label}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {workingQuiz.status === 'draft' && (
+            <>
+              <button className="btn btn-primary" onClick={handleSave} disabled={actionBusy}>
+                {saving ? 'Ukládám...' : 'Uložit'}
+              </button>
+              <button className="btn btn-primary" onClick={handlePublishClick} disabled={actionBusy}>
+                {publishing ? 'Kontroluji...' : 'Zveřejnit'}
+              </button>
+              <button
+                className="btn btn-secondary"
+                style={{ color: '#c62828', borderColor: '#ffcdd2' }}
+                onClick={handleDeleteClick}
+                disabled={actionBusy}
+              >
+                {deleting ? 'Mažu...' : 'Smazat koncept'}
+              </button>
+            </>
+          )}
+          {workingQuiz.status === 'published' && (
+            <>
+              <button className="btn btn-primary" onClick={handleSave} disabled={actionBusy}>
+                {saving ? 'Ukládám...' : 'Uložit'}
+              </button>
+              <button className="btn btn-secondary" onClick={handleDuplicate} disabled={actionBusy}>
+                {duplicating ? 'Vytvářím kopii...' : 'Vytvořit kopii'}
+              </button>
+              <button
+                className="btn btn-secondary"
+                style={{ color: '#E65100', borderColor: '#FFCC80' }}
+                onClick={handleCloseClick}
+                disabled={actionBusy}
+              >
+                {closing ? 'Uzavírám...' : 'Uzavřít'}
+              </button>
+            </>
+          )}
+          {workingQuiz.status === 'closed' && (
+            <button className="btn btn-secondary" onClick={handleDuplicate} disabled={actionBusy}>
+              {duplicating ? 'Vytvářím kopii...' : 'Vytvořit kopii'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {workingQuiz.status === 'draft' && validationErrors.length > 0 && (
+        <div className="card mb-4" style={{
+          padding: '1rem 1.25rem', background: '#FFEBEE', border: '1px solid #EF9A9A', color: '#B71C1C',
+        }}>
+          <strong style={{ display: 'block', marginBottom: '0.4rem' }}>Kvíz nelze zveřejnit:</strong>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+            {validationErrors.map((error, index) => <li key={index}>{error}</li>)}
+          </ul>
+        </div>
+      )}
 
       <div className="card mb-4" style={{ padding: '1.5rem' }}>
         <h2 style={{ fontSize: '1.1rem', marginTop: 0, marginBottom: '1rem' }}>Nastavení</h2>
-        <QuizSettingsForm
-          quiz={workingQuiz}
-          onChange={handleChange}
-          disabled={locked}
-          trainings={trainings}
-        />
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Ukládám...' : 'Uložit'}
-          </button>
+        {readOnly && (
+          <p style={{
+            fontSize: '0.85rem', color: '#616161', background: '#F5F5F5',
+            border: '1px solid #BDBDBD', borderRadius: '6px', padding: '0.5rem 0.75rem',
+          }}>
+            Kvíz je uzavřený — nastavení je jen ke čtení.
+          </p>
+        )}
+        <div style={readOnly ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
+          <QuizSettingsForm
+            quiz={workingQuiz}
+            onChange={handleChange}
+            disabled={locked}
+            trainings={trainings}
+          />
         </div>
       </div>
 
@@ -280,7 +473,7 @@ export default function AdminQuizEditorPage() {
             fontSize: '0.85rem', color: '#E65100', background: '#FFF3E0',
             border: '1px solid #FFCC80', borderRadius: '6px', padding: '0.5rem 0.75rem',
           }}>
-            Kvíz je zveřejněný — otázky už nelze měnit.
+            {readOnly ? 'Kvíz je uzavřený — otázky už nelze měnit.' : 'Kvíz je zveřejněný — otázky už nelze měnit.'}
           </p>
         )}
 
