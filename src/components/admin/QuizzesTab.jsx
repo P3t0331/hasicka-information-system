@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useQuizzes from '../../hooks/useQuizzes';
+import useQuizResults from '../../hooks/useQuizResults';
+import QuizResultsTable from './quizzes/QuizResultsTable';
 
 const STATUS_CONFIG = {
     draft:     { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
@@ -43,6 +45,11 @@ export default function QuizzesTab() {
     const [statusFilter, setStatusFilter] = useState('published');
     const [creating, setCreating] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null); // { type: 'close' | 'delete', quiz }
+    const [selectedQuizId, setSelectedQuizId] = useState(null);
+
+    // Volá se bezpodmínečně (hook sám ošetří selectedQuizId === null), aby pořadí
+    // hooků zůstalo napříč rendery stejné bez ohledu na to, jestli je detail otevřený.
+    const results = useQuizResults(selectedQuizId);
 
     if (loading) {
         return <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání kvízů…</div>;
@@ -69,6 +76,38 @@ export default function QuizzesTab() {
     }
 
     const filteredQuizzes = quizzes.filter(q => q.status === statusFilter);
+
+    if (selectedQuizId) {
+        return (
+            <div>
+                <button
+                    type="button"
+                    onClick={() => setSelectedQuizId(null)}
+                    style={{
+                        background: 'none', border: 'none', padding: 0, marginBottom: '1rem',
+                        color: 'var(--primary-red)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+                    }}
+                >
+                    ← Zpět na seznam
+                </button>
+
+                <h2 style={{ fontSize: '1.2rem', marginTop: 0, marginBottom: '1.25rem' }}>
+                    Výsledky: {results.quiz?.title || '…'}
+                </h2>
+
+                {results.loading ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání výsledků…</div>
+                ) : (
+                    <QuizResultsTable
+                        rows={results.rows}
+                        // Detail člena a ruční hodnocení otázek doplňuje úloha 15 — zatím se jen
+                        // předává, kterého člena admin vybral, ale nic to nezobrazuje.
+                        onSelectMember={() => {}}
+                    />
+                )}
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -169,9 +208,17 @@ export default function QuizzesTab() {
                                     <Link to={`/admin/kviz/${quiz.id}`} className="btn btn-secondary" style={{ fontSize: '0.8rem' }}>
                                         Upravit
                                     </Link>
-                                    <Link to={`/admin/kviz/${quiz.id}`} className="btn btn-secondary" style={{ fontSize: '0.8rem' }}>
-                                        Výsledky
-                                    </Link>
+                                    {canManage && (
+                                        // Výsledky smí vidět jen správci kvízů — pravidla Firestore stejně
+                                        // nepustí ostatní ke čtení všech quizAttempts/quizAnswerKeys kvízu.
+                                        <button
+                                            className="btn btn-secondary"
+                                            style={{ fontSize: '0.8rem' }}
+                                            onClick={() => setSelectedQuizId(quiz.id)}
+                                        >
+                                            Výsledky
+                                        </button>
+                                    )}
                                     {canManage && (
                                         <button className="btn btn-secondary" style={{ fontSize: '0.8rem' }} onClick={() => duplicateQuiz(quiz)}>
                                             Kopie
