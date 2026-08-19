@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import useQuizzes from '../../hooks/useQuizzes';
 import useQuizResults from '../../hooks/useQuizResults';
 import QuizResultsTable from './quizzes/QuizResultsTable';
+import QuizAttemptDetail from './quizzes/QuizAttemptDetail';
+import { bestAttempt } from '../../../shared/quizStatus.js';
 
 const STATUS_CONFIG = {
     draft:     { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
@@ -28,6 +30,26 @@ function formatQuestionCount(n) {
     return `${n} otázek`;
 }
 
+// Který pokus se v detailu (úloha 15) ukáže jako výchozí, když na řádek
+// klikne velitel. Řádek může být klikací i s víc pokusy (viz `hasSubmittedAttempt`
+// v QuizResultsTable) — mezi odevzdanými pokusy se vybírá ten, na kterém
+// aktuálně "visí" práce (čekající na vyhodnocení), jinak nejlepší odevzdaný
+// pokus (co určuje zobrazené skóre v tabulce), a jako poslední záchrana
+// nejnovější odevzdaný pokus podle čísla pokusu.
+function pickDefaultAttemptId(attempts) {
+    const submitted = (attempts || []).filter(a => a.status !== 'in_progress');
+    if (!submitted.length) return null;
+    const pending = submitted.find(a => a.status === 'pending_review');
+    if (pending) return pending.id;
+    const best = bestAttempt(submitted);
+    if (best) return best.id;
+    const latest = submitted.reduce(
+        (acc, a) => (!acc || (a.attemptNumber || 0) > (acc.attemptNumber || 0) ? a : acc),
+        null,
+    );
+    return latest?.id || null;
+}
+
 function describeAssignment(quiz) {
     const mode = quiz.assignment?.mode;
     if (mode === 'roles') {
@@ -46,10 +68,40 @@ export default function QuizzesTab() {
     const [creating, setCreating] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null); // { type: 'close' | 'delete', quiz }
     const [selectedQuizId, setSelectedQuizId] = useState(null);
+    // Jen uid + id pokusu, ne celý objekt řádku/pokusu — ty se čtou znovu z
+    // `results.rows`/`results.attempts` při každém renderu (viz níže), takže
+    // detail vždycky ukazuje aktuální (živá onSnapshot) data, ne snímek z
+    // okamžiku kliknutí. Bez toho by hodnocení druhé textové otázky mohlo
+    // zápisem cílit na pokus tak, jak vypadal PŘED prvním hodnocením.
+    const [selectedMemberUid, setSelectedMemberUid] = useState(null);
+    const [selectedAttemptId, setSelectedAttemptId] = useState(null);
 
     // Volá se bezpodmínečně (hook sám ošetří selectedQuizId === null), aby pořadí
     // hooků zůstalo napříč rendery stejné bez ohledu na to, jestli je detail otevřený.
     const results = useQuizResults(selectedQuizId);
+
+    const selectedRow = selectedMemberUid
+        ? results.rows.find(r => r.uid === selectedMemberUid) || null
+        : null;
+    const selectedAttempt = selectedRow
+        ? (selectedRow.attempts || []).find(a => a.id === selectedAttemptId) || null
+        : null;
+
+    function handleSelectMember(row) {
+        setSelectedMemberUid(row.uid);
+        setSelectedAttemptId(pickDefaultAttemptId(row.attempts));
+    }
+
+    function handleBackToResults() {
+        setSelectedMemberUid(null);
+        setSelectedAttemptId(null);
+    }
+
+    function handleBackToList() {
+        setSelectedQuizId(null);
+        setSelectedMemberUid(null);
+        setSelectedAttemptId(null);
+    }
 
     if (loading) {
         return <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání kvízů…</div>;
@@ -78,11 +130,30 @@ export default function QuizzesTab() {
     const filteredQuizzes = quizzes.filter(q => q.status === statusFilter);
 
     if (selectedQuizId) {
+        // Detail pokusu (ruční hodnocení) se ukáže, jakmile je vybraný člen i
+        // pokus a data už jsou načtená. `selectedAttempt` se dohledává výše z
+        // živého `results.rows`/`row.attempts` podle uid+id, takže po odeslání
+        // hodnocení (úprava dokumentu pokusu) se detail překreslí s novým
+        // skóre/stavem, aniž by bylo potřeba cokoli tady ručně synchronizovat.
+        if (!results.loading && selectedRow && selectedAttempt) {
+            return (
+                <QuizAttemptDetail
+                    quiz={results.quiz}
+                    answerKey={results.answerKey}
+                    attempt={selectedAttempt}
+                    attempts={selectedRow.attempts}
+                    onSelectAttempt={setSelectedAttemptId}
+                    onGrade={(questionId, points) => results.gradeAnswer(selectedAttempt, questionId, points)}
+                    onBack={handleBackToResults}
+                />
+            );
+        }
+
         return (
             <div>
                 <button
                     type="button"
-                    onClick={() => setSelectedQuizId(null)}
+                    onClick={handleBackToList}
                     style={{
                         background: 'none', border: 'none', padding: 0, marginBottom: '1rem',
                         color: 'var(--primary-red)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
@@ -100,9 +171,7 @@ export default function QuizzesTab() {
                 ) : (
                     <QuizResultsTable
                         rows={results.rows}
-                        // Detail člena a ruční hodnocení otázek doplňuje úloha 15 — zatím se jen
-                        // předává, kterého člena admin vybral, ale nic to nezobrazuje.
-                        onSelectMember={() => {}}
+                        onSelectMember={handleSelectMember}
                     />
                 )}
             </div>

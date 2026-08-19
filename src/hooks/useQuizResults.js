@@ -1,11 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import {
-  collection, doc, onSnapshot, getDoc, query, where,
+  collection, doc, onSnapshot, getDoc, query, where, runTransaction,
 } from 'firebase/firestore';
 import {
   MEMBER_STATUS, deriveMemberStatus, bestAttempt, isAssignedTo,
 } from '../../shared/quizStatus.js';
+import { computeScorePercent, isPassed } from '../../shared/quizScoring.js';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { logAction } from '../utils/logger';
 
 /**
  * Výsledky jednoho kvízu pro Administraci (úloha 14) — tabulka toho, kdo kvíz
@@ -42,6 +46,10 @@ function surnameOf(member, fallbackName) {
 }
 
 export default function useQuizResults(quizId) {
+  const { currentUser, userData } = useAuth();
+  const { addToast } = useToast();
+  const actorName = userData ? `${userData.firstName} ${userData.lastName}` : '';
+
   const [quiz, setQuiz] = useState(null);
   const [quizLoaded, setQuizLoaded] = useState(false);
   const [answerKey, setAnswerKey] = useState(null);
@@ -222,6 +230,67 @@ export default function useQuizResults(quizId) {
     return s;
   }, [rows]);
 
+  // Ruční hodnocení jedné textové otázky pokusu (úloha 15). `attempt` v
+  // argumentu jen určuje, KTERÝ dokument se má upravit (`attempt.id`) — data,
+  // ze kterých se počítá nový `manualGrades`/`scorePercent`, se vždy čtou
+  // čerstvě uvnitř transakce, ne z tohoto (může být zastaralého) objektu.
+  // Bez toho by dva velitelé, kteří během pár vteřin ohodnotí dvě různé
+  // otázky téhož pokusu, mohli přepsat mapu `manualGrades` jeden druhému —
+  // oba by vycházeli ze stejné (starší) mapy a druhý zápis by tak smazal
+  // hodnocení prvního. Transakce to řeší: Firestore ji při konfliktu s
+  // konkurenčním zápisem sama zopakuje nad čerstvými daty, takže druhý zápis
+  // vždy staví na výsledku prvního, ne ho přepisuje.
+  //
+  // `questionCount`/`autoCorrectCount` se berou z dokumentu pokusu (zapsal je
+  // server při odevzdání) — tady se nikdy nepřepočítávají z `quiz.questions`
+  // ani z `attempt.answers`, aby chyba na klientovi nemohla tiše přepsat
+  // uložený výsledek.
+  async function gradeAnswer(attempt, questionId, points) {
+    if (!quiz || !attempt?.id) return;
+
+    const manualQuestionIds = (quiz.questions || [])
+      .filter(q => q.type === 'text')
+      .map(q => q.id);
+
+    const attemptRef = doc(db, 'quizAttempts', attempt.id);
+    try {
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(attemptRef);
+        if (!snap.exists()) return;
+        const current = snap.data();
+
+        const manualGrades = { ...(current.manualGrades || {}), [questionId]: points };
+        const allGraded = manualQuestionIds.every(id => manualGrades[id] !== undefined);
+
+        const scorePercent = computeScorePercent({
+          questionCount: current.questionCount,
+          autoCorrectCount: current.autoCorrectCount,
+          manualGrades,
+        });
+        const passed = allGraded ? isPassed(scorePercent, quiz.passThreshold) : null;
+
+        transaction.update(attemptRef, {
+          manualGrades,
+          scorePercent: allGraded ? scorePercent : null,
+          passed,
+          // Dokud chybí hodnocení byť jedné textové otázky, stav zůstává
+          // pending_review a scorePercent null — částečné skóre by vypadalo
+          // jako finální a mohlo by členovi ukázat "nesplnil" dřív, než
+          // velitel dohodnotí zbytek.
+          status: allGraded ? (passed ? 'passed' : 'failed') : 'pending_review',
+          gradedBy: { uid: currentUser.uid, name: actorName },
+          gradedAt: new Date().toISOString(),
+        });
+      });
+
+      logAction(db, currentUser.uid, actorName, 'GRADED_QUIZ_ANSWER', 'admin',
+        `Ohodnotil otevřenou otázku v kvízu „${quiz.title}“ pro ${attempt.userName || attempt.uid} (${points ? 'uznáno' : 'neuznáno'})`);
+    } catch (err) {
+      console.error('Error grading quiz answer:', err);
+      addToast('error', 'Chyba při ukládání hodnocení.');
+    }
+  }
+
   return {
     quiz,
     answerKey,
@@ -229,5 +298,6 @@ export default function useQuizResults(quizId) {
     attempts,
     loading: !(quizLoaded && answerKeyLoaded && membersLoaded && trainingsLoaded && attemptsLoaded),
     summary,
+    gradeAnswer,
   };
 }
