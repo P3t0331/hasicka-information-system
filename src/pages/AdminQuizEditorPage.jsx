@@ -29,30 +29,59 @@ export default function AdminQuizEditorPage() {
 
   const quiz = quizzes.find(q => q.id === quizId);
 
-  // Local working copies. Seeded once per quizId from the live snapshot,
-  // then left alone so the admin's in-progress edits survive later
-  // onSnapshot updates (e.g. from other admins editing other quizzes).
+  // Local working copies. Seeded once per quizId, then left alone so the
+  // admin's in-progress edits survive later onSnapshot updates for the same
+  // quiz. Three separate effects below keep two concerns apart: resetting
+  // on navigation (sync) vs. seeding once data is available (sync for the
+  // quiz, async for the answer key).
   const [workingQuiz, setWorkingQuiz] = useState(null);
   const [workingAnswerKey, setWorkingAnswerKey] = useState(null);
   const [saving, setSaving] = useState(false);
-  const seededQuizIdRef = useRef(null);
 
+  // useQuizzes() hands back a fresh loadAnswerKey closure on every render.
+  // Keep the latest one in a ref instead of an effect dependency, so the
+  // fetch effect below only reruns when quizId actually changes — not on
+  // every keystroke elsewhere in this component.
+  const loadAnswerKeyRef = useRef(loadAnswerKey);
+  useEffect(() => { loadAnswerKeyRef.current = loadAnswerKey; }, [loadAnswerKey]);
+
+  // 1) The instant the route's quizId changes, clear both working copies
+  // synchronously — before any async work starts — so the loading guard
+  // below re-engages until both pieces are freshly seeded for the new id.
+  // This is what stops a stale answer key from a previous quiz surviving
+  // into the new quiz's state.
   useEffect(() => {
-    if (!quiz || seededQuizIdRef.current === quizId) return;
-    seededQuizIdRef.current = quizId;
-    setWorkingQuiz({
+    setWorkingQuiz(null);
+    setWorkingAnswerKey(null);
+  }, [quizId]);
+
+  // 2) Seed the quiz working copy once `quiz` is available for the current
+  // route. The functional update only fills a null (freshly-reset) slot,
+  // so later onSnapshot re-emissions for the SAME quiz (new `quiz` object
+  // reference, unchanged id) never clobber in-progress edits.
+  useEffect(() => {
+    if (!quiz) return;
+    setWorkingQuiz(prev => prev || {
       ...quiz,
       assignment: {
         mode: quiz.assignment?.mode || 'all',
         roles: [...(quiz.assignment?.roles || [])],
       },
     });
-    let active = true;
-    loadAnswerKey(quizId).then(key => {
-      if (active) setWorkingAnswerKey(key || { answers: {}, explanations: {} });
+  }, [quiz]);
+
+  // 3) Fetch the answer key exactly once per quizId. `cancelled` is scoped
+  // to this specific effect invocation: if the admin navigates to another
+  // quiz (or back) before the fetch resolves, the cleanup below flips this
+  // invocation's flag, so its eventual response is dropped instead of
+  // landing in state for a quiz the page has since moved away from.
+  useEffect(() => {
+    let cancelled = false;
+    loadAnswerKeyRef.current(quizId).then(key => {
+      if (!cancelled) setWorkingAnswerKey(key || { answers: {}, explanations: {} });
     });
-    return () => { active = false; };
-  }, [quiz, quizId, loadAnswerKey]);
+    return () => { cancelled = true; };
+  }, [quizId]);
 
   if (!userData) return <div className="p-4 text-center">Načítání profilu...</div>;
 
