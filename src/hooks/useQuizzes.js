@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import {
-  collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDoc,
+  collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, query, where,
 } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { getEffectiveRoles } from '../utils/roles';
@@ -83,6 +83,7 @@ export default function useQuizzes() {
 
   const userRoles = getEffectiveRoles(userData ? (userData.roles || [userData.role || 'Hasič']) : []);
   const canManage = userRoles.some(r => MANAGE_ROLES.includes(r));
+  const isAdmin = userRoles.includes('Admin');
   const actorName = userData ? `${userData.firstName} ${userData.lastName}` : '';
 
   useEffect(() => {
@@ -202,26 +203,53 @@ export default function useQuizzes() {
     }
   }
 
+  // Koncept smaže kdokoliv se správou kvízů. Zveřejněný nebo uzavřený kvíz je
+  // ale doklad o školení, takže ho smí zahodit — i s odevzdanými pokusy — jen
+  // Admin. Volající si nejdřív vyžádá countQuizAttempts(), aby v potvrzení
+  // řekl, o kolik výsledků přesně jde.
   async function deleteQuiz(quizId) {
     const quiz = quizzes.find(q => q.id === quizId);
-    if (quiz?.status !== 'draft') {
-      addToast('error', 'Smazat lze pouze koncept. Zveřejněný kvíz uzavřete.');
+    if (!quiz) {
+      addToast('error', 'Kvíz nenalezen.');
+      return;
+    }
+    if (quiz.status !== 'draft' && !isAdmin) {
+      addToast('error', 'Zveřejněný kvíz smí smazat jen administrátor. Můžete ho uzavřít.');
       return;
     }
     try {
+      if (quiz.status !== 'draft') {
+        const attemptsSnap = await getDocs(query(collection(db, 'quizAttempts'), where('quizId', '==', quizId)));
+        await Promise.all(attemptsSnap.docs.map(d => deleteDoc(d.ref)));
+        logAction(db, currentUser.uid, actorName, 'DELETED_QUIZ', 'admin',
+          `Smazal kvíz „${quiz.title}“ (${quiz.status === 'closed' ? 'uzavřený' : 'zveřejněný'}) včetně ${attemptsSnap.size} odevzdaných pokusů`);
+      } else {
+        logAction(db, currentUser.uid, actorName, 'DELETED_QUIZ', 'admin', `Smazal koncept kvízu „${quiz.title}“`);
+      }
       await deleteDoc(doc(db, 'quizzes', quizId));
       await deleteDoc(doc(db, 'quizAnswerKeys', quizId));
-      logAction(db, currentUser.uid, actorName, 'DELETED_QUIZ', 'admin', `Smazal koncept kvízu „${quiz.title}“`);
-      addToast('success', 'Koncept smazán.');
+      addToast('success', quiz.status === 'draft' ? 'Koncept smazán.' : 'Kvíz smazán.');
     } catch (err) {
       console.error('Error deleting quiz:', err);
       addToast('error', 'Chyba při mazání kvízu.');
     }
   }
 
+  // Kolik pokusů kvíz nese — pro potvrzovací dialog, ať admin ví, co maže.
+  async function countQuizAttempts(quizId) {
+    try {
+      const snap = await getDocs(query(collection(db, 'quizAttempts'), where('quizId', '==', quizId)));
+      return snap.size;
+    } catch (err) {
+      console.error('Error counting quiz attempts:', err);
+      return null;
+    }
+  }
+
   return {
     quizzes, loading, canManage,
     createQuiz, updateQuiz, saveAnswerKey, loadAnswerKey,
-    publishQuiz, closeQuiz, duplicateQuiz, deleteQuiz, validateForPublish,
+    publishQuiz, closeQuiz, duplicateQuiz, deleteQuiz, countQuizAttempts, validateForPublish,
+    isAdmin,
   };
 }

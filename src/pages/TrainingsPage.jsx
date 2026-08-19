@@ -5,6 +5,7 @@ import useMyQuizzes from '../hooks/useMyQuizzes';
 import TrainingCard from '../components/trainings/TrainingCard';
 import CreateTrainingModal from '../components/trainings/CreateTrainingModal';
 import QuizCard from '../components/quizzes/QuizCard';
+import { MEMBER_STATUS } from '../../shared/quizStatus.js';
 import { MONTHS_CZ_FILTER } from '../utils/constants';
 import { generateICS, downloadICS, activityToICSEvent } from '../utils/icsExport';
 import { useToast } from '../contexts/ToastContext';
@@ -39,6 +40,14 @@ export default function TrainingsPage() {
     const { filteredMembers: members } = useMembers();
     const { myQuizzes } = useMyQuizzes();
     const { addToast } = useToast();
+
+    // Na Školení patří jen kvízy, se kterými má člen ještě co dělat. Splněné,
+    // uzavřené i vyčerpané mizí — jejich historie zůstává v Profilu.
+    const openQuizzes = React.useMemo(() => myQuizzes.filter(q => (
+        q.canStart
+        || q.myStatus === MEMBER_STATUS.IN_PROGRESS
+        || q.myStatus === MEMBER_STATUS.PENDING_REVIEW
+    )), [myQuizzes]);
 
     const [filterYear, setFilterYear] = React.useState('all');
     const [filterMonth, setFilterMonth] = React.useState('all');
@@ -165,7 +174,7 @@ export default function TrainingsPage() {
             )}
 
             {/* Quizzes */}
-            {myQuizzes.length > 0 && (
+            {openQuizzes.length > 0 && (
                 <section style={{ marginBottom: '1.5rem' }}>
                     <div className="section-header">
                         <span className="section-header__title">
@@ -173,11 +182,11 @@ export default function TrainingsPage() {
                             <span>Kvízy</span>
                         </span>
                         <div className="section-header__meta">
-                            <span className="section-header__count">{myQuizzes.length}</span>
+                            <span className="section-header__count">{openQuizzes.length}</span>
                         </div>
                     </div>
                     <div className="section-body" style={{ padding: '0.85rem', display: 'grid', gap: '0.75rem' }}>
-                        {myQuizzes.map((q) => (
+                        {openQuizzes.map((q) => (
                             <QuizCard key={q.id} quiz={q} />
                         ))}
                     </div>

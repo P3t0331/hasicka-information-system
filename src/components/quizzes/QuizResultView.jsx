@@ -64,7 +64,10 @@ export default function QuizResultView({
     ? attempt.order.questionIds
     : (quiz.questions || []).map(q => q.id);
 
-  const hasBreakdown = Boolean(result?.perQuestion);
+  // Rozbor bereme buď z čerstvé odpovědi serveru (právě odevzdáno), nebo
+  // z toho, co server uložil k pokusu (návrat na výsledek později).
+  const review = result?.perQuestion ? result : attempt.review;
+  const hasBreakdown = Boolean(review?.perQuestion);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -122,9 +125,9 @@ export default function QuizResultView({
             const question = questionsById.get(questionId);
             if (!question) return null;
 
-            const isCorrect = result.perQuestion[questionId];
-            const explanation = result.explanations?.[questionId];
-            const keyEntry = result.correctAnswers?.[questionId];
+            const isCorrect = review.perQuestion[questionId];
+            const explanation = review.explanations?.[questionId];
+            const keyEntry = review.correctAnswers?.[questionId];
 
             let borderColor = '#9E9E9E';
             let stateLabel = 'Hodnotí velitel';
@@ -158,7 +161,9 @@ export default function QuizResultView({
       ) : (
         <div className="card" style={{ padding: '1rem 1.25rem' }}>
           <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-            Správné odpovědi se u tohoto kvízu nezobrazují.
+            {quiz.showCorrectAnswers
+              ? 'Rozbor odpovědí u tohoto pokusu není k dispozici — byl odevzdán dříve, než se začal ukládat.'
+              : 'Správné odpovědi se u tohoto kvízu nezobrazují.'}
           </p>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import useMyQuizzes from '../../hooks/useMyQuizzes';
 import { MEMBER_STATUS } from '../../../shared/quizStatus.js';
 import { pluralize } from '../../utils/pluralize';
@@ -152,6 +153,14 @@ export default function QuizHistory() {
                     font-weight: 700;
                     color: #444;
                 }
+                .qh-link {
+                    font-size: 0.78rem;
+                    font-weight: 600;
+                    color: var(--primary-red);
+                    text-decoration: none;
+                    white-space: nowrap;
+                }
+                .qh-link:hover { text-decoration: underline; }
                 .qh-badge {
                     display: inline-flex;
                     align-items: center;
@@ -205,6 +214,9 @@ export default function QuizHistory() {
                                         }}>
                                             {verdict.label}
                                         </span>
+                                        <Link to={`/skoleni/kviz/${quiz.id}`} className="qh-link">
+                                            Zobrazit
+                                        </Link>
                                     </div>
                                 </li>
                             );

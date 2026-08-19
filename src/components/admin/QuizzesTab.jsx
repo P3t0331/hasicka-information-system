@@ -136,11 +136,22 @@ export default function QuizzesTab() {
     const { currentUser, userData } = useAuth();
     const { addToast } = useToast();
     const actorName = userData ? `${userData.firstName} ${userData.lastName}`.trim() : '';
-    const { quizzes, loading, canManage, createQuiz, duplicateQuiz, closeQuiz, deleteQuiz } = useQuizzes();
+    const { quizzes, loading, canManage, isAdmin, createQuiz, duplicateQuiz, closeQuiz, deleteQuiz, countQuizAttempts } = useQuizzes();
 
     const [statusFilter, setStatusFilter] = useState('published');
     const [creating, setCreating] = useState(false);
-    const [confirmAction, setConfirmAction] = useState(null); // { type: 'close' | 'delete', quiz }
+    const [confirmAction, setConfirmAction] = useState(null); // { type: 'close' | 'delete', quiz, attemptCount }
+
+    // U zveřejněného nebo uzavřeného kvízu si nejdřív zjistíme, kolik pokusů
+    // se smazáním ztratí — admin to má vidět dřív, než potvrdí.
+    async function requestDelete(quiz) {
+        if (quiz.status === 'draft') {
+            setConfirmAction({ type: 'delete', quiz, attemptCount: 0 });
+            return;
+        }
+        const attemptCount = await countQuizAttempts(quiz.id);
+        setConfirmAction({ type: 'delete', quiz, attemptCount });
+    }
     const [selectedQuizId, setSelectedQuizId] = useState(null);
     // Potvrzovací dialog ruční připomínky (úloha 20) — jde o notifikaci
     // směrem ven k lidem, nesmí odejít jedním klikem bez potvrzení.
@@ -381,12 +392,24 @@ export default function QuizzesTab() {
                 >
                     <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%', animation: 'fadeIn 0.2s' }}>
                         <h3 style={{ marginTop: 0 }}>
-                            {confirmAction.type === 'close' ? 'Uzavřít kvíz?' : 'Smazat koncept?'}
+                            {confirmAction.type === 'close'
+                                ? 'Uzavřít kvíz?'
+                                : confirmAction.quiz.status === 'draft' ? 'Smazat koncept?' : 'Nenávratně smazat kvíz?'}
                         </h3>
                         <p style={{ color: '#555', marginBottom: '1.25rem' }}>
                             {confirmAction.type === 'close'
                                 ? <>Kvíz <strong>„{confirmAction.quiz.title}"</strong> bude uzavřen a členové na něj již nebudou moci odpovídat.</>
-                                : <>Koncept <strong>„{confirmAction.quiz.title}"</strong> bude trvale smazán.</>
+                                : confirmAction.quiz.status === 'draft'
+                                    ? <>Koncept <strong>„{confirmAction.quiz.title}"</strong> bude trvale smazán.</>
+                                    : <>
+                                        Kvíz <strong>„{confirmAction.quiz.title}"</strong> bude trvale smazán
+                                        {confirmAction.attemptCount === null
+                                            ? ' i se všemi odevzdanými pokusy.'
+                                            : confirmAction.attemptCount === 0
+                                                ? '. Zatím na něj nikdo neodpovídal.'
+                                                : <> i s <strong>{confirmAction.attemptCount} {pluralize(confirmAction.attemptCount, 'odevzdaným pokusem', 'odevzdanými pokusy', 'odevzdanými pokusy')}</strong>.</>}
+                                        {' '}Tím zmizí i doklad o absolvování školení a nelze to vzít zpět.
+                                    </>
                             }
                         </p>
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -494,11 +517,11 @@ export default function QuizzesTab() {
                                             Uzavřít
                                         </button>
                                     )}
-                                    {canManage && quiz.status === 'draft' && (
+                                    {canManage && (quiz.status === 'draft' || isAdmin) && (
                                         <button
                                             className="btn btn-secondary"
                                             style={{ fontSize: '0.8rem', color: '#c62828', borderColor: '#ffcdd2' }}
-                                            onClick={() => setConfirmAction({ type: 'delete', quiz })}
+                                            onClick={() => requestDelete(quiz)}
                                         >
                                             Smazat
                                         </button>
