@@ -14,6 +14,7 @@ const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 const ShiftCalendarPage = React.lazy(() => import('./pages/ShiftCalendarPage'));
 const StatisticsPage = React.lazy(() => import('./pages/StatisticsPage'));
 const AdminPage = React.lazy(() => import('./pages/AdminPage'));
+const AdminQuizEditorPage = React.lazy(() => import('./pages/AdminQuizEditorPage'));
 const TrainingsPage = React.lazy(() => import('./pages/TrainingsPage'));
 const EventsPage = React.lazy(() => import('./pages/EventsPage'));
 const MembersPage = React.lazy(() => import('./pages/MembersPage'));
@@ -59,6 +60,7 @@ function App() {
               <Route path="/clenove" element={<Suspense fallback={<PageLoader />}><MembersPage /></Suspense>} />
               <Route path="/navrhy" element={<Suspense fallback={<PageLoader />}><SuggestionsPage /></Suspense>} />
               <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminPage /></Suspense>} />
+              <Route path="/admin/kviz/:quizId" element={<Suspense fallback={<PageLoader />}><AdminQuizEditorPage /></Suspense>} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
