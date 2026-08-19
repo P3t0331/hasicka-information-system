@@ -18,11 +18,11 @@ export default function useMyQuizzes() {
     const [trainingsLoaded, setTrainingsLoaded] = useState(false);
 
     useEffect(() => {
+        // Nefiltrujeme na 'published' tady — uzavřený kvíz, který člen už absolvoval,
+        // musí zůstat viditelný jako historie (viz assigned/myAttempts.length níže).
+        // Koncepty (draft) se filtrují ve výpočtu myQuizzes, kde je to explicitní.
         const unsubscribe = onSnapshot(collection(db, 'quizzes'), (snapshot) => {
-            const data = snapshot.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter(q => q.status === 'published');
-            setQuizzes(data);
+            setQuizzes(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
             setQuizzesLoaded(true);
         });
         return unsubscribe;
@@ -60,9 +60,13 @@ export default function useMyQuizzes() {
                     : null;
 
                 // Past u kvízu v režimu 'training': smazané školení => isAssignedTo vrátí false.
-                // Odevzdaný/rozpracovaný kvíz nesmí zmizet z historie člena, proto ho ukážeme,
-                // pokud pro něj člen už má alespoň jeden pokus.
-                const assigned = isAssignedTo(quiz, member, training) || myAttempts.length > 0;
+                // Stejná past nastává, když admin kvíz uzavře (status 'closed') — isAssignedTo
+                // vyžaduje status 'published', takže by uzavřený kvíz zmizel úplně. V obou
+                // případech ale odevzdaný/rozpracovaný kvíz nesmí zmizet z historie člena, proto
+                // ho ukážeme, pokud pro něj člen už má alespoň jeden pokus. Koncept (draft) se
+                // nikdy nezobrazí — na ten člen pokus mít nemůže.
+                const assigned = isAssignedTo(quiz, member, training)
+                    || (quiz.status !== 'draft' && myAttempts.length > 0);
                 if (!assigned) return null;
 
                 const myStatus = deriveMemberStatus(myAttempts);

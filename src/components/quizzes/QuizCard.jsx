@@ -33,6 +33,7 @@ function getCountdown(deadline) {
     if (diffDays < 0) return { text: 'Po termínu', isPast: true };
     if (diffDays === 0) return { text: 'Dnes je poslední den', isPast: false };
     if (diffDays === 1) return { text: 'Zbývá 1 den', isPast: false };
+    if (diffDays >= 2 && diffDays <= 4) return { text: `Zbývají ${diffDays} dny`, isPast: false };
     return { text: `Zbývá ${diffDays} dní`, isPast: false };
 }
 
