@@ -6,14 +6,20 @@ import {
   collection, doc, onSnapshot, query, where, setDoc, updateDoc,
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { logAction } from '../utils/logger';
 
 /**
- * Zahájení a vyplňování jednoho pokusu na konkrétní kvíz (`/skoleni/kviz/:quizId`).
+ * Zahájení, vyplňování a odevzdání jednoho pokusu na konkrétní kvíz
+ * (`/skoleni/kviz/:quizId`).
  *
  * Úloha 11 implementuje čtení kvízu a pokusu a `startAttempt()`. Úloha 12
- * doplňuje vyplňování otázek (`setAnswer`) s průběžným ukládáním. Odevzdání
- * (`submitAttempt`) doplní úloha 13 — záměrně tu není ani jako prázdný stub,
- * aby nevznikl dojem hotové funkce.
+ * doplňuje vyplňování otázek (`setAnswer`) s průběžným ukládáním. Úloha 13
+ * doplňuje `submitAttempt()` — uloží finální odpovědi, zavolá
+ * `POST /api/quiz-submit` (které kvíz opraví a zapíše výsledek na serveru,
+ * ne odtud) a uchová si výsledek pro zobrazení, i když mezitím `attempt`
+ * (rozpracovaný pokus) zmizí z `liveAttempt`, jakmile server změní jeho stav
+ * pryč od `in_progress`.
  */
 
 function shuffled(items) {
@@ -48,6 +54,8 @@ function formatUserName(userData) {
 
 export default function useQuizAttempt(quizId) {
   const { currentUser, userData } = useAuth();
+  const { addToast } = useToast();
+  const actorName = formatUserName(userData);
   const [quiz, setQuiz] = useState(null);
   const [quizLoaded, setQuizLoaded] = useState(false);
   const [attempts, setAttempts] = useState([]);
@@ -111,9 +119,39 @@ export default function useQuizAttempt(quizId) {
   const writeInFlightRef = useRef(false);
   const mountedRef = useRef(true);
   const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+  // Mirrors `saveState` synchronously in a ref so `waitForDurableSave` below
+  // (a plain polling loop, not a React effect) can read the latest value
+  // without waiting for a render — `submitAttempt` needs to notice an
+  // autosave failure immediately, not one render later.
+  const saveStateRef = useRef('idle');
+  const updateSaveState = useCallback((next) => {
+    saveStateRef.current = next;
+    setSaveState(next);
+  }, []);
+
+  // Odevzdání pokusu (úloha 13). `submittingRef` je synchronní dvojník
+  // `submitting` stavu — na rozdíl od `setSubmitting` se zapíše okamžitě, ne
+  // až při dalším renderu, takže dvojklik na Odeslat i auto-odeslání po
+  // vypršení limitu, které stihnou proběhnout ve stejném tiku, druhé volání
+  // spolehlivě zablokují hned na vstupu do `submitAttempt`.
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
+  // Odpověď `/api/quiz-submit` z tohoto sezení a odpovídající snímek pokusu
+  // (odpovědi člena v době odevzdání) pro `QuizResultView`. Drží se odděleně
+  // od `attempt`/`liveAttempt` záměrně: jakmile server změní stav pokusu pryč
+  // od `in_progress`, `liveAttempt` zmizí a resetovací efekt níže by `attempt`
+  // vynuloval přesně ve chvíli, kdy je potřeba výsledek zobrazit.
+  const [result, setResult] = useState(null);
+  const [submittedAttempt, setSubmittedAttempt] = useState(null);
 
   useEffect(() => {
     if (!liveAttempt) {
+      // Žádný rozpracovaný pokus — buď člen ještě nezačal, nebo právě
+      // odevzdal (server přepsal stav pryč od 'in_progress', takže tento
+      // pokus zmizel z `liveAttempt`). V druhém případě `submitAttempt` níže
+      // už má vlastní snímek pokusu i výsledek uložený v `result`/
+      // `submittedAttempt` — ty se tady záměrně NEmažou, aby `QuizResultView`
+      // mělo z čeho vykreslit výsledek i poté, co `attempt` zmizí.
       if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
       attemptIdRef.current = null;
       pendingAnswers.current = null;
@@ -127,17 +165,31 @@ export default function useQuizAttempt(quizId) {
       // stránky) — převezme se celý, včetně případných dřív uložených
       // odpovědí, a lokální ukládací stav se resetuje. `writeInFlightRef` se
       // resetuje také: kdyby zápis pro starý pokus ještě doběhl, cílí na
-      // jeho vlastní (jiné) id dokumentu zachycené v okamžiku odeslání, takže
-      // nová sada odpovědí na něm nijak nezávisí.
+      // jeho vlastní (jiné) id dokumentu zachycené v okamžiku odeslání
+      // (`flush` níže porovnává toto id při dokončení a starý dokončený zápis
+      // na těchto čerstvě vynulovaných příznacích nic nezmění — viz komentář
+      // ve `flush`), takže nová sada odpovědí na něm nijak nezávisí.
+      // Nový pokus je i signálem "začínáme znovu" — `result`/
+      // `submittedAttempt` z předchozího pokusu (zobrazený po Zkusit znovu)
+      // se zahodí, ať stránka přepne zpět na vyplňování otázek.
       if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
       pendingAnswers.current = null;
       dirtyRef.current = false;
       writeInFlightRef.current = false;
-      setSaveState('idle');
+      updateSaveState('idle');
       attemptIdRef.current = liveAttempt.id;
       setAttempt(liveAttempt);
+      setResult(null);
+      setSubmittedAttempt(null);
     }
-  }, [liveAttempt]);
+  }, [liveAttempt, updateSaveState]);
+
+  // Kvíz se může změnit (jiné id v URL beze zmizení komponenty) — výsledek
+  // předchozího kvízu nesmí prosakovat do zobrazení nového.
+  useEffect(() => {
+    setResult(null);
+    setSubmittedAttempt(null);
+  }, [quizId]);
 
   // Odešle do Firestore aktuální kompletní sadu odpovědí (`pendingAnswers`),
   // ale nikdy víc než jeden zápis najednou pro tentýž pokus:
@@ -152,6 +204,18 @@ export default function useQuizAttempt(quizId) {
   //  - `saveState` se na 'saved'/'error' nastaví jen tehdy, když po
   //    doběhnutí zápisu už nic nového nečeká — jinak by mohl krátce ukázat
   //    „Uloženo“ pro data, která mezitím přestala být aktuální.
+  //  - `attemptId` zachycené na začátku je zároveň generace zápisu: pokud se
+  //    mezi odesláním a doběhnutím `updateDoc` `attemptIdRef.current` změní
+  //    (pokus byl odevzdán a `attempt` zmizel, nebo začal úplně nový pokus —
+  //    viz efekt výše, který v obou případech `writeInFlightRef`/`dirtyRef`
+  //    rovnou vynuluje pro novou generaci), tak už tento dokončený zápis
+  //    patří k neexistující/staré generaci. Bez této kontroly by mohl
+  //    přepsat `writeInFlightRef`/`dirtyRef` zpátky v okamžiku, kdy už
+  //    popisují stav zápisu pro NOVÝ pokus — a nechat tak vzniknout druhý
+  //    souběžný `updateDoc` na tentýž (nový) dokument. Toto je oprava vady
+  //    zanesené z úlohy 12 (viz progress.md "CARRY TO TASK 13"): dřív
+  //    reference na `writeInFlightRef`/`dirtyRef` nebyly svázané s generací
+  //    pokusu, ke kterému patřily.
   const flush = useCallback(() => {
     if (writeInFlightRef.current) return;
     if (!dirtyRef.current) return;
@@ -166,16 +230,18 @@ export default function useQuizAttempt(quizId) {
       answers: payload,
       lastSavedAt: new Date().toISOString(),
     }).then(() => {
+      if (attemptIdRef.current !== attemptId) return; // stale generation — ignore
       writeInFlightRef.current = false;
       if (dirtyRef.current) { flush(); return; }
-      if (mountedRef.current) setSaveState('saved');
+      if (mountedRef.current) updateSaveState('saved');
     }).catch((err) => {
+      if (attemptIdRef.current !== attemptId) return; // stale generation — ignore
       writeInFlightRef.current = false;
       console.error('Chyba při ukládání odpovědi:', err);
       if (dirtyRef.current) { flush(); return; }
-      if (mountedRef.current) setSaveState('error');
+      if (mountedRef.current) updateSaveState('error');
     });
-  }, []);
+  }, [updateSaveState]);
 
   // Vynutí okamžité odeslání rozpracované úpravy (bez čekání na zbytek 1s
   // debounce) ve chvíli, kdy člen odchází ze stránky — zavření karty,
@@ -233,14 +299,14 @@ export default function useQuizAttempt(quizId) {
     });
 
     dirtyRef.current = true;
-    setSaveState('saving');
+    updateSaveState('saving');
 
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       saveTimer.current = null;
       flush();
     }, 1000);
-  }, [attempt, flush]);
+  }, [attempt, flush, updateSaveState]);
 
   const startAttempt = useCallback(async () => {
     if (!quiz || !currentUser?.uid || !userData || starting || attempt) return;
@@ -289,14 +355,113 @@ export default function useQuizAttempt(quizId) {
     }
   }, [quiz, quizId, currentUser?.uid, userData, attempts, attempt, starting]);
 
+  // Čeká, dokud poslední známá sada odpovědí (`pendingAnswers.current`) není
+  // skutečně zapsaná ve Firestore — `submitAttempt` (níže) musí zaručit, že
+  // server u `/api/quiz-submit` čte odpovědi, které člen doopravdy naposledy
+  // zadal, ne starší verzi, kterou ještě neodeslal debounce z `setAnswer`
+  // (úloha 12 zápisy serializuje na max. jeden najednou — viz `flush` výše —
+  // takže tady se na dokončení toho probíhajícího čeká, ne spouští druhý
+  // souběžný zápis na tentýž dokument).
+  //
+  // Sleduje stejné `dirtyRef`/`writeInFlightRef` jako `flush`, ale navíc
+  // ošetřuje případ, kdy poslední pokus o zápis skončil chybou: `flush`
+  // nastavuje `dirtyRef.current = false` ještě PŘED tím, než `updateDoc`
+  // doběhne (aby druhé volání `flush()` v mezičase jen počkalo, ne poslalo
+  // druhý souběžný zápis) — po chybě tak `dirtyRef` zůstane `false`, i když
+  // se poslední sada odpovědí ve skutečnosti nezapsala. `saveStateRef` tuhle
+  // situaci odhalí (`'error'`) a vynutí nový pokus o zápis té samé sady
+  // odpovědí, než se zavolá server.
+  const waitForDurableSave = useCallback((attemptId) => new Promise((resolve, reject) => {
+    const startedAt = Date.now();
+    function tick() {
+      if (attemptIdRef.current !== attemptId) { resolve(); return; } // pokus mezitím zmizel/změnil se
+      if (!writeInFlightRef.current) {
+        if (dirtyRef.current) {
+          flush();
+        } else if (saveStateRef.current === 'error') {
+          dirtyRef.current = true;
+          flush();
+        } else {
+          resolve();
+          return;
+        }
+      }
+      if (Date.now() - startedAt > 8000) {
+        reject(new Error('Ukládání odpovědí trvá příliš dlouho.'));
+        return;
+      }
+      setTimeout(tick, 100);
+    }
+    tick();
+  }), [flush]);
+
+  // Odevzdání pokusu. Odpovědi se posílají uložením do Firestore (výše), ne
+  // v těle požadavku na server — ten je čte přímo z dokumentu pokusu, takže
+  // nejde podstrčit jiné odpovědi, než jaké pravidla dovolila zapsat.
+  // Opravu i výsledek počítá výhradně server (`api/quiz-submit.js`) přes
+  // Admin SDK, který smí číst `quizAnswerKeys` — člen k té kolekci přístup
+  // nemá, takže správnou odpověď nemůže vidět dřív, než ji odešle.
+  const submitAttempt = useCallback(async () => {
+    // `submittingRef` (ne jen `submitting` stav) blokuje synchronně, hned na
+    // vstupu — dvojklik na Odeslat i auto-odeslání po vypršení časového
+    // limitu, které by mohly zavolat `submitAttempt` prakticky ve stejném
+    // tiku, tak nemohou obě projít dřív, než se stihne promítnout React
+    // state z prvního volání.
+    if (submittingRef.current) return;
+    if (!attempt || !quiz || !currentUser?.uid) return;
+
+    const attemptId = attempt.id;
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+      await waitForDurableSave(attemptId);
+
+      const token = await currentUser.getIdToken();
+      const response = await fetch('/api/quiz-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ quizId, attemptId }),
+      });
+
+      if (response.status === 409) {
+        // Pokus už byl odevzdán (jiná záložka, nebo dřívější požadavek, který
+        // na serveru doopravdy uspěl, ale odpověď se sem nikdy nedostala).
+        // Z pohledu člena nic neselhalo — jde o stav k dorovnání, ne o
+        // chybu: jakmile onSnapshot doručí přepsaný stav pokusu, stránka ho
+        // ukáže přes "starší pokus" větev (result = null).
+        addToast('info', 'Kvíz už byl odeslán, zobrazuji výsledek.');
+        return;
+      }
+
+      if (!response.ok) throw new Error(`Server vrátil ${response.status}`);
+      const data = await response.json();
+      setResult(data);
+      setSubmittedAttempt({ ...attempt, answers: pendingAnswers.current || attempt.answers });
+      logAction(db, currentUser.uid, actorName, 'SUBMITTED_QUIZ', 'activities',
+        `Odevzdal kvíz „${quiz.title}“`);
+    } catch (err) {
+      console.error('Chyba při odesílání kvízu:', err);
+      addToast('error', 'Odeslání se nezdařilo. Odpovědi zůstaly uložené, zkuste to znovu.');
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
+  }, [attempt, quiz, quizId, currentUser, actorName, addToast, waitForDurableSave]);
+
   return {
     quiz,
     attempt,
+    attempts,
     loading: !(quizLoaded && attemptsLoaded),
     error,
     starting,
     startAttempt,
     setAnswer,
     saveState,
+    submitting,
+    submitAttempt,
+    result,
+    submittedAttempt,
   };
 }
