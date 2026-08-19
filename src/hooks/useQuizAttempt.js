@@ -1,16 +1,19 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  useState, useEffect, useMemo, useCallback, useRef,
+} from 'react';
 import { db } from '../firebase';
 import {
-  collection, doc, onSnapshot, query, where, setDoc,
+  collection, doc, onSnapshot, query, where, setDoc, updateDoc,
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Zahájení a vyplňování jednoho pokusu na konkrétní kvíz (`/skoleni/kviz/:quizId`).
  *
- * Úloha 11 implementuje čtení kvízu a pokusu a `startAttempt()`. Vyplňování
- * otázek (`setAnswer`) a odevzdání (`submitAttempt`) doplní úlohy 12 a 13 —
- * záměrně tu nejsou ani jako prázdné stuby, aby nevznikl dojem hotové funkce.
+ * Úloha 11 implementuje čtení kvízu a pokusu a `startAttempt()`. Úloha 12
+ * doplňuje vyplňování otázek (`setAnswer`) s průběžným ukládáním. Odevzdání
+ * (`submitAttempt`) doplní úloha 13 — záměrně tu není ani jako prázdný stub,
+ * aby nevznikl dojem hotové funkce.
  */
 
 function shuffled(items) {
@@ -79,10 +82,102 @@ export default function useQuizAttempt(quizId) {
 
   // Nejvýš jeden rozpracovaný pokus může v danou chvíli existovat — nový nejde
   // založit, dokud se předchozí neodevzdá (submitAttempt, úloha 13).
-  const attempt = useMemo(
+  const liveAttempt = useMemo(
     () => attempts.find(a => a.status === 'in_progress') || null,
     [attempts],
   );
+
+  // Lokální pracovní kopie rozpracovaného pokusu. Založí se, jakmile je
+  // `liveAttempt` poprvé k dispozici (nový pokus i pokus obnovený po
+  // znovunačtení stránky) — a od té chvíle se pole `answers`/`lastSavedAt`
+  // z živého onSnapshot už NEpřebírají zpět. `setAnswer` níže tato pole mění
+  // v lokálním stavu okamžitě při každém úderu klávesy; kdyby se sem navíc
+  // promítal i ozvěnový onSnapshot vlastního zápisu, mohl by dorazit s
+  // odpověďmi o kolo starými než to, co člen právě dopisuje do textového
+  // pole, a přepsat mu rozepsaný text. Ostatní pole (status, order, …) se u
+  // rozpracovaného pokusu nemění jinak než přes odeslání (submitAttempt,
+  // úloha 13), takže není co dosynchronizovávat — stejný vzor jako
+  // `workingQuiz` v AdminQuizEditorPage.
+  const [attempt, setAttempt] = useState(null);
+  const attemptIdRef = useRef(null);
+  const saveTimer = useRef(null);
+  const pendingAnswers = useRef(null);
+  const saveVersion = useRef(0);
+  const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+
+  useEffect(() => {
+    if (!liveAttempt) {
+      if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+      attemptIdRef.current = null;
+      setAttempt(null);
+      return;
+    }
+    if (attemptIdRef.current !== liveAttempt.id) {
+      // Nový pokus (čerstvě založený, nebo první načtení po otevření
+      // stránky) — převezme se celý, včetně případných dřív uložených
+      // odpovědí, a lokální ukládací stav se resetuje.
+      if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+      pendingAnswers.current = null;
+      saveVersion.current = 0;
+      setSaveState('idle');
+      attemptIdRef.current = liveAttempt.id;
+      setAttempt(liveAttempt);
+    }
+  }, [liveAttempt]);
+
+  // Úklid rozpracovaného časovače při odpojení komponenty — jinak by mohl
+  // zápis vystřelit proti zastaralému closure poté, co člen z obrazovky odešel.
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
+
+  // Okamžitě aktualizuje lokální stav a s prodlevou 1 s zapíše do Firestore.
+  // Zápis smí měnit jen `answers` a `lastSavedAt` — pravidla update pro
+  // člena na vlastním rozpracovaném pokusu nic jiného nedovolí (viz
+  // `firestore.rules`), takže se sem záměrně nepřidává `status`, `uid`,
+  // `startedAt` ani `attemptNumber`.
+  //
+  // `pendingAnswers` vždy drží kompletní, aktuální sadu odpovědí (aktualizuje
+  // se synchronně uvnitř funkčního updateru `setAttempt`, ne z uzavřené
+  // proměnné `attempt.answers`), takže i když člen mezi zahájením a
+  // vypálením časovače stihne odpovědět na jinou otázku, zápis o 1 s později
+  // odešle obě odpovědi najednou — ne jen tu poslední přepsanou přes
+  // předchozí.
+  //
+  // `saveVersion` řeší opačné pořadí: pokud po odeslání zápisu (časovač už
+  // vypálil, čeká se na síť) přijde další úprava, ta si vezme nové číslo
+  // verze. Když starší zápis až po ní doběhne (úspěchem i chybou), jeho
+  // `saveVersion.current === version` už neplatí a jeho výsledek se do
+  // `saveState` nepromítne — jinak by mohl pozdě dorazivší neúspěch staršího
+  // zápisu přepsat „Uloženo“ z novějšího úspěšného zápisu, nebo naopak.
+  const setAnswer = useCallback((questionId, value) => {
+    if (!attempt) return;
+    const attemptId = attempt.id;
+
+    setAttempt(prev => {
+      if (!prev) return prev;
+      const next = { ...prev, answers: { ...prev.answers, [questionId]: value } };
+      pendingAnswers.current = next.answers;
+      return next;
+    });
+
+    const version = (saveVersion.current += 1);
+    setSaveState('saving');
+
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      try {
+        await updateDoc(doc(db, 'quizAttempts', attemptId), {
+          answers: pendingAnswers.current,
+          lastSavedAt: new Date().toISOString(),
+        });
+        if (saveVersion.current === version) setSaveState('saved');
+      } catch (err) {
+        console.error('Chyba při ukládání odpovědi:', err);
+        if (saveVersion.current === version) setSaveState('error');
+      }
+    }, 1000);
+  }, [attempt]);
 
   const startAttempt = useCallback(async () => {
     if (!quiz || !currentUser?.uid || !userData || starting || attempt) return;
@@ -138,5 +233,7 @@ export default function useQuizAttempt(quizId) {
     error,
     starting,
     startAttempt,
+    setAnswer,
+    saveState,
   };
 }
