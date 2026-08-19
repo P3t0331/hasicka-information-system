@@ -352,11 +352,16 @@ export default function AdminQuizEditorPage() {
 
   // Saved first for the same reason as publishing: `duplicateQuiz` copies
   // the answer key straight from Firestore, so an unsaved edit here would
-  // otherwise be silently missing from the copy.
+  // otherwise be silently missing from the copy. Skipped for a closed quiz:
+  // the form is frozen there (no legitimate unsaved edit can exist), and
+  // writing to a closed quiz's own document is exactly what must never
+  // happen — closing is meant to leave the record undisturbed.
   async function handleDuplicate() {
     setDuplicating(true);
     try {
-      await handleSave();
+      if (workingQuiz.status !== 'closed') {
+        await handleSave();
+      }
       const newQuizId = await duplicateQuiz(workingQuiz);
       if (newQuizId) navigate(`/admin/kviz/${newQuizId}`);
     } finally {
@@ -456,11 +461,12 @@ export default function AdminQuizEditorPage() {
             Kvíz je uzavřený — nastavení je jen ke čtení.
           </p>
         )}
-        <div style={readOnly ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
+        <div style={readOnly ? { opacity: 0.65 } : undefined}>
           <QuizSettingsForm
             quiz={workingQuiz}
             onChange={handleChange}
             disabled={locked}
+            readOnly={readOnly}
             trainings={trainings}
           />
         </div>

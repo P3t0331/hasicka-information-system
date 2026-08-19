@@ -7,8 +7,15 @@ function formatTrainingDate(iso) {
   return `${Number(d)}. ${Number(m)}. ${y}`;
 }
 
-export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }) {
+// `disabled` locks only the fields that freeze once a quiz is published
+// (training link, pass threshold, attempts, time limit, shuffle flags) —
+// title/description/deadline/assignment/post-submit toggles stay editable
+// while merely published, by design. `readOnly` is stronger: the whole
+// quiz is frozen (closed), so every field here must be genuinely disabled,
+// including the ones `disabled` alone never touches.
+export default function QuizSettingsForm({ quiz, onChange, disabled, readOnly, trainings }) {
   const assignment = quiz.assignment || { mode: 'all', roles: [] };
+  const publishLocked = readOnly || disabled;
 
   function handleTrainingChange(e) {
     const value = e.target.value || null;
@@ -36,6 +43,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
         <input
           className="input-field"
           value={quiz.title || ''}
+          disabled={readOnly}
           onChange={e => onChange({ title: e.target.value })}
         />
       </div>
@@ -47,6 +55,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
           rows={3}
           style={{ resize: 'vertical' }}
           value={quiz.description || ''}
+          disabled={readOnly}
           onChange={e => onChange({ description: e.target.value })}
         />
       </div>
@@ -56,7 +65,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
         <select
           className="input-field"
           value={quiz.trainingId || ''}
-          disabled={disabled}
+          disabled={publishLocked}
           onChange={handleTrainingChange}
         >
           <option value="">— žádné —</option>
@@ -71,7 +80,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         <div className="input-group">
           <label className="input-label">Přiřazení</label>
-          <select className="input-field" value={assignment.mode || 'all'} onChange={handleModeChange}>
+          <select className="input-field" value={assignment.mode || 'all'} disabled={readOnly} onChange={handleModeChange}>
             <option value="all">Všichni aktivní členové</option>
             <option value="roles">Vybrané role</option>
             {quiz.trainingId && <option value="training">Účastníci školení</option>}
@@ -84,6 +93,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
             className="input-field"
             type="date"
             value={quiz.deadline || ''}
+            disabled={readOnly}
             onChange={e => onChange({ deadline: e.target.value })}
           />
         </div>
@@ -94,10 +104,11 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
           <label className="input-label">Role</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
             {ROLE_OPTIONS.map(role => (
-              <label key={role} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <label key={role} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: readOnly ? 'default' : 'pointer', fontSize: '0.9rem' }}>
                 <input
                   type="checkbox"
                   checked={(assignment.roles || []).includes(role)}
+                  disabled={readOnly}
                   onChange={() => toggleRole(role)}
                 />
                 {role}
@@ -116,7 +127,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
               type="number"
               min={1}
               max={100}
-              disabled={disabled}
+              disabled={publishLocked}
               value={quiz.passThreshold ?? ''}
               onChange={e => onChange({ passThreshold: parseInt(e.target.value, 10) || 0 })}
             />
@@ -131,7 +142,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
             type="number"
             min={0}
             max={20}
-            disabled={disabled}
+            disabled={publishLocked}
             value={quiz.maxAttempts ?? ''}
             onChange={e => onChange({ maxAttempts: parseInt(e.target.value, 10) || 0 })}
           />
@@ -144,7 +155,7 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
             className="input-field"
             type="number"
             min={1}
-            disabled={disabled}
+            disabled={publishLocked}
             value={quiz.timeLimitMinutes ?? ''}
             placeholder="Bez limitu"
             onChange={e => {
@@ -156,36 +167,38 @@ export default function QuizSettingsForm({ quiz, onChange, disabled, trainings }
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: disabled ? 'default' : 'pointer', fontSize: '0.9rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: publishLocked ? 'default' : 'pointer', fontSize: '0.9rem' }}>
           <input
             type="checkbox"
             checked={!!quiz.shuffleQuestions}
-            disabled={disabled}
+            disabled={publishLocked}
             onChange={e => onChange({ shuffleQuestions: e.target.checked })}
           />
           Zamíchat otázky
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: disabled ? 'default' : 'pointer', fontSize: '0.9rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: publishLocked ? 'default' : 'pointer', fontSize: '0.9rem' }}>
           <input
             type="checkbox"
             checked={!!quiz.shuffleOptions}
-            disabled={disabled}
+            disabled={publishLocked}
             onChange={e => onChange({ shuffleOptions: e.target.checked })}
           />
           Zamíchat volby
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: readOnly ? 'default' : 'pointer', fontSize: '0.9rem' }}>
           <input
             type="checkbox"
             checked={!!quiz.showCorrectAnswers}
+            disabled={readOnly}
             onChange={e => onChange({ showCorrectAnswers: e.target.checked })}
           />
           Zobrazit správné odpovědi po odeslání
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: readOnly ? 'default' : 'pointer', fontSize: '0.9rem' }}>
           <input
             type="checkbox"
             checked={!!quiz.notifyOnPublish}
+            disabled={readOnly}
             onChange={e => onChange({ notifyOnPublish: e.target.checked })}
           />
           Upozornit členy při zveřejnění
