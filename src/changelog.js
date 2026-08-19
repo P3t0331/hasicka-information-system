@@ -5,9 +5,36 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.1.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.1.1',
+    date: '19. 8. 2026',
+    sections: [
+      {
+        label: 'Vylepšení',
+        changes: [
+          'Ve Školení se nově zobrazují jen kvízy, které ještě čekají na vyplnění. Splněné a uzavřené najdete ve svém profilu.',
+          'V profilu si u každého absolvovaného kvízu můžete přes „Zobrazit" prohlédnout své odpovědi.',
+        ],
+      },
+      {
+        label: 'Opravy chyb',
+        changes: [
+          'Rozbor odpovědí zůstává dostupný i po odchodu ze stránky s výsledkem — dřív se dal zobrazit jen jednou, hned po odeslání.',
+          'Tiskový protokol už nepřetéká na druhou stranu kvůli podpisovému poli.',
+          'Logy v administraci ukazují u kvízů české popisky místo interních kódů.',
+        ],
+      },
+      {
+        label: 'Změny',
+        changes: [
+          'Administrátor může smazat i zveřejněný nebo uzavřený kvíz. Potvrzení předem řekne, kolik odevzdaných pokusů se tím nenávratně ztratí.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.1.0',
     date: '19. 8. 2026',
