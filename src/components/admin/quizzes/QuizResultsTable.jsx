@@ -12,10 +12,16 @@ const STATUS_CONFIG = {
 };
 
 // Souhrnné karty nad tabulkou. `filterKey` je hodnota lokálního filtru — 'all'
-// pro Přiřazeno (bez filtrování), 'notStarted' zahrnuje jak NOT_STARTED, tak
+// pro Celkem (bez filtrování), 'notStarted' zahrnuje jak NOT_STARTED, tak
 // IN_PROGRESS (obojí je z pohledu velitele "ještě nehotovo").
+//
+// Karta "Celkem" (ne "Přiřazeno"!) — `summary.assigned`/`rows.length` počítá
+// i členy, kteří už kvíz nemají přiřazený, ale mají k němu historický pokus
+// (viz useQuizResults.js). Štítek "Přiřazeno" by u toho čísla lhal — čtenář
+// by ho přečetl jako "kolik lidí to musí vyplnit" a číslo je vyšší, kdykoli
+// se změnilo obsazení jednotky. Počet se neupravuje, mění se jen popisek.
 const SUMMARY_CARDS = [
-    { key: 'assigned', filterKey: 'all', label: 'Přiřazeno', color: '#455A64', bg: '#ECEFF1', border: '#B0BEC5' },
+    { key: 'assigned', filterKey: 'all', label: 'Celkem', color: '#455A64', bg: '#ECEFF1', border: '#B0BEC5' },
     { key: 'passed', filterKey: 'passed', label: 'Splnilo', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
     { key: 'failed', filterKey: 'failed', label: 'Nesplnilo', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
     { key: 'pending', filterKey: 'pending', label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },

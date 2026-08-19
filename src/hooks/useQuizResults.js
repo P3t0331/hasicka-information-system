@@ -53,12 +53,40 @@ export default function useQuizResults(quizId) {
   const [attempts, setAttempts] = useState([]);
   const [attemptsLoaded, setAttemptsLoaded] = useState(false);
 
-  // Pozn.: pokud `quizId` chybí (detail výsledků není otevřený), efekty se
-  // vůbec nepřihlašují k odběru a stav z předchozí volby jednoduše zůstane
-  // ležet nepoužitý — nic ho nezobrazuje, dokud `quizId` znovu nepřijde. Mezi
-  // dvěma různými kvízy uživatel vždy projde zpět na seznam (`selectedQuizId`
-  // se vynuluje), takže se sem `quizId` nikdy nepřepne přímo z jednoho id na
-  // jiné bez té mezizastávky na `null`.
+  // `dataQuizId` tracks which quizId the quiz-scoped state above (`quiz`,
+  // `answerKey`, `attempts`, their `*Loaded` flags) currently belongs to.
+  //
+  // The check right below runs during render, not inside an effect: it's
+  // React's documented "adjusting state when a prop changes" pattern
+  // (react.dev, "You Might Not Need an Effect"). The instant `quizId`
+  // differs from `dataQuizId` — a different quiz selected, or a selection
+  // cleared — it resets every quiz-scoped piece of state synchronously and
+  // records the new id, right there in the render that first sees the
+  // change. React then discards that render without painting it and
+  // immediately re-renders with the reset applied, so there is no frame —
+  // not even one — where quiz B's title is shown over quiz A's rows and
+  // summary while B's listeners are still in flight. An effect-keyed-on-
+  // quizId reset (tried first) only clears the old values one render AFTER
+  // the switch is already visible, which is exactly the gap that let stale
+  // data leak through; it also trips this project's `react-hooks/set-state-
+  // in-effect` lint rule, which flags any direct `setState` call in an
+  // effect body, guard or no guard.
+  //
+  // `members`/`trainings` are deliberately NOT reset here — those two
+  // collections aren't scoped to a quiz at all, so a value left over from
+  // the previous quiz is still accurate for the new one; resetting them
+  // would only add pointless loading flicker.
+  const [dataQuizId, setDataQuizId] = useState(quizId);
+  if (quizId !== dataQuizId) {
+    setDataQuizId(quizId);
+    setQuiz(null);
+    setQuizLoaded(false);
+    setAnswerKey(null);
+    setAnswerKeyLoaded(false);
+    setAttempts([]);
+    setAttemptsLoaded(false);
+  }
+
   useEffect(() => {
     if (!quizId) return undefined;
     const unsubscribe = onSnapshot(doc(db, 'quizzes', quizId), (snap) => {
@@ -68,6 +96,10 @@ export default function useQuizResults(quizId) {
     return unsubscribe;
   }, [quizId]);
 
+  // `cancelled` ignores a `getDoc()` that resolves after `quizId` has
+  // already moved on to another quiz (or back to none): the render-phase
+  // reset above will already have cleared `answerKey` by then, and this
+  // stale response must not write a different quiz's answer key back into it.
   useEffect(() => {
     if (!quizId) return undefined;
     let cancelled = false;
