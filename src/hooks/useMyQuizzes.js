@@ -72,7 +72,11 @@ export default function useMyQuizzes() {
                 const myStatus = deriveMemberStatus(myAttempts);
                 const myBest = bestAttempt(myAttempts);
                 const attemptsUsed = myAttempts.length;
+                // Čeká-li poslední pokus na ruční vyhodnocení, člen ještě nemůže vědět,
+                // jestli kvíz splnil — nový pokus by mu tak zbytečně spotřeboval jeden
+                // z omezeného počtu pokusů na výsledek, který ještě nezná.
                 const canStart = myStatus !== MEMBER_STATUS.PASSED
+                    && myStatus !== MEMBER_STATUS.PENDING_REVIEW
                     && quiz.status !== 'closed'
                     && (quiz.maxAttempts === 0 || attemptsUsed < quiz.maxAttempts);
 

@@ -3,6 +3,19 @@ import { Link, useParams } from 'react-router-dom';
 import useMyQuizzes from '../hooks/useMyQuizzes';
 import useQuizAttempt from '../hooks/useQuizAttempt';
 import QuizIntro from '../components/quizzes/QuizIntro';
+import { MEMBER_STATUS } from '../../shared/quizStatus.js';
+
+// `canStart` (z useMyQuizzes) je false ze čtyř různých důvodů, které member
+// nesmí vidět pod jedním textem ("vyčerpali jste pokusy" by byla lež pro
+// toho, kdo kvíz už splnil nebo čeká na vyhodnocení). Pořadí zrcadlí, jak
+// canStart svoje podmínky vyhodnocuje (myStatus nejdřív), takže např. člen,
+// který už prošel na uzavřeném kvízu, uvidí "splnili", ne "uzavřen".
+function deriveBlockReason(myQuiz, quiz) {
+  if (myQuiz.myStatus === MEMBER_STATUS.PASSED) return 'passed';
+  if (myQuiz.myStatus === MEMBER_STATUS.PENDING_REVIEW) return 'pending_review';
+  if (quiz.status === 'closed') return 'closed';
+  return 'exhausted';
+}
 
 export default function QuizTakePage() {
   const { quizId } = useParams();
@@ -53,6 +66,7 @@ export default function QuizTakePage() {
         quiz={quiz}
         attemptsUsed={myQuiz.attemptsUsed}
         canStart={myQuiz.canStart}
+        blockReason={myQuiz.canStart ? null : deriveBlockReason(myQuiz, quiz)}
         onStart={startAttempt}
         starting={starting}
       />

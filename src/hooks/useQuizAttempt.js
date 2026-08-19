@@ -33,6 +33,16 @@ function buildOrder(quiz) {
   return { questionIds, optionOrder };
 }
 
+// `userName` se ukládá do dokumentu pokusu a odtud i do oficiálního protokolu,
+// který jednotka ukazuje při kontrole — neúplný profil proto nesmí vyprodukovat
+// doslovné "undefined undefined", ale rozumný náhradní text.
+function formatUserName(userData) {
+  const first = (userData?.firstName || '').trim();
+  const last = (userData?.lastName || '').trim();
+  const full = [first, last].filter(Boolean).join(' ');
+  return full || 'Neznámý člen';
+}
+
 export default function useQuizAttempt(quizId) {
   const { currentUser, userData } = useAuth();
   const [quiz, setQuiz] = useState(null);
@@ -96,7 +106,7 @@ export default function useQuizAttempt(quizId) {
       await setDoc(doc(db, 'quizAttempts', attemptId), {
         quizId,
         uid: currentUser.uid,
-        userName: `${userData.firstName} ${userData.lastName}`,
+        userName: formatUserName(userData),
         attemptNumber,
         status: 'in_progress',
         order: buildOrder(quiz),

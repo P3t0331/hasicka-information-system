@@ -13,15 +13,27 @@ function formatDate(iso) {
   return `${Number(d)}. ${Number(m)}. ${y}`;
 }
 
+// `canStart` (z useMyQuizzes) může být false ze čtyř různých důvodů, které se
+// slovně nesmí zaměnit — proto text vybírá volající stránka (přes
+// `blockReason`), ne tato prezentační komponenta. Poslední `exhausted` je
+// zároveň bezpečný výchozí text, kdyby `blockReason` z nějakého důvodu chyběl.
+const BLOCK_MESSAGES = {
+  passed: 'Tento kvíz jste již úspěšně splnili.',
+  pending_review: 'Váš pokus byl odevzdán a čeká na vyhodnocení.',
+  closed: 'Kvíz byl uzavřen a nelze ho již vyplnit.',
+  exhausted: 'Vyčerpali jste všechny pokusy.',
+};
+
 /**
  * Karta před zahájením kvízu — přehled parametrů a tlačítko Zahájit kvíz.
- * Čistě prezentační: data i zápis vlastní `useQuizAttempt`.
+ * Čistě prezentační: data, zápis i důvod nedostupnosti (`blockReason`) vlastní
+ * volající stránka; komponenta jen vybere odpovídající text.
  *
  * `canStart` je přebrané z `useMyQuizzes()` (rozhoduje `myStatus !== 'passed'`,
- * `quiz.status !== 'closed'` i zbývající pokusy), aby se stejné pravidlo
- * nemuselo v komponentě znovu odvozovat.
+ * `myStatus !== 'pending_review'`, `quiz.status !== 'closed'` i zbývající
+ * pokusy), aby se stejné pravidlo nemuselo v komponentě znovu odvozovat.
  */
-export default function QuizIntro({ quiz, attemptsUsed, canStart, onStart, starting }) {
+export default function QuizIntro({ quiz, attemptsUsed, canStart, blockReason, onStart, starting }) {
   const questionCount = quiz.questions?.length || 0;
   const maxAttempts = quiz.maxAttempts || 0;
   const remainingAttempts = maxAttempts === 0 ? null : Math.max(maxAttempts - attemptsUsed, 0);
@@ -90,7 +102,9 @@ export default function QuizIntro({ quiz, attemptsUsed, canStart, onStart, start
           {starting ? 'Zahajuji…' : 'Zahájit kvíz'}
         </button>
       ) : (
-        <p style={{ margin: 0, color: '#C62828', fontWeight: 600 }}>Vyčerpali jste všechny pokusy.</p>
+        <p style={{ margin: 0, color: '#C62828', fontWeight: 600 }}>
+          {BLOCK_MESSAGES[blockReason] || BLOCK_MESSAGES.exhausted}
+        </p>
       )}
     </div>
   );
