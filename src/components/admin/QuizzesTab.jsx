@@ -4,6 +4,7 @@ import useQuizzes from '../../hooks/useQuizzes';
 import useQuizResults from '../../hooks/useQuizResults';
 import QuizResultsTable from './quizzes/QuizResultsTable';
 import QuizAttemptDetail from './quizzes/QuizAttemptDetail';
+import QuestionStats from './quizzes/QuestionStats';
 import { bestAttempt } from '../../../shared/quizStatus.js';
 
 const STATUS_CONFIG = {
@@ -75,6 +76,9 @@ export default function QuizzesTab() {
     // zápisem cílit na pokus tak, jak vypadal PŘED prvním hodnocením.
     const [selectedMemberUid, setSelectedMemberUid] = useState(null);
     const [selectedAttemptId, setSelectedAttemptId] = useState(null);
+    // Která záložka detailu kvízu je aktivní (úloha 16) — 'results' je výchozí
+    // pohled, stejný jako před přidáním statistik.
+    const [detailTab, setDetailTab] = useState('results');
 
     // Volá se bezpodmínečně (hook sám ošetří selectedQuizId === null), aby pořadí
     // hooků zůstalo napříč rendery stejné bez ohledu na to, jestli je detail otevřený.
@@ -101,6 +105,12 @@ export default function QuizzesTab() {
         setSelectedQuizId(null);
         setSelectedMemberUid(null);
         setSelectedAttemptId(null);
+        setDetailTab('results');
+    }
+
+    function handleOpenResults(quizId) {
+        setSelectedQuizId(quizId);
+        setDetailTab('results');
     }
 
     if (loading) {
@@ -166,12 +176,37 @@ export default function QuizzesTab() {
                     Výsledky: {results.quiz?.title || '…'}
                 </h2>
 
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    <button
+                        type="button"
+                        onClick={() => setDetailTab('results')}
+                        className={`btn ${detailTab === 'results' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ fontSize: '0.85rem' }}
+                    >
+                        Výsledky
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setDetailTab('stats')}
+                        className={`btn ${detailTab === 'stats' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ fontSize: '0.85rem' }}
+                    >
+                        Statistika otázek
+                    </button>
+                </div>
+
                 {results.loading ? (
                     <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání výsledků…</div>
-                ) : (
+                ) : detailTab === 'results' ? (
                     <QuizResultsTable
                         rows={results.rows}
                         onSelectMember={handleSelectMember}
+                    />
+                ) : (
+                    <QuestionStats
+                        quiz={results.quiz}
+                        answerKey={results.answerKey}
+                        attempts={results.attempts}
                     />
                 )}
             </div>
@@ -283,7 +318,7 @@ export default function QuizzesTab() {
                                         <button
                                             className="btn btn-secondary"
                                             style={{ fontSize: '0.8rem' }}
-                                            onClick={() => setSelectedQuizId(quiz.id)}
+                                            onClick={() => handleOpenResults(quiz.id)}
                                         >
                                             Výsledky
                                         </button>
