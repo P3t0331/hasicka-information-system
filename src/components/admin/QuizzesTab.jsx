@@ -5,12 +5,13 @@ import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { logAction } from '../../utils/logger';
-import useQuizzes from '../../hooks/useQuizzes';
+import useQuizzes, { sendQuizNotification } from '../../hooks/useQuizzes';
 import useQuizResults from '../../hooks/useQuizResults';
 import QuizResultsTable from './quizzes/QuizResultsTable';
 import QuizAttemptDetail from './quizzes/QuizAttemptDetail';
 import QuestionStats from './quizzes/QuestionStats';
-import { bestAttempt } from '../../../shared/quizStatus.js';
+import { bestAttempt, MEMBER_STATUS } from '../../../shared/quizStatus.js';
+import { pluralize } from '../../utils/pluralize';
 
 const STATUS_CONFIG = {
     draft:     { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
@@ -132,12 +133,19 @@ function describeAssignment(quiz) {
 
 export default function QuizzesTab() {
     const navigate = useNavigate();
+    const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
+    const actorName = userData ? `${userData.firstName} ${userData.lastName}`.trim() : '';
     const { quizzes, loading, canManage, createQuiz, duplicateQuiz, closeQuiz, deleteQuiz } = useQuizzes();
 
     const [statusFilter, setStatusFilter] = useState('published');
     const [creating, setCreating] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null); // { type: 'close' | 'delete', quiz }
     const [selectedQuizId, setSelectedQuizId] = useState(null);
+    // Potvrzovací dialog ruční připomínky (úloha 20) — jde o notifikaci
+    // směrem ven k lidem, nesmí odejít jedním klikem bez potvrzení.
+    const [reminderConfirmOpen, setReminderConfirmOpen] = useState(false);
+    const [sendingReminder, setSendingReminder] = useState(false);
     // Jen uid + id pokusu, ne celý objekt řádku/pokusu — ty se čtou znovu z
     // `results.rows`/`results.attempts` při každém renderu (viz níže), takže
     // detail vždycky ukazuje aktuální (živá onSnapshot) data, ne snímek z
@@ -159,6 +167,29 @@ export default function QuizzesTab() {
     const selectedAttempt = selectedRow
         ? (selectedRow.attempts || []).find(a => a.id === selectedAttemptId) || null
         : null;
+
+    // Komu jde ruční připomínka (úloha 20): všichni, kdo kvíz NEsplnili — tedy
+    // i ti, kdo ho ještě vůbec nezačali (NOT_STARTED), ne jen ti, co ho
+    // rozpracovali nebo neuspěli. Kdo je PASSED, ten se do seznamu nedostane.
+    const notPassedRows = results.rows.filter(r => r.status !== MEMBER_STATUS.PASSED);
+
+    async function handleSendReminder() {
+        if (!results.quiz || notPassedRows.length === 0) { setReminderConfirmOpen(false); return; }
+        setSendingReminder(true);
+        try {
+            await sendQuizNotification({
+                title: 'Připomínka kvízu',
+                body: `${results.quiz.title} — termín do ${results.quiz.deadline}`,
+                targetUserIds: notPassedRows.map(r => r.uid),
+            });
+            logAction(db, currentUser.uid, actorName, 'SENT_QUIZ_REMINDER', 'admin',
+                `Odeslal připomínku kvízu „${results.quiz.title}“ ${notPassedRows.length} členům`);
+            addToast('success', `Připomínka odeslána (${notPassedRows.length} ${pluralize(notPassedRows.length, 'členovi', 'členům', 'členům')}).`);
+        } finally {
+            setSendingReminder(false);
+            setReminderConfirmOpen(false);
+        }
+    }
 
     function handleSelectMember(row) {
         setSelectedMemberUid(row.uid);
@@ -274,13 +305,58 @@ export default function QuizzesTab() {
                     </button>
                 </div>
 
+                {/* Potvrzovací dialog ruční připomínky (úloha 20) */}
+                {reminderConfirmOpen && (
+                    <div
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100,
+                            background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
+                        }}
+                        onClick={() => setReminderConfirmOpen(false)}
+                    >
+                        <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%', animation: 'fadeIn 0.2s' }}>
+                            <h3 style={{ marginTop: 0 }}>Poslat připomínku?</h3>
+                            <p style={{ color: '#555', marginBottom: '1.25rem' }}>
+                                Připomínka bude odeslána {notPassedRows.length} {pluralize(notPassedRows.length, 'členovi', 'členům', 'členům')}, kteří kvíz ještě nesplnili.
+                            </p>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setReminderConfirmOpen(false)} disabled={sendingReminder}>
+                                    Zrušit
+                                </button>
+                                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSendReminder} disabled={sendingReminder}>
+                                    Odeslat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {results.loading ? (
                     <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání výsledků…</div>
                 ) : detailTab === 'results' ? (
-                    <QuizResultsTable
-                        rows={results.rows}
-                        onSelectMember={handleSelectMember}
-                    />
+                    <>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                            {notPassedRows.length > 0 ? (
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    style={{ fontSize: '0.85rem' }}
+                                    onClick={() => setReminderConfirmOpen(true)}
+                                    disabled={sendingReminder}
+                                >
+                                    Poslat připomínku
+                                </button>
+                            ) : (
+                                <button type="button" className="btn btn-secondary" style={{ fontSize: '0.85rem' }} disabled>
+                                    Všichni už kvíz splnili.
+                                </button>
+                            )}
+                        </div>
+                        <QuizResultsTable
+                            rows={results.rows}
+                            onSelectMember={handleSelectMember}
+                        />
+                    </>
                 ) : (
                     <QuestionStats
                         quiz={results.quiz}

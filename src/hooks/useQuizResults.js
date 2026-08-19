@@ -10,6 +10,7 @@ import { computeScorePercent, isPassed } from '../../shared/quizScoring.js';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { logAction } from '../utils/logger';
+import { sendQuizNotification } from './useQuizzes';
 
 /**
  * Výsledky jednoho kvízu pro Administraci (úloha 14) — tabulka toho, kdo kvíz
@@ -254,9 +255,16 @@ export default function useQuizResults(quizId) {
 
     const attemptRef = doc(db, 'quizAttempts', attempt.id);
     try {
-      await runTransaction(db, async (transaction) => {
+      // `justCompleted` je pravda jen ve chvíli, kdy toto hodnocení je to
+      // POSLEDNÍ chybějící — stav se právě teď poprvé mění z pending_review
+      // na passed/failed. Bez podmínky na `current.status === 'pending_review'`
+      // by přehodnocení už uzavřeného pokusu (změna verdiktu u jedné otázky)
+      // znovu vyhodnotilo `allGraded` jako true a poslalo by notifikaci
+      // znovu — u kvízu s pěti textovkami by tak členovi mohlo přijít až pět
+      // notifikací místo jedné.
+      const result = await runTransaction(db, async (transaction) => {
         const snap = await transaction.get(attemptRef);
-        if (!snap.exists()) return;
+        if (!snap.exists()) return null;
         const current = snap.data();
 
         const manualGrades = { ...(current.manualGrades || {}), [questionId]: points };
@@ -281,10 +289,25 @@ export default function useQuizResults(quizId) {
           gradedBy: { uid: currentUser.uid, name: actorName },
           gradedAt: new Date().toISOString(),
         });
+
+        return {
+          justCompleted: allGraded && current.status === 'pending_review',
+          passed,
+          scorePercent,
+        };
       });
 
       logAction(db, currentUser.uid, actorName, 'GRADED_QUIZ_ANSWER', 'admin',
         `Ohodnotil otevřenou otázku v kvízu „${quiz.title}“ pro ${attempt.userName || attempt.uid} (${points ? 'uznáno' : 'neuznáno'})`);
+
+      if (result?.justCompleted) {
+        sendQuizNotification({
+          title: 'Kvíz vyhodnocen',
+          body: `${quiz.title} — ${result.passed ? 'splnil/a jste' : 'nesplnil/a jste'} (${result.scorePercent} %)`,
+          tag: `quiz-graded-${quiz.id}`,
+          targetUserIds: [attempt.uid],
+        });
+      }
     } catch (err) {
       console.error('Error grading quiz answer:', err);
       addToast('error', 'Chyba při ukládání hodnocení.');

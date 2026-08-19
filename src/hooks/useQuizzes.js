@@ -27,6 +27,25 @@ export const EMPTY_QUIZ = {
   questions: [],
 };
 
+// Jediné místo, odkud modul kvízů posílá push notifikace — na úrovni modulu
+// (ne uvnitř hooku), aby ji šlo importovat i z useQuizResults.js (hodnocení
+// textových otázek) bez nutnosti instanciovat celý useQuizzes.
+export async function sendQuizNotification({ title, body, url = '/skoleni', tag, targetRoles, targetUserIds }) {
+  try {
+    await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title, body, url, tag,
+        ...(targetRoles ? { targetRoles } : {}),
+        ...(targetUserIds ? { targetUserIds } : {}),
+      }),
+    });
+  } catch (err) {
+    console.error('Chyba při odesílání notifikace:', err);
+  }
+}
+
 export function validateForPublish(quiz, answerKey) {
   const errors = [];
   if (!quiz.title?.trim()) errors.push('Kvíz musí mít název.');
@@ -130,6 +149,14 @@ export default function useQuizzes() {
       });
       logAction(db, currentUser.uid, actorName, 'PUBLISHED_QUIZ', 'admin',
         `Zveřejnil kvíz „${quiz.title}“ (termín ${quiz.deadline})`);
+      if (quiz.notifyOnPublish) {
+        sendQuizNotification({
+          title: 'Nový povinný kvíz',
+          body: `${quiz.title} — termín do ${quiz.deadline}`,
+          tag: `quiz-${quiz.id}`,
+          ...(quiz.assignment?.mode === 'roles' ? { targetRoles: quiz.assignment.roles } : {}),
+        });
+      }
       addToast('success', 'Kvíz zveřejněn.');
       return true;
     } catch (err) {
