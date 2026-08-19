@@ -343,7 +343,7 @@ Stávající `api/send-notification.js` se rozšíří o pole `targetUserIds: st
 | Vypršení limitu při zavřeném prohlížeči | Server při dalším pokusu o odeslání limit vyhodnotí a započítá jen uložené odpovědi |
 | Deaktivovaný člen | Zmizí ze seznamu přiřazených, ale jeho odevzdaný pokus zůstává v protokolu |
 | Změna rolí po zveřejnění | Přiřazení je živé — kvíz se členovi objeví nebo zmizí podle aktuálních rolí |
-| Smazání kvízu | Smazat lze pouze koncept (včetně klíče). Zveřejněný kvíz s odpověďmi se uzavírá, nemaže — jinak by zmizel doklad o školení |
+| Smazání kvízu | Koncept smaže kdokoliv se správou kvízů (včetně klíče). Zveřejněný nebo uzavřený kvíz je doklad o školení, takže ho smí smazat — i s odevzdanými pokusy — jen Admin, po potvrzení, které uvádí počet ztracených pokusů. Běžnou cestou zůstává uzavření |
 | Smazání navázaného školení | `trainingId` osiří; kvíz funguje dál, vazba se přestane zobrazovat |
 | Kvíz bez otázek nebo bez označené správné volby | Zveřejnění zablokováno s konkrétní chybovou hláškou |
 | Textovka bez odpovědi | Hodnotí se jako Neuznáno, dokud admin nerozhodne jinak |

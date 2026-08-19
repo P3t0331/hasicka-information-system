@@ -171,6 +171,13 @@ const styles = `
     table { page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
     thead { display: table-header-group; }
+
+    /* Na obrazovce se protokol nestránkuje, takže velkorysé mezery nevadí.
+       Na papíře ale odsunou podpisový blok na druhou stranu i tam, kde by
+       se ještě pohodlně vešel — v tisku je proto stahujeme. */
+    .protocol__summary { margin-bottom: 1.5rem; }
+    .protocol__signature-line { margin-top: 2rem; }
+    .protocol__signatures { page-break-inside: avoid; }
   }
   @page { size: A4; margin: 15mm; }
 `;
