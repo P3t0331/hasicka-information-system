@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import useQuizzes from '../hooks/useQuizzes';
 import useTrainings from '../hooks/useTrainings';
 import QuizSettingsForm from '../components/admin/quizzes/QuizSettingsForm';
+import QuestionEditor, { emptyQuestion, newId } from '../components/admin/quizzes/QuestionEditor';
 
 const STATUS_CONFIG = {
   draft: { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
@@ -11,13 +12,16 @@ const STATUS_CONFIG = {
   closed: { label: 'Uzavřený', color: '#616161', bg: '#F5F5F5', border: '#BDBDBD' },
 };
 
-// Fields owned by the settings form. The answer key (correct answers) is
-// intentionally NOT in this list — it lives only in the quizAnswerKeys
-// document and must never be folded into a quizzes patch.
+// Fields owned by this page's quiz patch. `questions` genuinely belongs to
+// the quizzes document (id/type/text/options — never a `correct` flag).
+// The answer key (correct answers, explanations) is intentionally NOT in
+// this list — it lives only in the quizAnswerKeys document and must never
+// be folded into a quizzes patch.
 const QUIZ_SETTINGS_FIELDS = [
   'title', 'description', 'trainingId', 'assignment', 'deadline',
   'passThreshold', 'maxAttempts', 'timeLimitMinutes',
   'shuffleQuestions', 'shuffleOptions', 'showCorrectAnswers', 'notifyOnPublish',
+  'questions',
 ];
 
 export default function AdminQuizEditorPage() {
@@ -121,6 +125,113 @@ export default function AdminQuizEditorPage() {
     setWorkingQuiz(prev => ({ ...prev, ...patch }));
   }
 
+  // A question's text/type/options touch the quiz; a type change also wipes
+  // that question's answer-key entry (it points at option ids that no
+  // longer exist once the options are regenerated) so a stale entry can
+  // never make validateForPublish pass while the quiz is actually broken.
+  function handleQuestionChange(questionId, patch) {
+    setWorkingQuiz(prev => ({
+      ...prev,
+      questions: prev.questions.map(q => (q.id === questionId ? { ...q, ...patch } : q)),
+    }));
+    if (patch.type) {
+      setWorkingAnswerKey(prev => {
+        const answers = { ...prev.answers };
+        if (patch.type === 'text') {
+          answers[questionId] = { autoGraded: false };
+        } else {
+          delete answers[questionId];
+        }
+        return { ...prev, answers };
+      });
+    }
+  }
+
+  function handleKeyChange(questionId, correct) {
+    setWorkingAnswerKey(prev => ({
+      ...prev,
+      answers: { ...prev.answers, [questionId]: { correct, autoGraded: true } },
+    }));
+  }
+
+  function handleExplanationChange(questionId, text) {
+    setWorkingAnswerKey(prev => ({
+      ...prev,
+      explanations: { ...prev.explanations, [questionId]: text },
+    }));
+  }
+
+  function handleMoveQuestion(questionId, direction) {
+    setWorkingQuiz(prev => {
+      const questions = [...prev.questions];
+      const index = questions.findIndex(q => q.id === questionId);
+      const target = index + direction;
+      if (index === -1 || target < 0 || target >= questions.length) return prev;
+      [questions[index], questions[target]] = [questions[target], questions[index]];
+      return { ...prev, questions };
+    });
+  }
+
+  // Duplicating a question must give the copy (and every one of its
+  // options) fresh ids, then carry the original's answer-key entry and
+  // explanation over to those new ids — including remapping any option ids
+  // referenced in `correct` — so the copy has its own independent, valid
+  // answer key instead of silently sharing (or losing) the original's.
+  function handleDuplicateQuestion(questionId) {
+    const original = workingQuiz.questions.find(q => q.id === questionId);
+    if (!original) return;
+
+    const idMap = {};
+    const options = (original.options || []).map(opt => {
+      const id = newId();
+      idMap[opt.id] = id;
+      return { ...opt, id };
+    });
+    const duplicated = { ...original, id: newId(), options };
+
+    setWorkingQuiz(prev => {
+      const index = prev.questions.findIndex(q => q.id === questionId);
+      const questions = [...prev.questions];
+      questions.splice(index + 1, 0, duplicated);
+      return { ...prev, questions };
+    });
+
+    setWorkingAnswerKey(prev => {
+      const answers = { ...prev.answers };
+      const originalEntry = prev.answers[questionId];
+      if (originalEntry) {
+        const entry = { ...originalEntry };
+        if (Array.isArray(entry.correct)) {
+          entry.correct = entry.correct.map(id => idMap[id] || id);
+        }
+        answers[duplicated.id] = entry;
+      }
+      const explanations = { ...prev.explanations };
+      if (prev.explanations?.[questionId] !== undefined) {
+        explanations[duplicated.id] = prev.explanations[questionId];
+      }
+      return { answers, explanations };
+    });
+  }
+
+  function handleRemoveQuestion(questionId) {
+    setWorkingQuiz(prev => ({
+      ...prev,
+      questions: prev.questions.filter(q => q.id !== questionId),
+    }));
+    setWorkingAnswerKey(prev => {
+      const answers = { ...prev.answers };
+      const explanations = { ...prev.explanations };
+      delete answers[questionId];
+      delete explanations[questionId];
+      return { answers, explanations };
+    });
+  }
+
+  function handleAddQuestion() {
+    setWorkingQuiz(prev => ({ ...prev, questions: [...(prev.questions || []), emptyQuestion()] }));
+  }
+
   async function handleSave() {
     setSaving(true);
     try {
@@ -164,7 +275,37 @@ export default function AdminQuizEditorPage() {
 
       <div className="card" style={{ padding: '1.5rem' }}>
         <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>Otázky</h2>
-        <p className="text-secondary" style={{ fontSize: '0.85rem' }}>Editace otázek bude doplněna.</p>
+        {locked && (
+          <p style={{
+            fontSize: '0.85rem', color: '#E65100', background: '#FFF3E0',
+            border: '1px solid #FFCC80', borderRadius: '6px', padding: '0.5rem 0.75rem',
+          }}>
+            Kvíz je zveřejněný — otázky už nelze měnit.
+          </p>
+        )}
+
+        {(workingQuiz.questions || []).map((question, index) => (
+          <QuestionEditor
+            key={question.id}
+            question={question}
+            index={index}
+            keyEntry={workingAnswerKey.answers?.[question.id]}
+            explanation={workingAnswerKey.explanations?.[question.id]}
+            onChange={patch => handleQuestionChange(question.id, patch)}
+            onKeyChange={correct => handleKeyChange(question.id, correct)}
+            onExplanationChange={text => handleExplanationChange(question.id, text)}
+            onMove={direction => handleMoveQuestion(question.id, direction)}
+            onDuplicate={() => handleDuplicateQuestion(question.id)}
+            onRemove={() => handleRemoveQuestion(question.id)}
+            disabled={locked}
+            isFirst={index === 0}
+            isLast={index === workingQuiz.questions.length - 1}
+          />
+        ))}
+
+        <button className="btn btn-secondary" onClick={handleAddQuestion} disabled={locked}>
+          + Přidat otázku
+        </button>
       </div>
     </div>
   );
