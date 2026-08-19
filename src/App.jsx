@@ -16,6 +16,7 @@ const StatisticsPage = React.lazy(() => import('./pages/StatisticsPage'));
 const AdminPage = React.lazy(() => import('./pages/AdminPage'));
 const AdminQuizEditorPage = React.lazy(() => import('./pages/AdminQuizEditorPage'));
 const QuizTakePage = React.lazy(() => import('./pages/QuizTakePage'));
+const QuizProtocolPage = React.lazy(() => import('./pages/QuizProtocolPage'));
 const TrainingsPage = React.lazy(() => import('./pages/TrainingsPage'));
 const EventsPage = React.lazy(() => import('./pages/EventsPage'));
 const MembersPage = React.lazy(() => import('./pages/MembersPage'));
@@ -43,6 +44,15 @@ function App() {
           <ChangelogModal />
           <Routes>
             <Route path="/login" element={<Suspense fallback={<PageLoader />}><AuthPage /></Suspense>} />
+
+            {/* Tiskový protokol kvízu — mimo Layout záměrně: stránka nesmí
+                obsahovat navigaci, aby se do PDF nevytiskla. Přesto chráněná
+                PrivateRoute jako všechny ostatní stránky. */}
+            <Route path="/kviz/:quizId/protokol" element={
+              <PrivateRoute>
+                <Suspense fallback={<PageLoader />}><QuizProtocolPage /></Suspense>
+              </PrivateRoute>
+            } />
 
             {/* Protected Routes — Layout stays mounted, only page content suspends */}
             <Route element={

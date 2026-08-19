@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { logAction } from '../../utils/logger';
 import useQuizzes from '../../hooks/useQuizzes';
 import useQuizResults from '../../hooks/useQuizResults';
 import QuizResultsTable from './quizzes/QuizResultsTable';
@@ -49,6 +54,70 @@ function pickDefaultAttemptId(attempts) {
         null,
     );
     return latest?.id || null;
+}
+
+// Název jednotky pro záhlaví tiskového protokolu (úloha 17) — uložen v
+// `settings/unit`, stejným vzorem (onSnapshot + setDoc na jeden dokument)
+// jako `settings/importantLinks` v LinksTab.jsx. Jde o jediné pole, proto
+// zůstává kompaktní řádek přímo v záložce Kvízy, ne samostatná podstránka.
+function UnitNameRow() {
+    const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
+    const [name, setName] = useState('');
+    const [loaded, setLoaded] = useState(false);
+    const [draft, setDraft] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, 'settings', 'unit'), (snap) => {
+            const value = snap.exists() ? (snap.data().name || '') : '';
+            setName(value);
+            setDraft(value);
+            setLoaded(true);
+        });
+        return unsub;
+    }, []);
+
+    async function handleSave() {
+        const trimmed = draft.trim();
+        setSaving(true);
+        try {
+            await setDoc(doc(db, 'settings', 'unit'), { name: trimmed });
+            const actorName = userData ? `${userData.firstName} ${userData.lastName}`.trim() : '';
+            logAction(db, currentUser.uid, actorName, 'ADMIN_UPDATED_UNIT_NAME', 'admin', `Nastaven název jednotky: „${trimmed}“`);
+            addToast('success', 'Název jednotky uložen.');
+        } catch {
+            addToast('error', 'Chyba při ukládání názvu jednotky.');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    if (!loaded) return null;
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+            <label htmlFor="unit-name-input" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>
+                Název jednotky (pro tiskový protokol):
+            </label>
+            <input
+                id="unit-name-input"
+                value={draft}
+                onChange={e => setDraft(e.target.value)}
+                placeholder="např. Sbor dobrovolných hasičů…"
+                style={{ flex: '1 1 260px', minWidth: '200px', padding: '0.4rem 0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
+            />
+            <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ fontSize: '0.8rem' }}
+                disabled={saving || draft.trim() === name}
+                onClick={handleSave}
+            >
+                Uložit
+            </button>
+        </div>
+    );
 }
 
 function describeAssignment(quiz) {
@@ -172,9 +241,19 @@ export default function QuizzesTab() {
                     ← Zpět na seznam
                 </button>
 
-                <h2 style={{ fontSize: '1.2rem', marginTop: 0, marginBottom: '1.25rem' }}>
-                    Výsledky: {results.quiz?.title || '…'}
-                </h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                    <h2 style={{ fontSize: '1.2rem', margin: 0 }}>
+                        Výsledky: {results.quiz?.title || '…'}
+                    </h2>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.85rem' }}
+                        onClick={() => window.open(`/kviz/${selectedQuizId}/protokol`, '_blank')}
+                    >
+                        Protokol
+                    </button>
+                </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
                     <button
@@ -256,6 +335,8 @@ export default function QuizzesTab() {
                     Správa kvízů je vyhrazena veliteli jednotky a administrátorům. Zde je můžete pouze prohlížet.
                 </p>
             )}
+
+            {canManage && <UnitNameRow />}
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 {FILTERS.map(f => (
