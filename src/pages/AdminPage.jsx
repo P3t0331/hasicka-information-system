@@ -8,6 +8,7 @@ import LogsTab from '../components/admin/LogsTab';
 import BulletinTab from '../components/admin/BulletinTab';
 import LinksTab from '../components/admin/LinksTab';
 import SuggestionsAdminTab from '../components/admin/SuggestionsAdminTab';
+import QuizzesTab from '../components/admin/QuizzesTab';
 import AddEquipmentTypeModal from '../components/admin/modals/AddEquipmentTypeModal';
 
 export default function AdminPage() {
@@ -143,6 +144,7 @@ export default function AdminPage() {
           { id: 'nastevnka', label: '📌 Nástěnka' },
           ...(userRoles.includes('Admin') ? [{ id: 'navrhy', label: '💡 Návrhy' }] : []),
           { id: 'odkazy', label: '🔗 Odkazy' },
+          { id: 'kvizy', label: '📝 Kvízy' },
           { id: 'logy', label: '📜 Logy' }
         ].map(tab => (
           <button
@@ -223,6 +225,10 @@ export default function AdminPage() {
 
       {activeTab === 'odkazy' && (
         <LinksTab />
+      )}
+
+      {activeTab === 'kvizy' && (
+        <QuizzesTab />
       )}
 
       {activeTab === 'logy' && (
