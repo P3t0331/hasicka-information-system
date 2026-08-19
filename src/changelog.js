@@ -5,9 +5,25 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.0.3';
+export const APP_VERSION = '1.1.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.1.0',
+    date: '19. 8. 2026',
+    sections: [
+      {
+        label: 'Nové funkce',
+        changes: [
+          'Kvízy — velitelé mohou zadat povinný test ke školení s termínem a hranicí úspěšnosti.',
+          'Kvíz vyplníte na stránce Školení, rozpracované odpovědi se průběžně ukládají.',
+          'Nesplněné kvízy se připomínají na hlavní stránce i notifikací před termínem.',
+          'Historii absolvovaných kvízů najdete ve svém profilu.',
+          'Administrace nabízí přehled výsledků, statistiku otázek a tiskový protokol o absolvování školení.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.0.3',
     date: '18. 8. 2026',
