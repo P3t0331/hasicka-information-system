@@ -90,6 +90,8 @@ export default async function handler(req, res) {
             const isLate = isLateSubmission(quiz.deadline, now);
             const passed = hasManual ? null : isPassed(scorePercent, quiz.passThreshold);
 
+            const reveal = quiz.showCorrectAnswers === true;
+
             const update = {
                 status: hasManual ? 'pending_review' : (passed ? 'passed' : 'failed'),
                 submittedAt: now,
@@ -100,11 +102,19 @@ export default async function handler(req, res) {
                 manualGrades: {},
                 scorePercent: hasManual ? null : scorePercent,
                 passed,
+                // Rozbor se ukládá k pokusu, aby ho člen viděl i po návratu na
+                // výsledek — jinak by ho dostal jen jednou, v odpovědi na toto
+                // odeslání. Ukládá se výhradně u kvízu, který odpovědi ukazuje,
+                // takže se tím nikomu neprozradí nic, co už mu neposíláme.
+                review: reveal ? {
+                    perQuestion: graded.perQuestion,
+                    correctAnswers: answerKey.answers || {},
+                    explanations: answerKey.explanations || {},
+                } : null,
             };
 
             tx.update(attemptRef, update);
 
-            const reveal = quiz.showCorrectAnswers === true;
             return {
                 ok: {
                     status: update.status,
