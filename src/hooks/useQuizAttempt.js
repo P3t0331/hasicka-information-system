@@ -102,57 +102,128 @@ export default function useQuizAttempt(quizId) {
   const attemptIdRef = useRef(null);
   const saveTimer = useRef(null);
   const pendingAnswers = useRef(null);
-  const saveVersion = useRef(0);
+  // `dirtyRef`: `pendingAnswers` holds a change not yet confirmed written to
+  // Firestore. `writeInFlightRef`: an `updateDoc` for this attempt is
+  // currently outstanding. Together they serialise writes (see `flush`
+  // below) instead of letting the debounce start a second `updateDoc` while
+  // an earlier one is still in flight against the same document.
+  const dirtyRef = useRef(false);
+  const writeInFlightRef = useRef(false);
+  const mountedRef = useRef(true);
   const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
 
   useEffect(() => {
     if (!liveAttempt) {
       if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
       attemptIdRef.current = null;
+      pendingAnswers.current = null;
+      dirtyRef.current = false;
+      writeInFlightRef.current = false;
       setAttempt(null);
       return;
     }
     if (attemptIdRef.current !== liveAttempt.id) {
       // Nový pokus (čerstvě založený, nebo první načtení po otevření
       // stránky) — převezme se celý, včetně případných dřív uložených
-      // odpovědí, a lokální ukládací stav se resetuje.
+      // odpovědí, a lokální ukládací stav se resetuje. `writeInFlightRef` se
+      // resetuje také: kdyby zápis pro starý pokus ještě doběhl, cílí na
+      // jeho vlastní (jiné) id dokumentu zachycené v okamžiku odeslání, takže
+      // nová sada odpovědí na něm nijak nezávisí.
       if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
       pendingAnswers.current = null;
-      saveVersion.current = 0;
+      dirtyRef.current = false;
+      writeInFlightRef.current = false;
       setSaveState('idle');
       attemptIdRef.current = liveAttempt.id;
       setAttempt(liveAttempt);
     }
   }, [liveAttempt]);
 
-  // Úklid rozpracovaného časovače při odpojení komponenty — jinak by mohl
-  // zápis vystřelit proti zastaralému closure poté, co člen z obrazovky odešel.
-  useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
+  // Odešle do Firestore aktuální kompletní sadu odpovědí (`pendingAnswers`),
+  // ale nikdy víc než jeden zápis najednou pro tentýž pokus:
+  //  - Pokud už jeden `updateDoc` běží (`writeInFlightRef.current`), další
+  //    volání `flush()` jen ponechá `dirtyRef` nastavený a nic dalšího
+  //    neodešle — dva souběžné zápisy do téhož dokumentu by teoreticky mohly
+  //    být Firestore zpracovány v jiném pořadí, než byly odeslány, a novější
+  //    odpověď by tak mohl přepsat starší (menší) payload zpět.
+  //  - Po doběhnutí zápisu (ať úspěchem, nebo chybou) se `flush()` zavolá
+  //    znovu, pokud mezitím přibyla další nepotvrzená úprava — tím se zápisy
+  //    zřetězí, místo aby čekaly na další 1s debounce.
+  //  - `saveState` se na 'saved'/'error' nastaví jen tehdy, když po
+  //    doběhnutí zápisu už nic nového nečeká — jinak by mohl krátce ukázat
+  //    „Uloženo“ pro data, která mezitím přestala být aktuální.
+  const flush = useCallback(() => {
+    if (writeInFlightRef.current) return;
+    if (!dirtyRef.current) return;
+    const attemptId = attemptIdRef.current;
+    if (!attemptId) return;
+
+    writeInFlightRef.current = true;
+    dirtyRef.current = false;
+    const payload = pendingAnswers.current;
+
+    updateDoc(doc(db, 'quizAttempts', attemptId), {
+      answers: payload,
+      lastSavedAt: new Date().toISOString(),
+    }).then(() => {
+      writeInFlightRef.current = false;
+      if (dirtyRef.current) { flush(); return; }
+      if (mountedRef.current) setSaveState('saved');
+    }).catch((err) => {
+      writeInFlightRef.current = false;
+      console.error('Chyba při ukládání odpovědi:', err);
+      if (dirtyRef.current) { flush(); return; }
+      if (mountedRef.current) setSaveState('error');
+    });
   }, []);
 
-  // Okamžitě aktualizuje lokální stav a s prodlevou 1 s zapíše do Firestore.
-  // Zápis smí měnit jen `answers` a `lastSavedAt` — pravidla update pro
-  // člena na vlastním rozpracovaném pokusu nic jiného nedovolí (viz
-  // `firestore.rules`), takže se sem záměrně nepřidává `status`, `uid`,
+  // Vynutí okamžité odeslání rozpracované úpravy (bez čekání na zbytek 1s
+  // debounce) ve chvíli, kdy člen odchází ze stránky — zavření karty,
+  // přepnutí mobilní aplikace na pozadí, i běžná navigace pryč.
+  // `visibilitychange` (ne `beforeunload`) je zvolené záměrně: na mobilních
+  // prohlížečích, které jsou tu hlavním případem použití, se `beforeunload`
+  // často vůbec nespustí. Volá stejný `flush()` jako debounce, takže i tady
+  // posílá vždy kompletní aktuální sadu odpovědí a respektuje sériové
+  // zpracování zápisů.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+        flush();
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [flush]);
+
+  // Úklid při odpojení komponenty: zruší čekající debounce časovač a rovnou
+  // vypálí poslední rozpracovanou úpravu, i kdyby existovala kratší dobu než
+  // je 1s debounce — jinak by o ni člen, který zavře kartu do sekundy od
+  // poslední odpovědi, přišel, aniž by to ukazatel stavu ukládání vůbec
+  // stihl naznačit. Zápis je "fire-and-forget" (v cleanup funkci nejde na
+  // Promise čekat). `mountedRef` pak brání pozdějšímu `setSaveState`
+  // volanému z dokončení tohoto (nebo navazujícího zřetězeného) zápisu —
+  // komponenta už v tu chvíli není připojená.
+  useEffect(() => () => {
+    mountedRef.current = false;
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    flush();
+  }, [flush]);
+
+  // Okamžitě aktualizuje lokální stav a s prodlevou 1 s zapíše do Firestore
+  // přes `flush()`. Zápis smí měnit jen `answers` a `lastSavedAt` — pravidla
+  // update pro člena na vlastním rozpracovaném pokusu nic jiného nedovolí
+  // (viz `firestore.rules`), takže se sem záměrně nepřidává `status`, `uid`,
   // `startedAt` ani `attemptNumber`.
   //
   // `pendingAnswers` vždy drží kompletní, aktuální sadu odpovědí (aktualizuje
   // se synchronně uvnitř funkčního updateru `setAttempt`, ne z uzavřené
   // proměnné `attempt.answers`), takže i když člen mezi zahájením a
-  // vypálením časovače stihne odpovědět na jinou otázku, zápis o 1 s později
-  // odešle obě odpovědi najednou — ne jen tu poslední přepsanou přes
+  // vypálením časovače stihne odpovědět na jinou otázku, `flush()` o 1 s
+  // později odešle obě odpovědi najednou — ne jen tu poslední přepsanou přes
   // předchozí.
-  //
-  // `saveVersion` řeší opačné pořadí: pokud po odeslání zápisu (časovač už
-  // vypálil, čeká se na síť) přijde další úprava, ta si vezme nové číslo
-  // verze. Když starší zápis až po ní doběhne (úspěchem i chybou), jeho
-  // `saveVersion.current === version` už neplatí a jeho výsledek se do
-  // `saveState` nepromítne — jinak by mohl pozdě dorazivší neúspěch staršího
-  // zápisu přepsat „Uloženo“ z novějšího úspěšného zápisu, nebo naopak.
   const setAnswer = useCallback((questionId, value) => {
     if (!attempt) return;
-    const attemptId = attempt.id;
 
     setAttempt(prev => {
       if (!prev) return prev;
@@ -161,23 +232,15 @@ export default function useQuizAttempt(quizId) {
       return next;
     });
 
-    const version = (saveVersion.current += 1);
+    dirtyRef.current = true;
     setSaveState('saving');
 
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      try {
-        await updateDoc(doc(db, 'quizAttempts', attemptId), {
-          answers: pendingAnswers.current,
-          lastSavedAt: new Date().toISOString(),
-        });
-        if (saveVersion.current === version) setSaveState('saved');
-      } catch (err) {
-        console.error('Chyba při ukládání odpovědi:', err);
-        if (saveVersion.current === version) setSaveState('error');
-      }
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      flush();
     }, 1000);
-  }, [attempt]);
+  }, [attempt, flush]);
 
   const startAttempt = useCallback(async () => {
     if (!quiz || !currentUser?.uid || !userData || starting || attempt) return;
