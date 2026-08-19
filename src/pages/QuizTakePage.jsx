@@ -8,6 +8,7 @@ import QuizTimer from '../components/quizzes/QuizTimer';
 import QuizResultView from '../components/quizzes/QuizResultView';
 import ConfirmModal from '../components/profile/ConfirmModal';
 import { MEMBER_STATUS } from '../../shared/quizStatus.js';
+import { pluralize } from '../utils/pluralize.js';
 
 // Nenápadný řádek nad otázkami — jediné místo, kde se člen dozví, jestli je
 // jeho rozepsaná odpověď skutečně v bezpečí. `idle` (než cokoliv upraví) se
@@ -120,7 +121,7 @@ export default function QuizTakePage() {
         {confirmSubmit && (
           <ConfirmModal
             message={unanswered > 0
-              ? `Nezodpověděli jste ${unanswered} otázek. Opravdu odeslat?`
+              ? `Nezodpověděli jste ${unanswered} ${pluralize(unanswered, 'otázku', 'otázky', 'otázek')}. Opravdu odeslat?`
               : 'Odeslat kvíz k vyhodnocení?'}
             onConfirm={submitAttempt}
             onCancel={() => setConfirmSubmit(false)}
@@ -187,6 +188,15 @@ export default function QuizTakePage() {
           result={submittedAttempt ? result : null}
           onRetry={startAttempt}
           retrying={starting}
+          // `myQuiz.canStart` (z `useMyQuizzes`) je jediný autoritativní zdroj
+          // pravidla "smí člen začít další pokus" — započítává i uzavření
+          // kvízu a čekání na ruční vyhodnocení. `QuizResultView` ho nesmí
+          // znovu odvozovat jen z `status === 'failed'`/počtu pokusů, jinak
+          // by ukázal fungující Zkusit znovu i na kvízu, který admin mezitím
+          // uzavřel. `startAttempt` má navíc svou vlastní obrannou kontrolu
+          // stavu kvízu (viz `useQuizAttempt`), ale UI musí gatovat tlačítko
+          // správně samo — schovaný, "mrtvý" click by byl matoucí.
+          canRetry={myQuiz.canStart}
         />
       </div>
     );

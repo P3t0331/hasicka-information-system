@@ -309,7 +309,15 @@ export default function useQuizAttempt(quizId) {
   }, [attempt, flush, updateSaveState]);
 
   const startAttempt = useCallback(async () => {
+    // `quiz.status !== 'published'` je obranná kopie stejného pravidla, které
+    // `myQuiz.canStart` (z `useMyQuizzes`) už jednou vyhodnocuje pro UI — ale
+    // `startAttempt` má teď dva volající (úvodní karta i tlačítko Zkusit
+    // znovu na výsledkové stránce po úloze 13) a Firestore create pravidlo
+    // stav kvízu nekontroluje vůbec, takže bez tohohle kontrola stavu kvízu
+    // stojí a padá jen na tom, jestli si to volající správně pohlídá. Platí
+    // bez ohledu na to, který volající to případně v budoucnu pokazí.
     if (!quiz || !currentUser?.uid || !userData || starting || attempt) return;
+    if (quiz.status !== 'published') return;
     setStarting(true);
     setError(null);
     try {

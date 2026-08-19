@@ -1,11 +1,6 @@
 import React from 'react';
 import { pragueDateString } from '../../../shared/quizStatus.js';
-
-function pluralize(n, one, few, many) {
-  if (n === 1) return one;
-  if (n >= 2 && n <= 4) return few;
-  return many;
-}
+import { pluralize } from '../../utils/pluralize.js';
 
 function formatDate(iso) {
   if (!iso) return '';

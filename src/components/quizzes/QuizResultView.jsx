@@ -35,13 +35,22 @@ function formatAnswerValue(question, value) {
  * jinak než jednorázovou odpovědí na odeslání) — proto se v tom případě vždy
  * ukáže jen informace, že se správné odpovědi nezobrazují.
  *
- * `onRetry` je volitelné (nad rámec `{ quiz, attempt, result }` z úlohy):
- * když je zadané a zbývá pokus, zobrazí se tlačítko Zkusit znovu, které ho
- * zavolá — stránka `QuizTakePage` sem posílá `startAttempt` z
- * `useQuizAttempt`. Bez `onRetry` se tlačítko nezobrazí vůbec.
+ * `onRetry`/`canRetry` jsou volitelné (nad rámec `{ quiz, attempt, result }`
+ * z úlohy): když je `canRetry` pravdivé a `onRetry` je zadané, zobrazí se
+ * tlačítko Zkusit znovu, které `onRetry` zavolá — stránka `QuizTakePage` sem
+ * posílá `startAttempt` z `useQuizAttempt`. Bez `onRetry` se tlačítko
+ * nezobrazí vůbec.
+ *
+ * `canRetry` se tady záměrně NEodvozuje znovu z `status`/`maxAttempts` —
+ * `useMyQuizzes` už jednou spočítal autoritativní `myQuiz.canStart`
+ * (zahrnuje i uzavření kvízu a čekání na ruční vyhodnocení), a volající
+ * stránka ho posílá přímo. Druhá nezávislá kopie stejného pravidla by se
+ * dřív nebo později rozešla s tou první — přesně to se stalo predtím, kdy
+ * tahle komponenta ukazovala fungující Zkusit znovu i na kvízu, který admin
+ * mezitím uzavřel.
  */
 export default function QuizResultView({
-  quiz, attempt, result, onRetry, retrying,
+  quiz, attempt, result, onRetry, retrying, canRetry,
 }) {
   if (!attempt) return null;
 
@@ -56,10 +65,6 @@ export default function QuizResultView({
     : (quiz.questions || []).map(q => q.id);
 
   const hasBreakdown = Boolean(result?.perQuestion);
-
-  const maxAttempts = quiz.maxAttempts || 0;
-  const canRetry = status === 'failed'
-    && (maxAttempts === 0 || (attempt.attemptNumber || 0) < maxAttempts);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
