@@ -112,6 +112,20 @@ export default async function handler(req, res) {
                 .filter(member => deriveMemberStatus(attemptsByUid.get(member.uid) || []) !== MEMBER_STATUS.PASSED)
                 .map(member => member.uid);
 
+            // Zapsat PŘED odesláním, ne po něm — záměrně. Kdyby se posílalo
+            // první a tenhle zápis pak selhal (přechodná chyba Firestore,
+            // timeout), notifikace by už byly venku, ale kvíz by zůstal
+            // neoznačený, takže by ho příští běh považoval za nového
+            // kandidáta a poslal by úplně stejnou dávku podruhé — přesně to
+            // hromadné zdvojení, kterému má lastReminderSentFor zabránit.
+            // V tomhle pořadí je nejhorší případ selhání zápisu jen to, že
+            // se pošta vůbec nepošle (zachytí ji vnější catch, kvíz zůstane
+            // kandidátem a zkusí se znovu příští běh) — nikdy ne, že se
+            // pošle dvakrát. A selže-li až samotné odeslání PO úspěšném
+            // zápisu, kvíz už je označený a je to jednorázově nedoručená
+            // připomínka, ne opakovaný spam.
+            await ref.update({ lastReminderSentFor: daysLeft });
+
             if (targetUserIds.length > 0) {
                 const wanted = new Set(targetUserIds);
                 const payload = JSON.stringify({
@@ -137,7 +151,6 @@ export default async function handler(req, res) {
                 );
             }
 
-            await ref.update({ lastReminderSentFor: daysLeft });
             quizzesProcessed += 1;
             notified += targetUserIds.length;
         } catch (err) {
