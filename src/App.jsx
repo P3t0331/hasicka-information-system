@@ -15,6 +15,7 @@ const ShiftCalendarPage = React.lazy(() => import('./pages/ShiftCalendarPage'));
 const StatisticsPage = React.lazy(() => import('./pages/StatisticsPage'));
 const AdminPage = React.lazy(() => import('./pages/AdminPage'));
 const AdminQuizEditorPage = React.lazy(() => import('./pages/AdminQuizEditorPage'));
+const QuizTakePage = React.lazy(() => import('./pages/QuizTakePage'));
 const TrainingsPage = React.lazy(() => import('./pages/TrainingsPage'));
 const EventsPage = React.lazy(() => import('./pages/EventsPage'));
 const MembersPage = React.lazy(() => import('./pages/MembersPage'));
@@ -53,6 +54,7 @@ function App() {
               <Route path="/profile" element={<Suspense fallback={<PageLoader />}><ProfilePage /></Suspense>} />
               <Route path="/shifts" element={<Suspense fallback={<PageLoader />}><ShiftCalendarPage /></Suspense>} />
               <Route path="/skoleni" element={<Suspense fallback={<PageLoader />}><TrainingsPage /></Suspense>} />
+              <Route path="/skoleni/kviz/:quizId" element={<Suspense fallback={<PageLoader />}><QuizTakePage /></Suspense>} />
               <Route path="/akce" element={<Suspense fallback={<PageLoader />}><EventsPage /></Suspense>} />
               <Route path="/udrzba" element={<Suspense fallback={<PageLoader />}><MaintenanceLogPage /></Suspense>} />
               <Route path="/uklid" element={<Suspense fallback={<PageLoader />}><CleaningLogPage /></Suspense>} />
