@@ -38,7 +38,7 @@ function describeAssignment(quiz) {
 
 export default function QuizzesTab() {
     const navigate = useNavigate();
-    const { quizzes, loading, createQuiz, duplicateQuiz, closeQuiz, deleteQuiz } = useQuizzes();
+    const { quizzes, loading, canManage, createQuiz, duplicateQuiz, closeQuiz, deleteQuiz } = useQuizzes();
 
     const [statusFilter, setStatusFilter] = useState('published');
     const [creating, setCreating] = useState(false);
@@ -101,10 +101,18 @@ export default function QuizzesTab() {
                 </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Kvízy</h2>
-                <button className="btn btn-primary" onClick={handleCreate} disabled={creating}>+ Nový kvíz</button>
+                {canManage && (
+                    <button className="btn btn-primary" onClick={handleCreate} disabled={creating}>+ Nový kvíz</button>
+                )}
             </div>
+
+            {!canManage && (
+                <p className="text-secondary" style={{ fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+                    Správa kvízů je vyhrazena veliteli jednotky a administrátorům. Zde je můžete pouze prohlížet.
+                </p>
+            )}
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 {FILTERS.map(f => (
@@ -121,8 +129,8 @@ export default function QuizzesTab() {
 
             {filteredQuizzes.length === 0 && (
                 <div className="card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                    <p style={{ margin: 0, marginBottom: quizzes.length === 0 ? '1rem' : 0 }}>Zatím žádné kvízy.</p>
-                    {quizzes.length === 0 && (
+                    <p style={{ margin: 0, marginBottom: quizzes.length === 0 && canManage ? '1rem' : 0 }}>Zatím žádné kvízy.</p>
+                    {quizzes.length === 0 && canManage && (
                         <button className="btn btn-primary" onClick={handleCreate} disabled={creating}>Vytvořit první kvíz</button>
                     )}
                 </div>
@@ -164,10 +172,12 @@ export default function QuizzesTab() {
                                     <Link to={`/admin/kviz/${quiz.id}`} className="btn btn-secondary" style={{ fontSize: '0.8rem' }}>
                                         Výsledky
                                     </Link>
-                                    <button className="btn btn-secondary" style={{ fontSize: '0.8rem' }} onClick={() => duplicateQuiz(quiz)}>
-                                        Kopie
-                                    </button>
-                                    {quiz.status === 'published' && (
+                                    {canManage && (
+                                        <button className="btn btn-secondary" style={{ fontSize: '0.8rem' }} onClick={() => duplicateQuiz(quiz)}>
+                                            Kopie
+                                        </button>
+                                    )}
+                                    {canManage && quiz.status === 'published' && (
                                         <button
                                             className="btn btn-secondary"
                                             style={{ fontSize: '0.8rem', color: '#E65100', borderColor: '#FFCC80' }}
@@ -176,7 +186,7 @@ export default function QuizzesTab() {
                                             Uzavřít
                                         </button>
                                     )}
-                                    {quiz.status === 'draft' && (
+                                    {canManage && quiz.status === 'draft' && (
                                         <button
                                             className="btn btn-secondary"
                                             style={{ fontSize: '0.8rem', color: '#c62828', borderColor: '#ffcdd2' }}
