@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { logAction } from '../../utils/logger';
+import { joinActivityTx } from '../../utils/activityParticipants';
 
 export default function InlineActivities({ trainings, events, currentUser, userData, showToast, retroMode, onRetroAddParticipant }) {
   const [expanded, setExpanded] = useState(false);
@@ -14,20 +15,13 @@ export default function InlineActivities({ trainings, events, currentUser, userD
   const handleJoin = async (activity) => {
     if (!currentUser || !userData) return;
 
-    if (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) {
-      showToast('error', 'Kapacita je naplněna.');
-      return;
-    }
-
     const collectionName = activity.type === 'training' ? 'trainings' : 'events';
 
     try {
-      await updateDoc(doc(db, collectionName, activity.id), {
-        participants: arrayUnion({
-          uid: currentUser.uid,
-          name: `${userData.firstName} ${userData.lastName}`,
-          joinedAt: new Date().toISOString()
-        })
+      await joinActivityTx(db, collectionName, activity.id, {
+        uid: currentUser.uid,
+        name: `${userData.firstName} ${userData.lastName}`,
+        joinedAt: new Date().toISOString()
       });
       const typeLabel = activity.type === 'training' ? 'školení' : 'akci';
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
@@ -35,8 +29,14 @@ export default function InlineActivities({ trainings, events, currentUser, userD
         `Přihlásil se na ${typeLabel} „${activity.title}“ (${activity.date}) – ze stránky Směn`);
       showToast('success', 'Přihlášeno!');
     } catch (err) {
-      console.error('Error joining:', err);
-      showToast('error', 'Chyba při přihlašování.');
+      if (err.code === 'ALREADY_JOINED') {
+        showToast('warning', 'Již jste přihlášen/a.');
+      } else if (err.code === 'FULL') {
+        showToast('error', 'Kapacita je naplněna.');
+      } else {
+        console.error('Error joining:', err);
+        showToast('error', 'Chyba při přihlašování.');
+      }
     }
   };
 

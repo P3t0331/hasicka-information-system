@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayRemove } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
+import { joinActivityTx } from '../utils/activityParticipants';
 import { getEffectiveRoles } from '../utils/roles';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -50,31 +51,25 @@ export default function useTrainings() {
     const handleJoin = async (training) => {
         if (!currentUser || !userData) return;
 
-        if (training.participants?.some(p => p.uid === currentUser.uid)) {
-            showToast('warning', 'Již jste přihlášen/a.');
-            return;
-        }
-
-        if (training.maxParticipants && training.participants?.length >= training.maxParticipants) {
-            showToast('error', 'Školení je plně obsazeno.');
-            return;
-        }
-
         try {
-            await updateDoc(doc(db, 'trainings', training.id), {
-                participants: arrayUnion({
-                    uid: currentUser.uid,
-                    name: `${userData.firstName} ${userData.lastName}`,
-                    joinedAt: new Date().toISOString()
-                })
+            await joinActivityTx(db, 'trainings', training.id, {
+                uid: currentUser.uid,
+                name: `${userData.firstName} ${userData.lastName}`,
+                joinedAt: new Date().toISOString()
             });
             logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                 'JOINED_TRAINING', 'activities',
                 `Přihlásil se na školení „${training.title}“ (${training.date})${training.location ? ` – místo: ${training.location}` : ''}`);
             showToast('success', 'Přihlášeno!');
         } catch (err) {
-            console.error('Error joining:', err);
-            showToast('error', 'Chyba při přihlašování.');
+            if (err.code === 'ALREADY_JOINED') {
+                showToast('warning', 'Již jste přihlášen/a.');
+            } else if (err.code === 'FULL') {
+                showToast('error', 'Školení je plně obsazeno.');
+            } else {
+                console.error('Error joining:', err);
+                showToast('error', 'Chyba při přihlašování.');
+            }
         }
     };
 

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useShiftCalendar from '../hooks/useShiftCalendar';
 import { MONTHS_CZ, getZalohaKind, getZalohaKindForms } from '../components/shifts/constants';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { joinActivityTx } from '../utils/activityParticipants';
 import { db } from '../firebase';
 import { logAction } from '../utils/logger';
 import { generateICS, downloadICS, shiftSlotToICSEvent } from '../utils/icsExport';
@@ -83,19 +83,12 @@ export default function ShiftCalendarPage() {
     if (!activityPickerOpen) return;
     const activity = activityPickerOpen;
     const collectionName = activity.type === 'training' ? 'trainings' : 'events';
-    
-    if (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) {
-       showToast('error', 'Kapacita je naplněna.');
-       return;
-    }
-    
+
     try {
-      await updateDoc(doc(db, collectionName, activity.id), {
-        participants: arrayUnion({
-          uid: user.uid,
-          name: `${user.firstName} ${user.lastName}`,
-          joinedAt: new Date().toISOString()
-        })
+      await joinActivityTx(db, collectionName, activity.id, {
+        uid: user.uid,
+        name: `${user.firstName} ${user.lastName}`,
+        joinedAt: new Date().toISOString()
       });
       const typeLabel = activity.type === 'training' ? 'školení' : 'akci';
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
@@ -103,8 +96,14 @@ export default function ShiftCalendarPage() {
         `Admin přidal člena ${user.firstName} ${user.lastName} na ${typeLabel} „${activity.title}“ (${activity.date})`);
       showToast('success', `Uživatel přidán na ${typeLabel}.`);
     } catch (err) {
-      console.error(err);
-      showToast('error', 'Chyba při přidávání.');
+      if (err.code === 'ALREADY_JOINED') {
+        showToast('warning', 'Uživatel je již přihlášen.');
+      } else if (err.code === 'FULL') {
+        showToast('error', 'Kapacita je naplněna.');
+      } else {
+        console.error(err);
+        showToast('error', 'Chyba při přidávání.');
+      }
     }
     setActivityPickerOpen(null);
   };

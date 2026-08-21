@@ -16,6 +16,7 @@ export const CHANGELOG = [
         label: 'Opravy chyb',
         changes: [
           'Přihlášení na noční službu v měsíci, kde ještě nebyla vytvořena žádná denní služba, nyní funguje správně — dříve končilo chybou „Chyba při ukládání služby".',
+          'Opakované klepnutí na „Přihlásit" u školení nebo akce už člena nepřidá vícekrát — přihlášení se nově ukládá bezpečně a nemůže vzniknout duplicitní účast.',
         ],
       },
     ],
