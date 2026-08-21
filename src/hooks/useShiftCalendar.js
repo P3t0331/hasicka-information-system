@@ -375,7 +375,14 @@ export default function useShiftCalendar(currentUser, userData) {
     try {
       await runTransaction(db, async (transaction) => {
         const docSnap = await transaction.get(docRef);
-        if (!docSnap.exists()) throw new Error('Dokument neexistuje.');
+
+        if (!docSnap.exists()) {
+          if (actionType !== 'join') {
+            throw Object.assign(new Error('DOC_NOT_FOUND'), { appError: true });
+          }
+          transaction.set(docRef, { days: { [day]: { [section]: { [slotKey]: userCompact } } } });
+          return;
+        }
 
         const freshDayData = docSnap.data().days?.[day] || {};
         const freshSection = freshDayData[section] || {};
@@ -451,6 +458,8 @@ export default function useShiftCalendar(currentUser, userData) {
           showToast('error', 'Všechny pozice Hasič jsou nyní obsazené. Nelze přesunout Velitele.');
         } else if (err.message === 'NO_VELITEL') {
           showToast('error', 'Pozice Velitele je nyní prázdná.');
+        } else if (err.message === 'DOC_NOT_FOUND') {
+          showToast('error', 'Tento měsíc zatím nemá vytvořené směny. Kontaktujte správce.');
         } else {
           showToast('error', 'Chyba: ' + err.message);
         }

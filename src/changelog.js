@@ -5,9 +5,21 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.1.1';
+export const APP_VERSION = '1.1.2';
 
 export const CHANGELOG = [
+  {
+    version: '1.1.2',
+    date: '21. 8. 2026',
+    sections: [
+      {
+        label: 'Opravy chyb',
+        changes: [
+          'Přihlášení na noční službu v měsíci, kde ještě nebyla vytvořena žádná denní služba, nyní funguje správně — dříve končilo chybou „Chyba při ukládání služby".',
+        ],
+      },
+    ],
+  },
   {
     version: '1.1.1',
     date: '19. 8. 2026',
