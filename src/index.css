@@ -7,32 +7,102 @@
 }
 
 :root {
-  /* Premium Firefighter Palette */
+  /* Brand (existing — unchanged) */
   --primary-red: #D32F2F;
-  /* Vibrant Red */
   --primary-red-dark: #B71C1C;
-  /* Deep Blood Red */
-  --accent-gold: #FFC107;
-  /* Firefighter Yellow/Gold */
-  --accent-gold-dark: #FFA000;
 
-  --bg-dark: #121212;
-  /* Rich Black */
-  --bg-dark-paper: #1E1E1E;
-  /* Card BG Dark */
+  /* Base surfaces */
   --bg-light: #F5F7FA;
-  /* Crisp White-Grey */
+  --bg-dark: #121212;
+  --bg-dark-paper: #1E1E1E;
+  --surface: #ffffff;
+  --surface-alt: #f5f5f5;
+  --surface-hover: #f0f0f0;
+  --surface-sunken: #fafafa;
 
+  /* Text */
   --text-primary: #1A1A1A;
   --text-secondary: #555555;
+  --text-muted: #888888;
   --text-on-dark: #FFFFFF;
 
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --shadow-sharp: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  --radius: 12px;
+  /* Borders */
+  --border: #e0e0e0;
+  --border-strong: #bbbbbb;
 
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+  /* Status: danger (red) */
+  --danger: #d32f2f;
+  --danger-dark: #b71c1c;
+  --danger-text: #c62828;
+  --danger-bg: #ffebee;
+  --danger-border: #ffcdd2;
+
+  /* Status: success (green) */
+  --success: #388e3c;
+  --success-dark: #1b5e20;
+  --success-text: #2e7d32;
+  --success-bg: #e8f5e9;
+  --success-border: #c8e6c9;
+
+  /* Status: warning (amber/orange) */
+  --warning: #f57c00;
+  --warning-dark: #e65100;
+  --warning-text: #ef6c00;
+  --warning-bg: #fff3e0;
+  --warning-border: #ffcc80;
+
+  /* Status: info (blue) */
+  --info: #1976d2;
+  --info-dark: #0d47a1;
+  --info-text: #1565c0;
+  --info-bg: #e3f2fd;
+  --info-border: #90caf9;
+
+  /* Accent: purple (used for a few badge/category colors) */
+  --accent-purple: #7b1fa2;
+  --accent-purple-bg: #f3e5f5;
+  --accent-purple-border: #e1bee7;
+
+  /* Accent: neutral/blue-grey (secondary badges) */
+  --neutral: #546e7a;
+  --neutral-bg: #eceff1;
+
+  /* Glass effect (existing usage found in ProfilePage) */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: 1px solid rgba(0, 0, 0, 0.06);
+  --radius: 12px;
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme='dark'] {
+  --bg-light: #121212;
+  --surface: #1E1E1E;
+  --surface-alt: #262626;
+  --surface-hover: #2c2c2c;
+  --surface-sunken: #181818;
+
+  --text-primary: #F0F0F0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #8a8a8a;
+
+  --border: #333333;
+  --border-strong: #4a4a4a;
+
+  --danger-bg: #3a1414;
+  --danger-border: #5c1f1f;
+  --success-bg: #10261a;
+  --success-border: #1c3d29;
+  --warning-bg: #332210;
+  --warning-border: #4d341a;
+  --info-bg: #10233a;
+  --info-border: #1c3a5c;
+  --accent-purple-bg: #2a1830;
+  --accent-purple-border: #402349;
+  --neutral-bg: #23282b;
+
+  --glass-bg: rgba(30, 30, 30, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 body {
