@@ -175,7 +175,7 @@ export default function TrainingsPage() {
 
             {/* Quizzes */}
             {openQuizzes.length > 0 && (
-                <section style={{ marginBottom: '1.5rem' }}>
+                <section id="kvizy-sekce" style={{ marginBottom: '1.5rem' }}>
                     <div className="section-header">
                         <span className="section-header__title">
                             <span>📝</span>

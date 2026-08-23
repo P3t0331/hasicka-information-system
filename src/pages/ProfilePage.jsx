@@ -6,6 +6,7 @@ import useProfile from '../hooks/useProfile';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import EquipmentSection from '../components/profile/EquipmentSection';
 import QuizHistory from '../components/profile/QuizHistory';
+import SettingsSection from '../components/profile/SettingsSection';
 import EquipmentModal from '../components/profile/EquipmentModal';
 import ConfirmModal from '../components/profile/ConfirmModal';
 import { generateICS, downloadICS, activityToICSEvent, shiftSlotToICSEvent } from '../utils/icsExport';
@@ -368,6 +369,7 @@ export default function ProfilePage() {
                         handleDeleteEquipment={handleDeleteEquipment}
                     />
                     <QuizHistory />
+                    <SettingsSection />
                 </div>
             </div>
 
