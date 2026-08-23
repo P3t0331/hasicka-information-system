@@ -2,7 +2,7 @@ import React from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
-import { getTheme, getLandingPage, DEFAULT_DASHBOARD_WIDGET_ORDER } from '../../../shared/preferences.js';
+import { getTheme, getLandingPage, DEFAULT_DASHBOARD_WIDGET_ORDER, shouldReceivePush } from '../../../shared/preferences.js';
 
 const THEME_OPTIONS = [
     { value: 'light', label: 'Světlé' },
@@ -15,6 +15,13 @@ const LANDING_PAGE_OPTIONS = [
     { value: 'sluzby', label: 'Služby' },
     { value: 'skoleni', label: 'Školení' },
     { value: 'kvizy', label: 'Kvízy' },
+];
+
+const PUSH_CATEGORY_OPTIONS = [
+    { value: 'kvizy', label: 'Kvízy' },
+    { value: 'sluzby', label: 'Služby' },
+    { value: 'skoleni', label: 'Školení' },
+    { value: 'akce', label: 'Akce' },
 ];
 
 const WIDGET_LABELS = {
@@ -59,6 +66,14 @@ export default function SettingsSection() {
         await updateDoc(userRef, {
             'preferences.dashboardWidgets': { order: nextOrder, hidden },
         });
+    }
+
+    const pushPermissionGranted = typeof Notification !== 'undefined' && Notification.permission === 'granted';
+
+    async function togglePushCategory(category) {
+        const current = shouldReceivePush(preferences, category);
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, { [`preferences.pushCategories.${category}`]: !current });
     }
 
     return (
@@ -112,6 +127,28 @@ export default function SettingsSection() {
                             <button type="button" className="btn btn-secondary" style={{ padding: '0.2rem 0.6rem' }}
                                 disabled={idx === fullOrder.length - 1} onClick={() => moveWidget(widgetId, 1)}>↓</button>
                         </div>
+                    ))}
+                </div>
+            </div>
+
+            <div style={{ marginTop: '1.5rem' }}>
+                <div className="input-label">Oznámení</div>
+                {!pushPermissionGranted && (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 0 }}>
+                        Push notifikace nejsou v tomto prohlížeči povoleny — nastavení níže se uplatní až po jejich povolení.
+                    </p>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {PUSH_CATEGORY_OPTIONS.map(opt => (
+                        <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', opacity: pushPermissionGranted ? 1 : 0.5 }}>
+                            <input
+                                type="checkbox"
+                                disabled={!pushPermissionGranted}
+                                checked={shouldReceivePush(preferences, opt.value)}
+                                onChange={() => togglePushCategory(opt.value)}
+                            />
+                            {opt.label}
+                        </label>
                     ))}
                 </div>
             </div>
