@@ -407,7 +407,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                         background: day.isToday
                             ? `linear-gradient(135deg, ${accentColor.from}, ${accentColor.to})`
                             : (day.isWeekend ? 'var(--danger-border)' : 'var(--neutral-bg)'),
-                        color: day.isToday ? 'white' : (day.isWeekend ? 'var(--danger-text)' : 'var(--table-header-dark)'),
+                        color: day.isToday ? 'var(--text-on-dark)' : (day.isWeekend ? 'var(--danger-text)' : 'var(--neutral)'),
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center',
                         fontWeight: 700, lineHeight: 1, flexShrink: 0

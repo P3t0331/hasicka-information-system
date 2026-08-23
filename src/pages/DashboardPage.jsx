@@ -35,13 +35,22 @@ export default function DashboardPage() {
         newActivities
     } = useDashboardData();
 
+    // Landing-page redirect must only fire ONCE per login session — otherwise a user
+    // whose landing page isn't "dashboard" could never reach the Dashboard again (e.g.
+    // clicking "Domů" would just bounce them straight back out). Guard with a one-shot
+    // sessionStorage flag, set the moment we've evaluated it once for this session, and
+    // cleared on logout (see AuthContext.logout) so the next login re-evaluates.
     useEffect(() => {
+        if (!userData) return; // wait for real preferences before deciding
+        if (sessionStorage.getItem('landingPageRedirectDone') === 'true') return;
+        sessionStorage.setItem('landingPageRedirectDone', 'true');
+
         const landing = getLandingPage(userData?.preferences);
         if (landing === 'dashboard') return;
         if (landing === 'sluzby') navigate('/shifts', { replace: true });
         else if (landing === 'skoleni') navigate('/skoleni', { replace: true });
         else if (landing === 'kvizy') navigate('/skoleni', { replace: true, state: { scrollTo: 'kvizy-sekce' } });
-    }, [userData?.preferences, navigate]);
+    }, [userData, navigate]);
 
     const [activitiesDismissed, setActivitiesDismissed] = useState(
         sessionStorage.getItem('dismissed_new_activities') === 'true'

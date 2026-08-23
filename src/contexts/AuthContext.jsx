@@ -126,6 +126,7 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    sessionStorage.removeItem('landingPageRedirectDone');
     return signOut(auth);
   }
 

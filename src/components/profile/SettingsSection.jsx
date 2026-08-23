@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { getTheme, getLandingPage, DEFAULT_DASHBOARD_WIDGET_ORDER, shouldReceivePush } from '../../../shared/preferences.js';
 
 const THEME_OPTIONS = [
@@ -34,46 +35,87 @@ const WIDGET_LABELS = {
     importantLinks: 'Důležité odkazy',
 };
 
+const SAVE_ERROR_MESSAGE = 'Nepodařilo se uložit nastavení.';
+
 export default function SettingsSection() {
     const { currentUser, userData } = useAuth();
+    const { addToast } = useToast();
     const preferences = userData?.preferences;
 
     async function updatePreference(key, value) {
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { [`preferences.${key}`]: value });
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, { [`preferences.${key}`]: value });
+        } catch (error) {
+            console.error('Failed to update preference', error);
+            addToast('error', SAVE_ERROR_MESSAGE);
+        }
     }
 
     const hidden = preferences?.dashboardWidgets?.hidden || [];
-    const fullOrder = preferences?.dashboardWidgets?.order || DEFAULT_DASHBOARD_WIDGET_ORDER;
+    const storedOrder = preferences?.dashboardWidgets?.order || DEFAULT_DASHBOARD_WIDGET_ORDER;
+
+    // Normalize the same way DashboardPage does via getDashboardWidgetOrder (minus the
+    // hidden filter, since Settings needs to show hidden widgets too, just unchecked) so
+    // a newly-added widget id shows up here and a retired id never renders as a raw string.
+    const knownIds = storedOrder.filter(id => DEFAULT_DASHBOARD_WIDGET_ORDER.includes(id));
+    const missingIds = DEFAULT_DASHBOARD_WIDGET_ORDER.filter(id => !knownIds.includes(id));
+    const fullOrder = [...knownIds, ...missingIds];
+
+    // Local optimistic copy of the order so two fast successive ↑/↓ clicks don't both
+    // read the same stale Firestore-derived order and clobber each other. Kept in sync
+    // whenever the normalized preferences-derived order changes underneath us.
+    const [localOrder, setLocalOrder] = useState(fullOrder);
+    useEffect(() => {
+        setLocalOrder(fullOrder);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [JSON.stringify(fullOrder)]);
 
     async function toggleWidget(widgetId) {
         const nextHidden = hidden.includes(widgetId)
             ? hidden.filter(id => id !== widgetId)
             : [...hidden, widgetId];
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            'preferences.dashboardWidgets': { order: fullOrder, hidden: nextHidden },
-        });
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                'preferences.dashboardWidgets': { order: localOrder, hidden: nextHidden },
+            });
+        } catch (error) {
+            console.error('Failed to toggle widget', error);
+            addToast('error', SAVE_ERROR_MESSAGE);
+        }
     }
 
     async function moveWidget(widgetId, direction) {
-        const idx = fullOrder.indexOf(widgetId);
+        const idx = localOrder.indexOf(widgetId);
         const swapWith = idx + direction;
-        if (idx === -1 || swapWith < 0 || swapWith >= fullOrder.length) return;
-        const nextOrder = [...fullOrder];
+        if (idx === -1 || swapWith < 0 || swapWith >= localOrder.length) return;
+        const nextOrder = [...localOrder];
         [nextOrder[idx], nextOrder[swapWith]] = [nextOrder[swapWith], nextOrder[idx]];
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            'preferences.dashboardWidgets': { order: nextOrder, hidden },
-        });
+        setLocalOrder(nextOrder);
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                'preferences.dashboardWidgets': { order: nextOrder, hidden },
+            });
+        } catch (error) {
+            console.error('Failed to move widget', error);
+            addToast('error', SAVE_ERROR_MESSAGE);
+            setLocalOrder(localOrder); // revert optimistic update on failure
+        }
     }
 
     const pushPermissionGranted = typeof Notification !== 'undefined' && Notification.permission === 'granted';
 
     async function togglePushCategory(category) {
-        const current = shouldReceivePush(preferences, category);
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { [`preferences.pushCategories.${category}`]: !current });
+        try {
+            const current = shouldReceivePush(preferences, category);
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, { [`preferences.pushCategories.${category}`]: !current });
+        } catch (error) {
+            console.error('Failed to toggle push category', error);
+            addToast('error', SAVE_ERROR_MESSAGE);
+        }
     }
 
     return (
@@ -114,7 +156,7 @@ export default function SettingsSection() {
             <div style={{ marginTop: '1.5rem' }}>
                 <div className="input-label">Nástěnka</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {fullOrder.map((widgetId, idx) => (
+                    {localOrder.map((widgetId, idx) => (
                         <div key={widgetId} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                             <input
                                 type="checkbox"
@@ -125,7 +167,7 @@ export default function SettingsSection() {
                             <button type="button" className="btn btn-secondary" style={{ padding: '0.2rem 0.6rem' }}
                                 disabled={idx === 0} onClick={() => moveWidget(widgetId, -1)}>↑</button>
                             <button type="button" className="btn btn-secondary" style={{ padding: '0.2rem 0.6rem' }}
-                                disabled={idx === fullOrder.length - 1} onClick={() => moveWidget(widgetId, 1)}>↓</button>
+                                disabled={idx === localOrder.length - 1} onClick={() => moveWidget(widgetId, 1)}>↓</button>
                         </div>
                     ))}
                 </div>
