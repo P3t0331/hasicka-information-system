@@ -19,6 +19,30 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE_KEY
 );
 
+// Pure helpers extracted from the category-filter block below so they can be
+// unit-tested with fake Firestore-shaped docs, without mocking the Admin SDK.
+
+// Firestore 'in' queries cap at 30 values per query — chunk if a broadcast
+// (targetRoles/no target) ever exceeds that.
+export function chunkArray(arr, size) {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+}
+
+// Given the resolved `users` docs (each shaped like a Firestore
+// QueryDocumentSnapshot: { id, data() }) for a set of candidate userIds,
+// returns the Set of userIds that should receive a push for `category`.
+export function resolveAllowedUserIds(userDocs, category) {
+    return new Set(
+        userDocs
+            .filter(d => shouldReceivePush(d.data().preferences, category))
+            .map(d => d.id)
+    );
+}
+
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     if (req.method === 'OPTIONS') return res.status(200).end();
@@ -48,20 +72,11 @@ export default async function handler(req, res) {
     if (category) {
         const candidateUserIds = [...new Set(docs.map(d => d.data().userId).filter(Boolean))];
         if (candidateUserIds.length > 0) {
-            // Firestore 'in' queries cap at 30 values per query — chunk if a
-            // broadcast (targetRoles/no target) ever exceeds that.
-            const chunks = [];
-            for (let i = 0; i < candidateUserIds.length; i += 30) {
-                chunks.push(candidateUserIds.slice(i, i + 30));
-            }
+            const chunks = chunkArray(candidateUserIds, 30);
             const userDocs = (await Promise.all(
                 chunks.map(chunk => db.collection('users').where(FieldPath.documentId(), 'in', chunk).get())
             )).flatMap(snap => snap.docs);
-            const allowedUserIds = new Set(
-                userDocs
-                    .filter(d => shouldReceivePush(d.data().preferences, category))
-                    .map(d => d.id)
-            );
+            const allowedUserIds = resolveAllowedUserIds(userDocs, category);
             docs = docs.filter(d => allowedUserIds.has(d.data().userId));
         }
     }
