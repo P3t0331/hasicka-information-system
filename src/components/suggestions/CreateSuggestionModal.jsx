@@ -35,11 +35,11 @@ export default function CreateSuggestionModal({ onSubmit, onClose }) {
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                     <h3 style={{ margin: 0, fontSize: '1.1rem' }}>💡 Nový návrh</h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>✕</button>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: 'var(--text-subtle)', lineHeight: 1 }}>✕</button>
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                             Název návrhu *
                         </label>
                         <input
@@ -53,12 +53,12 @@ export default function CreateSuggestionModal({ onSubmit, onClose }) {
                             autoFocus
                             style={{ width: '100%' }}
                         />
-                        <div style={{ fontSize: '0.75rem', color: '#ccc', textAlign: 'right', marginTop: '0.2rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--border-medium)', textAlign: 'right', marginTop: '0.2rem' }}>
                             {title.length}/100
                         </div>
                     </div>
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                             Popis (volitelný)
                         </label>
                         <textarea
@@ -70,7 +70,7 @@ export default function CreateSuggestionModal({ onSubmit, onClose }) {
                             placeholder="Podrobnější popis návrhu..."
                             style={{ resize: 'vertical', width: '100%' }}
                         />
-                        <div style={{ fontSize: '0.75rem', color: '#ccc', textAlign: 'right', marginTop: '0.2rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--border-medium)', textAlign: 'right', marginTop: '0.2rem' }}>
                             {description.length}/500
                         </div>
                     </div>

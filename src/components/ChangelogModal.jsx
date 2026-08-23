@@ -44,19 +44,19 @@ export default function ChangelogModal() {
         style={{ maxWidth: '480px', width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
       >
         <h2 style={{ margin: '0 0 0.2rem', fontSize: '1.15rem' }}>🚀 Co je nového</h2>
-        <p style={{ margin: '0 0 1.25rem', color: '#888', fontSize: '0.85rem' }}>Verze {APP_VERSION}</p>
+        <p style={{ margin: '0 0 1.25rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Verze {APP_VERSION}</p>
 
         <div style={{ overflowY: 'auto', flex: 1, marginBottom: '1.25rem' }}>
           {entries.map(entry => (
             <div key={entry.version} style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>v{entry.version}</span>
-                <span style={{ color: '#aaa', fontSize: '0.8rem' }}>{entry.date}</span>
+                <span style={{ color: 'var(--text-subtle)', fontSize: '0.8rem' }}>{entry.date}</span>
               </div>
               {entry.sections
                 ? entry.sections.map(section => (
                     <div key={section.label} style={{ marginBottom: '0.75rem' }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#b00020', marginBottom: '0.3rem' }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--danger-deep)', marginBottom: '0.3rem' }}>
                         {section.label}
                       </div>
                       <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>

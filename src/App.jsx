@@ -28,8 +28,8 @@ const SuggestionsPage = React.lazy(() => import('./pages/SuggestionsPage'));
 function PageLoader() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', gap: '0.75rem' }}>
-      <div style={{ width: '32px', height: '32px', border: '3px solid #f0f0f0', borderTop: '3px solid #B71C1C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <p style={{ color: '#aaa', fontSize: '0.88rem', margin: 0 }}>Načítám...</p>
+      <div style={{ width: '32px', height: '32px', border: '3px solid var(--surface-hover)', borderTop: '3px solid var(--primary-red-dark)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ color: 'var(--text-subtle)', fontSize: '0.88rem', margin: 0 }}>Načítám...</p>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

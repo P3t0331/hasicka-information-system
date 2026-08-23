@@ -42,7 +42,7 @@ export default function MembersPage() {
                 }}>
                     👥 Členové jednotky
                 </h1>
-                <p style={{ color: '#666', fontSize: '1.1rem' }}>
+                <p style={{ color: 'var(--text-steel)', fontSize: '1.1rem' }}>
                     Celkem {filteredMembers.length} {filteredMembers.length === 1 ? 'člen' : filteredMembers.length < 5 ? 'členové' : 'členů'}
                 </p>
             </div>
@@ -115,8 +115,8 @@ export default function MembersPage() {
             {filteredMembers.length === 0 ? (
                 <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
                     <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
-                    <h3 style={{ color: '#666' }}>Žádní členové nenalezeni</h3>
-                    <p style={{ color: '#999' }}>Zkuste změnit vyhledávací kritéria</p>
+                    <h3 style={{ color: 'var(--text-steel)' }}>Žádní členové nenalezeni</h3>
+                    <p style={{ color: 'var(--text-gray)' }}>Zkuste změnit vyhledávací kritéria</p>
                 </div>
             ) : (
                 <div style={{

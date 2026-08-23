@@ -48,7 +48,7 @@ export default function LinkifiedText({ text }) {
                             onClick={(e) => e.stopPropagation()} // Prevent parent click actions
                             style={{
                                 textDecoration: 'underline',
-                                color: '#1565C0',
+                                color: 'var(--info-text)',
                                 wordBreak: 'break-all'
                             }}
                         >

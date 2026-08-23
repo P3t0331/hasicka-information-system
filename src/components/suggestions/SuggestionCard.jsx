@@ -1,8 +1,8 @@
 const STATUS_CONFIG = {
-    open:     { label: 'Otevřeno',  bg: '#E3F2FD', color: '#1565C0', border: '#BBDEFB' },
-    planned:  { label: 'Plánováno', bg: '#FFF3E0', color: '#E65100', border: '#FFCC80' },
-    done:     { label: 'Hotovo',    bg: '#E8F5E9', color: '#2E7D32', border: '#A5D6A7' },
-    rejected: { label: 'Zamítnuto', bg: '#F5F5F5', color: '#757575', border: '#E0E0E0' },
+    open:     { label: 'Otevřeno',  bg: 'var(--info-bg)', color: 'var(--info-text)', border: 'var(--info-border-soft)' },
+    planned:  { label: 'Plánováno', bg: 'var(--warning-bg)', color: 'var(--warning-dark)', border: 'var(--warning-border)' },
+    done:     { label: 'Hotovo',    bg: 'var(--success-bg)', color: 'var(--success-text)', border: 'var(--success-border-strong)' },
+    rejected: { label: 'Zamítnuto', bg: 'var(--surface-alt)', color: 'var(--text-dim)', border: 'var(--border)' },
 };
 
 export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVote, onDelete }) {
@@ -27,7 +27,7 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
             borderRadius: '10px',
             padding: '1.25rem 1.4rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-            border: '1px solid #f0f0f0',
+            border: '1px solid var(--surface-hover)',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.6rem',
@@ -38,7 +38,7 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                         {suggestion.title}
                     </div>
                     {suggestion.description && (
-                        <div style={{ color: '#555', fontSize: '0.88rem', lineHeight: 1.5 }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.5 }}>
                             {suggestion.description}
                         </div>
                     )}
@@ -60,19 +60,19 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
 
             {suggestion.adminNote && (
                 <div style={{
-                    background: '#FFFDE7',
-                    border: '1px solid #FFF176',
+                    background: 'var(--warning-bg-soft)',
+                    border: '1px solid var(--warning-border-yellow)',
                     borderRadius: '6px',
                     padding: '0.5rem 0.75rem',
                     fontSize: '0.85rem',
-                    color: '#5D4037',
+                    color: 'var(--text-brown)',
                 }}>
                     <strong>Poznámka admina:</strong> {suggestion.adminNote}
                 </div>
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.2rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div style={{ fontSize: '0.78rem', color: '#aaa' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)' }}>
                     {suggestion.authorName} · {dateStr}
                 </div>
 
@@ -85,9 +85,9 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                             display: 'flex', alignItems: 'center', gap: '0.3rem',
                             padding: '0.3rem 0.7rem',
                             borderRadius: '50px',
-                            border: hasVotedYes ? '1.5px solid #1565C0' : '1.5px solid #e0e0e0',
-                            background: hasVotedYes ? '#E3F2FD' : 'white',
-                            color: hasVotedYes ? '#1565C0' : '#555',
+                            border: hasVotedYes ? '1.5px solid var(--info-text)' : '1.5px solid var(--border)',
+                            background: hasVotedYes ? 'var(--info-bg)' : 'white',
+                            color: hasVotedYes ? 'var(--info-text)' : 'var(--text-secondary)',
                             cursor: isOwn ? 'default' : 'pointer',
                             fontSize: '0.85rem',
                             fontWeight: hasVotedYes ? 700 : 400,
@@ -105,9 +105,9 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                             display: 'flex', alignItems: 'center', gap: '0.3rem',
                             padding: '0.3rem 0.7rem',
                             borderRadius: '50px',
-                            border: hasVotedNo ? '1.5px solid #c62828' : '1.5px solid #e0e0e0',
-                            background: hasVotedNo ? '#FFEBEE' : 'white',
-                            color: hasVotedNo ? '#c62828' : '#555',
+                            border: hasVotedNo ? '1.5px solid var(--danger-text)' : '1.5px solid var(--border)',
+                            background: hasVotedNo ? 'var(--danger-bg)' : 'white',
+                            color: hasVotedNo ? 'var(--danger-text)' : 'var(--text-secondary)',
                             cursor: isOwn ? 'default' : 'pointer',
                             fontSize: '0.85rem',
                             fontWeight: hasVotedNo ? 700 : 400,
@@ -123,15 +123,15 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                             style={{
                                 padding: '0.3rem 0.6rem',
                                 borderRadius: '50px',
-                                border: '1.5px solid #e0e0e0',
+                                border: '1.5px solid var(--border)',
                                 background: 'white',
-                                color: '#aaa',
+                                color: 'var(--text-subtle)',
                                 cursor: 'pointer',
                                 fontSize: '0.8rem',
                                 transition: 'all 0.15s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#c62828'; e.currentTarget.style.color = '#c62828'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#aaa'; }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--danger-text)'; e.currentTarget.style.color = 'var(--danger-text)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-subtle)'; }}
                         >
                             ✕
                         </button>

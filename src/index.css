@@ -161,6 +161,18 @@
   /* Selected-item text paired with --indigo-bg (attendee picker) — kept
      distinct from --indigo-deep, which is used in an unrelated context */
   --indigo-darkest: #283593;
+
+  /* Off-palette shades added for Members/Suggestions/Auth retheme (task 12) */
+  --warning-border-yellow: #FFF176;
+  --text-brown: #5D4037;
+  /* ForcePasswordChange full-screen overlay — always-dark decorative
+     gradient, unaffected by theme (same pattern as --profile-hero-grad-*) */
+  --auth-grad-1: #1a1a2e;
+  --auth-grad-2: #16213e;
+  --auth-grad-3: #0f3460;
+  /* ChangelogModal "breaking change" label — distinct deep red, too far
+     from --danger-dark to reuse */
+  --danger-deep: #b00020;
 }
 
 :root[data-theme='dark'] {
@@ -262,6 +274,14 @@
   /* Off-palette shades added for Trainings/Events retheme (task 11) */
   --danger-crimson: #dc3545;
   --indigo-darkest: #9FA8DA;
+
+  /* Off-palette shades added for Members/Suggestions/Auth retheme (task 12) */
+  --warning-border-yellow: #FFF176;
+  --text-brown: #BCAAA4;
+  --auth-grad-1: #1a1a2e;
+  --auth-grad-2: #16213e;
+  --auth-grad-3: #0f3460;
+  --danger-deep: #b00020;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

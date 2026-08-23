@@ -52,7 +52,7 @@ export default function ForcePasswordChange() {
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+            background: 'linear-gradient(135deg, var(--auth-grad-1) 0%, var(--auth-grad-2) 50%, var(--auth-grad-3) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 9999, padding: '1rem'
         }}>
@@ -66,15 +66,15 @@ export default function ForcePasswordChange() {
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🔐</div>
-                    <h2 style={{ margin: 0, color: '#1a1a2e', fontSize: '1.4rem' }}>Nastavte si heslo</h2>
-                    <p style={{ color: '#666', fontSize: '0.88rem', marginTop: '0.5rem', lineHeight: 1.5 }}>
+                    <h2 style={{ margin: 0, color: 'var(--auth-grad-1)', fontSize: '1.4rem' }}>Nastavte si heslo</h2>
+                    <p style={{ color: 'var(--text-steel)', fontSize: '0.88rem', marginTop: '0.5rem', lineHeight: 1.5 }}>
                         Váš účet byl vytvořen administrátorem. Pro pokračování je nutné nastavit vlastní heslo.
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 600, color: '#333', fontSize: '0.85rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 600, color: 'var(--text-charcoal)', fontSize: '0.85rem' }}>
                             Nové heslo
                         </label>
                         <div style={{ position: 'relative' }}>
@@ -87,13 +87,13 @@ export default function ForcePasswordChange() {
                                 required
                                 style={{
                                     width: '100%', padding: '0.75rem 2.75rem 0.75rem 0.85rem',
-                                    borderRadius: '10px', border: '2px solid #e0e0e0',
+                                    borderRadius: '10px', border: '2px solid var(--border)',
                                     fontSize: '1rem', boxSizing: 'border-box', outline: 'none'
                                 }}
                             />
                             <button type="button" onClick={() => setShowNew(v => !v)} style={{
                                 position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
-                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#888', padding: 0
+                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-muted)', padding: 0
                             }}>
                                 {showNew ? '🙈' : '👁️'}
                             </button>
@@ -101,7 +101,7 @@ export default function ForcePasswordChange() {
                     </div>
 
                     <div style={{ marginBottom: '1.1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 600, color: '#333', fontSize: '0.85rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 600, color: 'var(--text-charcoal)', fontSize: '0.85rem' }}>
                             Potvrdit heslo
                         </label>
                         <div style={{ position: 'relative' }}>
@@ -113,13 +113,13 @@ export default function ForcePasswordChange() {
                                 required
                                 style={{
                                     width: '100%', padding: '0.75rem 2.75rem 0.75rem 0.85rem',
-                                    borderRadius: '10px', border: '2px solid #e0e0e0',
+                                    borderRadius: '10px', border: '2px solid var(--border)',
                                     fontSize: '1rem', boxSizing: 'border-box', outline: 'none'
                                 }}
                             />
                             <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
                                 position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
-                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#888', padding: 0
+                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-muted)', padding: 0
                             }}>
                                 {showConfirm ? '🙈' : '👁️'}
                             </button>
@@ -128,14 +128,14 @@ export default function ForcePasswordChange() {
 
                     <div style={{
                         display: 'flex', gap: '0.4rem', flexWrap: 'wrap',
-                        padding: '0.65rem 0.75rem', background: '#f8f9fa', borderRadius: '8px',
+                        padding: '0.65rem 0.75rem', background: 'var(--surface-alt)', borderRadius: '8px',
                         marginBottom: '1.1rem'
                     }}>
                         {rules.map(r => (
                             <span key={r.label} style={{
                                 fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 600,
-                                background: r.test ? '#E8F5E9' : '#f0f0f0',
-                                color: r.test ? '#2E7D32' : '#999',
+                                background: r.test ? 'var(--success-bg)' : 'var(--surface-hover)',
+                                color: r.test ? 'var(--success-text)' : 'var(--text-gray)',
                                 transition: 'all 0.15s'
                             }}>
                                 {r.test ? '✓' : '○'} {r.label}
@@ -145,8 +145,8 @@ export default function ForcePasswordChange() {
 
                     {error && (
                         <div style={{
-                            padding: '0.75rem', background: '#FFEBEE', border: '1px solid #FFCDD2',
-                            borderRadius: '8px', color: '#C62828', fontSize: '0.85rem', marginBottom: '1rem'
+                            padding: '0.75rem', background: 'var(--danger-bg)', border: '1px solid var(--danger-border)',
+                            borderRadius: '8px', color: 'var(--danger-text)', fontSize: '0.85rem', marginBottom: '1rem'
                         }}>
                             ⚠️ {error}
                         </div>
@@ -158,7 +158,7 @@ export default function ForcePasswordChange() {
                         style={{
                             width: '100%', padding: '0.9rem',
                             borderRadius: '12px', border: 'none',
-                            background: loading ? '#ccc' : 'linear-gradient(135deg, #1565C0, #0D47A1)',
+                            background: loading ? 'var(--border-medium)' : 'linear-gradient(135deg, var(--info-text), var(--info-dark))',
                             color: 'white', fontSize: '1rem', fontWeight: 700,
                             cursor: loading ? 'not-allowed' : 'pointer',
                             marginBottom: '0.75rem'
@@ -173,7 +173,7 @@ export default function ForcePasswordChange() {
                     style={{
                         width: '100%', padding: '0.6rem',
                         background: 'none', border: 'none',
-                        color: '#999', fontSize: '0.8rem', cursor: 'pointer'
+                        color: 'var(--text-gray)', fontSize: '0.8rem', cursor: 'pointer'
                     }}
                 >
                     Odhlásit se
