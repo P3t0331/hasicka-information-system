@@ -106,6 +106,10 @@
   /* Decorative gradient for the ImportantLinks widget header — theme-invariant */
   --accent-amber-grad-1: #FFB74D;
   --accent-amber-grad-2: #FFA726;
+  /* MyAbsences "upcoming" (default) state border — kept distinct from
+     --text-muted, which is now used for the "past" state, so the two
+     absence states never collapse onto the same border color */
+  --text-dim: #757575;
 }
 
 :root[data-theme='dark'] {
@@ -164,6 +168,7 @@
   /* Decorative gradient for the ImportantLinks widget header — theme-invariant */
   --accent-amber-grad-1: #FFB74D;
   --accent-amber-grad-2: #FFA726;
+  --text-dim: #989898;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

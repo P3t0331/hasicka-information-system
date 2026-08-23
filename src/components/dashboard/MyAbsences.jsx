@@ -50,7 +50,7 @@ export default function MyAbsences({ absences }) {
                         return (
                             <div key={idx} className="dashboard-card" style={{ 
                                 padding: '1rem', 
-                                borderLeft: `4px solid ${isOngoing ? 'var(--warning)' : isPast ? 'var(--text-faint)' : 'var(--text-muted)'}`,
+                                borderLeft: `4px solid ${isOngoing ? 'var(--warning)' : isPast ? 'var(--text-muted)' : 'var(--text-dim)'}`,
                                 opacity: isPast ? 0.7 : 1
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
