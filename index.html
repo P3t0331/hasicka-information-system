@@ -13,6 +13,17 @@
     <link rel="icon" href="/pwa-icon.svg" sizes="any" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <title>Hasičský IS</title>
+    <script>
+      (function () {
+        try {
+          var cached = localStorage.getItem('theme-preference') || 'system';
+          var resolved = cached === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : cached;
+          document.documentElement.setAttribute('data-theme', resolved);
+        } catch (e) { /* localStorage unavailable — default light stays in effect */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

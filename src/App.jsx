@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import UpdatePrompt from './components/UpdatePrompt';
@@ -38,6 +39,7 @@ function App() {
   return (
     <AuthProvider>
       <ToastProvider>
+        <ThemeProvider>
         <Router>
         <div className="app-container">
           <UpdatePrompt />
@@ -79,6 +81,7 @@ function App() {
           </Routes>
         </div>
         </Router>
+        </ThemeProvider>
       </ToastProvider>
       <Analytics />
     </AuthProvider>
