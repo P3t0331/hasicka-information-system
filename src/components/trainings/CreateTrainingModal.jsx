@@ -3,6 +3,7 @@ import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 import { useToast } from '../../contexts/ToastContext';
+import { sendPushNotification } from '../../utils/pushNotification';
 
 export default function CreateTrainingModal({ onClose, currentUser, userData, initialData, members = [], onSaveAsTemplate }) {
     const { addToast: showToast } = useToast();
@@ -133,20 +134,17 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     participants: instructorParticipants
                 });
                 if (sendNotification) {
-                fetch('/api/send-notification', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: '📋 Nové školení',
-                        body: [
-                            title.trim(),
-                            date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
-                            time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
-                            location.trim() || null,
-                        ].filter(Boolean).join(' · '),
-                        url: '/skoleni',
-                        tag: 'skoleni',
-                    }),
+                sendPushNotification({
+                    title: '📋 Nové školení',
+                    body: [
+                        title.trim(),
+                        date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
+                        time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
+                        location.trim() || null,
+                    ].filter(Boolean).join(' · '),
+                    url: '/skoleni',
+                    tag: 'skoleni',
+                    category: 'skoleni',
                 });
                 }
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,

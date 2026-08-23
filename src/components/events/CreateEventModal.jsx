@@ -3,6 +3,7 @@ import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 import { useToast } from '../../contexts/ToastContext';
+import { sendPushNotification } from '../../utils/pushNotification';
 
 export default function CreateEventModal({ onClose, currentUser, userData, initialData, onSaveAsTemplate }) {
     const { addToast: showToast } = useToast();
@@ -85,20 +86,17 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                     participants: []
                 });
                 if (sendNotification) {
-                fetch('/api/send-notification', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: '🚒 Nová akce',
-                        body: [
-                            title.trim(),
-                            date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
-                            time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
-                            location.trim() || null,
-                        ].filter(Boolean).join(' · '),
-                        url: '/akce',
-                        tag: 'akce',
-                    }),
+                sendPushNotification({
+                    title: '🚒 Nová akce',
+                    body: [
+                        title.trim(),
+                        date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
+                        time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
+                        location.trim() || null,
+                    ].filter(Boolean).join(' · '),
+                    url: '/akce',
+                    tag: 'akce',
+                    category: 'akce',
                 });
                 }
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
