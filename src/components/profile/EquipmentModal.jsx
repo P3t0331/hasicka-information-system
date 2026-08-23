@@ -11,7 +11,7 @@ export default function EquipmentModal({ onClose, currentEq, setCurrentEq, equip
             background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
         }} onClick={onClose}>
             <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%', animation: 'fadeIn 0.2s', maxHeight: '90vh', overflowY: 'auto' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#333' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
                     {currentEq.id ? 'Upravit vybavení' : 'Přidat vybavení'}
                 </h3>
 

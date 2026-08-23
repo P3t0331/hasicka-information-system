@@ -7,9 +7,9 @@ import { pluralize } from '../../utils/pluralize';
 // Stejné barvy jako štítek stavu jinde v modulu kvízů (QuizCard, QuizResultView,
 // QuizResultsTable) — člen musí vidět stejný verdikt stejnou barvou všude.
 const VERDICT_CONFIG = {
-    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-    [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
-    [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },
+    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border)' },
+    [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
+    [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
 };
 
 function formatSubmittedAt(iso) {
@@ -44,7 +44,7 @@ function pluralKvizu(n) {
 
 function EmptyState() {
     return (
-        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: '#bbb' }}>
+        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: 'var(--text-muted)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.4 }}>📝</div>
             <p style={{ fontStyle: 'italic', margin: 0, fontSize: '0.9rem' }}>
                 Zatím jste neabsolvoval žádný kvíz.
@@ -91,14 +91,14 @@ export default function QuizHistory() {
                     font-family: 'Oswald', sans-serif;
                     font-size: 1.05rem;
                     font-weight: 600;
-                    color: #222;
+                    color: var(--text-primary);
                     text-transform: uppercase;
                     letter-spacing: 0.7px;
                     margin: 0 0 0.15rem;
                 }
                 .qh-header-sub {
                     font-size: 0.8rem;
-                    color: #bbb;
+                    color: var(--text-muted);
                     margin: 0;
                 }
                 .qh-list {
@@ -113,7 +113,7 @@ export default function QuizHistory() {
                     flex-wrap: wrap;
                     gap: 0.75rem;
                     padding: 1.05rem 1.75rem;
-                    border-bottom: 1px solid #f2f2f2;
+                    border-bottom: 1px solid var(--border);
                     transition: background 0.12s;
                     position: relative;
                 }
@@ -129,17 +129,17 @@ export default function QuizHistory() {
                     transition: background 0.12s;
                     border-radius: 0 2px 2px 0;
                 }
-                .qh-item:hover { background: #fef7f7; }
+                .qh-item:hover { background: var(--danger-bg); }
                 .qh-item:hover::before { background: var(--primary-red); }
                 .qh-name {
                     font-size: 1.05rem;
                     font-weight: 700;
-                    color: #1a1a1a;
+                    color: var(--text-primary);
                     line-height: 1.3;
                 }
                 .qh-date {
                     font-size: 0.85rem;
-                    color: #888;
+                    color: var(--text-muted);
                     margin-top: 0.2rem;
                 }
                 .qh-result {
@@ -151,7 +151,7 @@ export default function QuizHistory() {
                 .qh-score {
                     font-size: 1rem;
                     font-weight: 700;
-                    color: #444;
+                    color: var(--text-secondary);
                 }
                 .qh-link {
                     font-size: 0.78rem;

@@ -75,6 +75,14 @@
   --radius: 12px;
   --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-sharp: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+
+  /* Profile hero banner (always-dark decorative surface, unaffected by theme) */
+  --profile-hero-grad-1: #181818;
+  --profile-hero-grad-2: #2a0e0e;
+  --profile-hero-grad-3: #1a1a1a;
+  /* Brand-tint text used for readability on the always-dark profile hero */
+  --gold-text-on-dark: #FFD54F;
+  --success-text-on-dark: #81C784;
 }
 
 :root[data-theme='dark'] {
