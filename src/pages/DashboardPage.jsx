@@ -53,12 +53,12 @@ export default function DashboardPage() {
         <div className="container dashboard-page" style={{ paddingBottom: '5rem' }}>
             {/* Header */}
             <header style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
-                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
                     {new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </div>
-                <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#2c3e50' }}>
+                <h1 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-heading-accent)' }}>
                     {getGreeting()},{' '}
-                    <span style={{ color: '#E53935' }}>{userData?.firstName || 'Hasiči'}</span>!
+                    <span style={{ color: 'var(--danger)' }}>{userData?.firstName || 'Hasiči'}</span>!
                 </h1>
             </header>
 

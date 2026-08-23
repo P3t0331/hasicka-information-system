@@ -27,6 +27,8 @@
   --text-secondary: #555555;
   --text-muted: #888888;
   --text-on-dark: #FFFFFF;
+  /* Chromatic (blue-tinted) heading accent — Dashboard greeting, distinct from the achromatic text ladder */
+  --text-heading-accent: #2c3e50;
 
   /* Borders */
   --border: #e0e0e0;
@@ -68,6 +70,7 @@
   /* Accent: neutral/blue-grey (secondary badges) */
   --neutral: #546e7a;
   --neutral-bg: #eceff1;
+  --neutral-border: #B0BEC5;
 
   /* Glass effect (existing usage found in ProfilePage) */
   --glass-bg: rgba(255, 255, 255, 0.85);
@@ -92,6 +95,17 @@
   --danger-bg-soft: #fef7f7;
   --warning-bg-soft: #FFF8E1;
   --warning-border-soft: #FFE082;
+
+  /* Off-palette shades added for Dashboard retheme (task 5) */
+  --warning-bright: #FF9800;
+  --warning-moderate: #F9A825;
+  --success-bg-soft: #F1F8E9;
+  --success-text-soft: #558B2F;
+  --info-bright: #1E88E5;
+  --accent-purple-bright: #9C27B0;
+  /* Decorative gradient for the ImportantLinks widget header — theme-invariant */
+  --accent-amber-grad-1: #FFB74D;
+  --accent-amber-grad-2: #FFA726;
 }
 
 :root[data-theme='dark'] {
@@ -119,6 +133,10 @@
   --accent-purple-bg: #2a1830;
   --accent-purple-border: #402349;
   --neutral-bg: #23282b;
+  --neutral-border: #45535a;
+
+  /* Chromatic heading accent — lightened for readability on dark surfaces */
+  --text-heading-accent: #90A4AE;
 
   /* Profile hero banner — intentionally theme-invariant (always-dark surface) */
   --profile-hero-grad-1: #181818;
@@ -135,6 +153,17 @@
   --danger-bg-soft: #2a1616;
   --warning-bg-soft: #3a2c15;
   --warning-border-soft: #5c452a;
+
+  /* Off-palette shades added for Dashboard retheme (task 5) */
+  --warning-bright: #FF9800;
+  --warning-moderate: #F9A825;
+  --success-bg-soft: #14301f;
+  --success-text-soft: #558B2F;
+  --info-bright: #1E88E5;
+  --accent-purple-bright: #9C27B0;
+  /* Decorative gradient for the ImportantLinks widget header — theme-invariant */
+  --accent-amber-grad-1: #FFB74D;
+  --accent-amber-grad-2: #FFA726;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

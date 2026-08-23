@@ -5,7 +5,7 @@ export default function ZalohaNotificationBanner({ newZalohaShifts, onDismiss })
 
     return (
         <div style={{
-            background: 'linear-gradient(135deg, #FF9800, #F57C00)',
+            background: 'linear-gradient(135deg, var(--warning-bright), var(--warning))',
             color: 'white',
             padding: '1.25rem',
             borderRadius: '12px',
@@ -33,7 +33,7 @@ export default function ZalohaNotificationBanner({ newZalohaShifts, onDismiss })
                 onClick={onDismiss}
                 style={{
                     background: 'white',
-                    color: '#F57C00',
+                    color: 'var(--warning)',
                     border: 'none',
                     padding: '0.75rem',
                     borderRadius: '8px',

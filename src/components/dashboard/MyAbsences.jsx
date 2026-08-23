@@ -50,29 +50,29 @@ export default function MyAbsences({ absences }) {
                         return (
                             <div key={idx} className="dashboard-card" style={{ 
                                 padding: '1rem', 
-                                borderLeft: `4px solid ${isOngoing ? '#F57C00' : isPast ? '#9E9E9E' : '#757575'}`,
+                                borderLeft: `4px solid ${isOngoing ? 'var(--warning)' : isPast ? 'var(--text-faint)' : 'var(--text-muted)'}`,
                                 opacity: isPast ? 0.7 : 1
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div>
-                                        <div style={{ fontWeight: 700, color: '#333', marginBottom: '0.25rem', textDecoration: isPast ? 'line-through' : 'none' }}>
+                                        <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem', textDecoration: isPast ? 'line-through' : 'none' }}>
                                             {absence.reason}
                                         </div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                             {formatDate(absence.startDate)} - {formatDate(absence.endDate)}
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
                                         {isOngoing ? (
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F57C00', background: '#FFF3E0', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--warning)', background: 'var(--warning-bg)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                                                 PROBÍHÁ
                                             </span>
                                         ) : isPast ? (
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#757575', background: '#F5F5F5', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-alt)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                                                 PROBĚHLO
                                             </span>
                                         ) : daysUntil > 0 ? (
-                                            <div style={{ fontSize: '0.75rem', color: '#666' }}>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                                 Za {daysUntil} {daysUntil === 1 ? 'den' : daysUntil <= 4 ? 'dny' : 'dní'}
                                             </div>
                                         ) : null}
@@ -83,7 +83,7 @@ export default function MyAbsences({ absences }) {
                     })}
                 </div>
             ) : (
-                <div className="dashboard-card" style={{ textAlign: 'center', padding: '1.5rem', color: '#888' }}>
+                <div className="dashboard-card" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
                     Žádné {showPast ? '' : 'nadcházející'} absence.
                 </div>
             )}
@@ -93,7 +93,7 @@ export default function MyAbsences({ absences }) {
                     <button 
                         onClick={() => setShowPast(!showPast)}
                         style={{
-                            background: 'none', border: 'none', color: '#1976D2', 
+                            background: 'none', border: 'none', color: 'var(--info)',
                             fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                             textDecoration: 'underline'
                         }}
