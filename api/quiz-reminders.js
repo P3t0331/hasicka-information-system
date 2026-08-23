@@ -7,6 +7,7 @@ import {
     pragueDateString,
     MEMBER_STATUS,
 } from '../shared/quizStatus.js';
+import { shouldReceivePush } from '../shared/preferences.js';
 
 if (!getApps().length) {
     initializeApp({
@@ -110,6 +111,7 @@ export default async function handler(req, res) {
             const targetUserIds = members
                 .filter(member => isAssignedTo(quiz, member, training))
                 .filter(member => deriveMemberStatus(attemptsByUid.get(member.uid) || []) !== MEMBER_STATUS.PASSED)
+                .filter(member => shouldReceivePush(member.preferences, 'kvizy'))
                 .map(member => member.uid);
 
             // Zapsat PŘED odesláním, ne po něm — záměrně. Kdyby se posílalo
