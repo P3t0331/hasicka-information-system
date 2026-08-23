@@ -33,14 +33,14 @@ function EmojiPicker({ value, onChange }) {
                 onClick={() => setOpen(o => !o)}
                 style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    padding: '0.35rem 0.75rem', border: '1px solid #ddd',
+                    padding: '0.35rem 0.75rem', border: '1px solid var(--border)',
                     borderRadius: '8px', background: 'white', cursor: 'pointer',
-                    fontSize: '0.82rem', color: '#555', fontWeight: 600,
+                    fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600,
                 }}
             >
                 <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{value || '—'}</span>
-                <span style={{ fontSize: '0.75rem', color: '#888' }}>Ikona</span>
-                <span style={{ fontSize: '0.65rem', color: '#aaa', marginLeft: '0.1rem' }}>{open ? '▲' : '▼'}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ikona</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-subtle)', marginLeft: '0.1rem' }}>{open ? '▲' : '▼'}</span>
             </button>
             {open && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.4rem' }}>
@@ -49,9 +49,9 @@ function EmojiPicker({ value, onChange }) {
                         onClick={() => { onChange(''); setOpen(false); }}
                         style={{
                             fontSize: '0.72rem', padding: '0.3rem 0.5rem',
-                            border: value === '' ? '2px solid #E53935' : '2px solid #eee',
-                            borderRadius: '8px', background: value === '' ? '#ffebee' : 'white',
-                            cursor: 'pointer', color: '#888', fontWeight: 600,
+                            border: value === '' ? '2px solid var(--danger-hover)' : '2px solid var(--border)',
+                            borderRadius: '8px', background: value === '' ? 'var(--danger-bg)' : 'white',
+                            cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 600,
                         }}
                     >
                         Bez ikony
@@ -63,8 +63,8 @@ function EmojiPicker({ value, onChange }) {
                             onClick={() => { onChange(e); setOpen(false); }}
                             style={{
                                 fontSize: '1.35rem', padding: '0.3rem 0.4rem',
-                                border: value === e ? '2px solid #E53935' : '2px solid #eee',
-                                borderRadius: '8px', background: value === e ? '#ffebee' : 'white',
+                                border: value === e ? '2px solid var(--danger-hover)' : '2px solid var(--border)',
+                                borderRadius: '8px', background: value === e ? 'var(--danger-bg)' : 'white',
                                 cursor: 'pointer', lineHeight: 1,
                             }}
                         >
@@ -86,20 +86,20 @@ function LinkFormFields({ value, onChange }) {
                     placeholder="Název *"
                     value={value.label}
                     onChange={e => onChange({ ...value, label: e.target.value })}
-                    style={{ padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
+                    style={{ padding: '0.6rem', border: '1px solid var(--border)', borderRadius: '8px' }}
                 />
                 <input
                     placeholder="URL *"
                     value={value.url}
                     onChange={e => onChange({ ...value, url: e.target.value })}
-                    style={{ padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
+                    style={{ padding: '0.6rem', border: '1px solid var(--border)', borderRadius: '8px' }}
                 />
             </div>
             <input
                 placeholder="Popis (volitelný)"
                 value={value.description}
                 onChange={e => onChange({ ...value, description: e.target.value })}
-                style={{ width: '100%', padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border)', borderRadius: '8px', boxSizing: 'border-box' }}
             />
         </>
     );
@@ -113,13 +113,13 @@ function GroupFormFields({ value, onChange }) {
                 placeholder="Název skupiny *"
                 value={value.label}
                 onChange={e => onChange({ ...value, label: e.target.value })}
-                style={{ width: '100%', padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '0.75rem' }}
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '0.75rem' }}
             />
             <input
                 placeholder="Popis skupiny (volitelný)"
                 value={value.description}
                 onChange={e => onChange({ ...value, description: e.target.value })}
-                style={{ width: '100%', padding: '0.6rem', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border)', borderRadius: '8px', boxSizing: 'border-box' }}
             />
         </>
     );
@@ -275,10 +275,10 @@ export default function LinksTab() {
         showToast('success', 'Pořadí odkazů bylo uloženo.');
     };
 
-    if (links === null) return <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání...</div>;
+    if (links === null) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Načítání...</div>;
 
-    const btnEdit = { background: 'none', border: '1px solid #ddd', color: '#555', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 };
-    const btnRemove = { background: 'none', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 };
+    const btnEdit = { background: 'none', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 };
+    const btnRemove = { background: 'none', border: '1px solid var(--danger-border)', color: 'var(--danger-text)', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 };
     const groups = (links || []).filter(l => l.type === 'group');
 
     return (
@@ -305,7 +305,7 @@ export default function LinksTab() {
                             <button
                                 type="button"
                                 onClick={() => { setMovingLink({ ...editLink }); setEditLink(null); }}
-                                style={{ width: '100%', marginTop: '0.75rem', padding: '0.5rem', background: '#f0f7ff', border: '1px solid #bbdefb', borderRadius: '8px', color: '#1565c0', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                                style={{ width: '100%', marginTop: '0.75rem', padding: '0.5rem', background: 'var(--info-bg)', border: '1px solid var(--info-border-soft)', borderRadius: '8px', color: 'var(--info-text)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                             >
                                 Přesunout do skupiny…
                             </button>
@@ -326,7 +326,7 @@ export default function LinksTab() {
                 }} onClick={() => setConfirmRemove(null)}>
                     <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%', animation: 'fadeIn 0.2s' }}>
                         <h3 style={{ marginTop: 0 }}>{confirmRemove.type === 'group' ? 'Odebrat skupinu?' : 'Odebrat odkaz?'}</h3>
-                        <p style={{ color: '#555', marginBottom: '1.25rem' }}>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
                             {confirmRemove.type === 'group'
                                 ? <>Skupina <strong>„{confirmRemove.label}"</strong> a všechny její odkazy budou trvale odstraněny.</>
                                 : <>Odkaz <strong>„{confirmRemove.label}"</strong> bude trvale odstraněn.</>
@@ -334,7 +334,7 @@ export default function LinksTab() {
                         </p>
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmRemove(null)}>Zrušit</button>
-                            <button className="btn btn-primary" style={{ flex: 1, background: '#d32f2f', borderColor: '#d32f2f' }} onClick={() => handleRemove(confirmRemove.id)}>Odebrat</button>
+                            <button className="btn btn-primary" style={{ flex: 1, background: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleRemove(confirmRemove.id)}>Odebrat</button>
                         </div>
                     </div>
                 </div>
@@ -348,7 +348,7 @@ export default function LinksTab() {
                 }} onClick={() => setMovingLink(null)}>
                     <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%', animation: 'fadeIn 0.2s' }}>
                         <h3 style={{ marginTop: 0, marginBottom: '0.25rem' }}>Přesunout do skupiny</h3>
-                        <p style={{ color: '#555', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem' }}>
                             Vyberte skupinu pro odkaz <strong>„{movingLink.label}"</strong>:
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
@@ -357,10 +357,10 @@ export default function LinksTab() {
                                     key={g.id}
                                     onClick={() => handleMoveToGroup(g.id)}
                                     disabled={saving}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: '#f0f7ff', border: '1px solid #bbdefb', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'var(--info-bg)', border: '1px solid var(--info-border-soft)', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', width: '100%' }}
                                 >
                                     <span style={{ fontSize: '1.25rem' }}>{g.emoji || '📁'}</span>
-                                    <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#1565c0' }}>{g.label}</span>
+                                    <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--info-text)' }}>{g.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -399,19 +399,19 @@ export default function LinksTab() {
             {/* Links list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {links.length === 0 && (
-                    <div style={{ textAlign: 'center', color: '#888', padding: '2rem' }}>Žádné odkazy</div>
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Žádné odkazy</div>
                 )}
                 {links.map((item) => item.type === 'group' ? (
                     /* Group */
-                    <div key={item.id} style={{ borderRadius: '12px', border: '2px solid #e3f2fd', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: '#e3f2fd' }}>
+                    <div key={item.id} style={{ borderRadius: '12px', border: '2px solid var(--info-bg)', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: 'var(--info-bg)' }}>
                             <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{item.emoji || '📁'}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.label}</div>
                                 {item.description && (
-                                    <div style={{ fontSize: '0.78rem', color: '#555', marginTop: '0.1rem' }}>{item.description}</div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.1rem' }}>{item.description}</div>
                                 )}
-                                <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '0.1rem' }}>{(item.links || []).length} odkazů</div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{(item.links || []).length} odkazů</div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                                 <button onClick={() => setEditLink({ ...item })} disabled={saving} style={btnEdit}>Upravit</button>
@@ -419,14 +419,14 @@ export default function LinksTab() {
                             </div>
                         </div>
 
-                        <div style={{ padding: '0.5rem', background: '#f8f9fa', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <div style={{ padding: '0.5rem', background: 'var(--surface-alt)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             {(item.links || []).map(sl => (
-                                <div key={sl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', background: 'white', borderRadius: '8px', border: '1px solid #eee' }}>
+                                <div key={sl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', background: 'white', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                     <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{sl.emoji || '🔗'}</span>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{sl.label}</div>
-                                        {sl.description && <div style={{ fontSize: '0.75rem', color: '#666' }}>{sl.description}</div>}
-                                        <div style={{ fontSize: '0.7rem', color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sl.url}</div>
+                                        {sl.description && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{sl.description}</div>}
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-subtle)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sl.url}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
                                         <button onClick={() => setEditLink({ ...sl, _groupId: item.id })} disabled={saving} style={btnEdit}>Upravit</button>
@@ -436,7 +436,7 @@ export default function LinksTab() {
                             ))}
 
                             {addingSubTo === item.id ? (
-                                <div style={{ padding: '0.75rem', background: 'white', borderRadius: '8px', border: '1px solid #bbdefb' }}>
+                                <div style={{ padding: '0.75rem', background: 'white', borderRadius: '8px', border: '1px solid var(--info-border-soft)' }}>
                                     <LinkFormFields value={subForm} onChange={setSubForm} />
                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
                                         <button className="btn btn-secondary" style={{ fontSize: '0.8rem' }} onClick={() => { setAddingSubTo(null); setSubForm(EMPTY_FORM); }}>Zrušit</button>
@@ -446,7 +446,7 @@ export default function LinksTab() {
                             ) : (
                                 <button
                                     onClick={() => { setAddingSubTo(item.id); setSubForm(EMPTY_FORM); }}
-                                    style={{ alignSelf: 'flex-start', background: 'none', border: '1px dashed #90caf9', color: '#1565c0', borderRadius: '8px', padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                                    style={{ alignSelf: 'flex-start', background: 'none', border: '1px dashed var(--info-border)', color: 'var(--info-text)', borderRadius: '8px', padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
                                 >
                                     + Přidat odkaz do skupiny
                                 </button>
@@ -455,14 +455,14 @@ export default function LinksTab() {
                     </div>
                 ) : (
                     /* Regular link */
-                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: '#f8f9fa', borderRadius: '12px', border: '1px solid #eee' }}>
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                         <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{item.emoji || '🔗'}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.label}</div>
                             {item.description && (
-                                <div style={{ fontSize: '0.78rem', color: '#666', marginTop: '0.1rem' }}>{item.description}</div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '0.1rem' }}>{item.description}</div>
                             )}
-                            <div style={{ fontSize: '0.72rem', color: '#aaa', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {item.url}
                             </div>
                         </div>

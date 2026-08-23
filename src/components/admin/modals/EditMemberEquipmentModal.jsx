@@ -27,7 +27,7 @@ export default function EditMemberEquipmentModal({
         onClick={e => e.stopPropagation()}
         style={{ maxWidth: '500px', width: '90%', animation: 'fadeIn 0.2s', maxHeight: '90vh', overflowY: 'auto' }}
       >
-        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#333' }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-charcoal)' }}>
           {currentEq.id && !currentEq.id.startsWith('new_') ? 'Upravit vybavení' : 'Přidat vybavení členovi'}
         </h3>
 
@@ -207,7 +207,7 @@ export default function EditMemberEquipmentModal({
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button className="btn btn-success" style={{ background: '#2e7d32', color: 'white', flex: 1 }} type="submit">Uložit položku</button>
+            <button className="btn btn-success" style={{ background: 'var(--success-text)', color: 'white', flex: 1 }} type="submit">Uložit položku</button>
             <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={onClose}>Zrušit</button>
           </div>
         </form>

@@ -5,12 +5,12 @@ import { isAnswerCorrect } from '../../../../shared/quizScoring.js';
 // QuizAttemptDetail): zelená nad 80 %, oranžová 50–80 %, červená pod 50 %.
 // Šedá je zvláštní stav mimo tuhle stupnici — otázka, o které zatím nevíme
 // nic (viz `percent === null` níže), ne nejhorší otázka v kvízu.
-const UNDECIDED_COLORS = { color: '#616161', bg: '#F5F5F5', border: '#BDBDBD' };
+const UNDECIDED_COLORS = { color: 'var(--text-secondary)', bg: 'var(--surface-alt)', border: 'var(--border-strong)' };
 
 function colorFor(percent) {
-    if (percent >= 80) return { color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' };
-    if (percent >= 50) return { color: '#E65100', bg: '#FFF3E0', border: '#FFCC80' };
-    return { color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' };
+    if (percent >= 80) return { color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' };
+    if (percent >= 50) return { color: 'var(--warning-dark)', bg: 'var(--warning-bg)', border: 'var(--warning-border)' };
+    return { color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' };
 }
 
 // Pro každou otázku spočítá, kolik odevzdaných pokusů ji mělo správně/špatně.
@@ -117,7 +117,7 @@ export default function QuestionStats({ quiz, answerKey, attempts }) {
                             </p>
 
                             <div style={{
-                                height: '10px', borderRadius: '999px', background: '#eee', overflow: 'hidden', marginBottom: '0.5rem',
+                                height: '10px', borderRadius: '999px', background: 'var(--border)', overflow: 'hidden', marginBottom: '0.5rem',
                             }}>
                                 <div style={{
                                     height: '100%', width: `${undecided ? 0 : s.percent}%`,

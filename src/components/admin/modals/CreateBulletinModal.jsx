@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const PRIORITIES = [
-    { value: 'normal', label: 'Normální', color: '#546E7A' },
-    { value: 'important', label: 'Důležité', color: '#E65100' },
-    { value: 'urgent', label: 'Urgentní', color: '#C62828' },
+    { value: 'normal', label: 'Normální', color: 'var(--neutral)' },
+    { value: 'important', label: 'Důležité', color: 'var(--warning-dark)' },
+    { value: 'urgent', label: 'Urgentní', color: 'var(--danger-text)' },
 ];
 
 export default function CreateBulletinModal({ initialPost, onClose, onSave }) {
@@ -42,7 +42,7 @@ export default function CreateBulletinModal({ initialPost, onClose, onSave }) {
                 onClick={e => e.stopPropagation()}
                 style={{ maxWidth: '540px', width: '94%', animation: 'fadeIn 0.2s', maxHeight: '90vh', overflowY: 'auto' }}
             >
-                <h3 style={{ marginTop: 0, marginBottom: '1.25rem', color: '#333' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '1.25rem', color: 'var(--text-charcoal)' }}>
                     {isEdit ? '✏️ Upravit příspěvek' : '📌 Nový příspěvek na nástěnku'}
                 </h3>
 
@@ -92,15 +92,15 @@ export default function CreateBulletinModal({ initialPost, onClose, onSave }) {
                                 display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                                 cursor: 'pointer', userSelect: 'none',
                                 padding: '0.55rem 0.75rem',
-                                border: '1px solid #ddd', borderRadius: '8px',
-                                background: isPinned ? '#FFF8E1' : 'white',
+                                border: '1px solid var(--border)', borderRadius: '8px',
+                                background: isPinned ? 'var(--warning-bg-soft)' : 'white',
                                 fontSize: '0.9rem'
                             }}>
                                 <input
                                     type="checkbox"
                                     checked={isPinned}
                                     onChange={e => setIsPinned(e.target.checked)}
-                                    style={{ width: '1rem', height: '1rem', margin: 0, accentColor: '#F57C00' }}
+                                    style={{ width: '1rem', height: '1rem', margin: 0, accentColor: 'var(--warning)' }}
                                 />
                                 📌 Připnout nahoře
                             </label>
@@ -110,9 +110,9 @@ export default function CreateBulletinModal({ initialPost, onClose, onSave }) {
                     {error && (
                         <div style={{
                             marginTop: '0.75rem', padding: '0.5rem 0.75rem',
-                            background: '#FFEBEE', color: '#C62828',
+                            background: 'var(--danger-bg)', color: 'var(--danger-text)',
                             borderRadius: '6px', fontSize: '0.85rem',
-                            border: '1px solid #FFCDD2'
+                            border: '1px solid var(--danger-border)'
                         }}>
                             {error}
                         </div>

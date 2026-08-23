@@ -110,6 +110,24 @@
      --text-muted, which is now used for the "past" state, so the two
      absence states never collapse onto the same border color */
   --text-dim: #757575;
+
+  /* Off-palette shades added for Admin retheme (task 6) */
+  --text-subtle: #AAAAAA;
+  --text-gray: #999999;
+  --text-charcoal: #333333;
+  --border-medium: #CCCCCC;
+  --danger-hover: #E53935;
+  --accent-brown: #795548;
+  --neutral-dark: #455A64;
+  --info-border-soft: #BBDEFB;
+  --warning-border-warm: #FFE0B2;
+  /* Category badge palette (LogsTab/constants.js CATEGORY_CONFIG) — "cleaning" and
+     the "profile" access-role border need their own tokens, kept distinct from every
+     other category so the 6 category colors never collapse into each other */
+  --teal: #006064;
+  --teal-bg: #B2EBF2;
+  --teal-border: #4DD0E1;
+  --accent-purple-border-soft: #CE93D8;
 }
 
 :root[data-theme='dark'] {
@@ -169,6 +187,21 @@
   --accent-amber-grad-1: #FFB74D;
   --accent-amber-grad-2: #FFA726;
   --text-dim: #989898;
+
+  /* Off-palette shades added for Admin retheme (task 6) */
+  --text-subtle: #a8a8a8;
+  --text-gray: #a0a0a0;
+  --text-charcoal: #d5d5d5;
+  --border-medium: #4a4a4a;
+  --danger-hover: #E53935;
+  --accent-brown: #a1887f;
+  --neutral-dark: #78909c;
+  --info-border-soft: #234b6e;
+  --warning-border-warm: #5c4527;
+  --teal: #006064;
+  --teal-bg: #0d3a3d;
+  --teal-border: #1f5f66;
+  --accent-purple-border-soft: #4a2f52;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

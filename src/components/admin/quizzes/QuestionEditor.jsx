@@ -131,7 +131,7 @@ export default function QuestionEditor({
           <button
             type="button"
             className="btn btn-secondary"
-            style={{ ...iconButtonStyle, color: '#c62828', borderColor: '#ffcdd2' }}
+            style={{ ...iconButtonStyle, color: 'var(--danger-text)', borderColor: 'var(--danger-border)' }}
             title="Smazat otázku"
             aria-label="Smazat otázku"
             disabled={disabled}

@@ -48,7 +48,7 @@ export default function SuggestionsAdminTab() {
         setConfirmDelete(null);
     };
 
-    if (loading) return <div style={{ padding: '2rem', color: '#888' }}>Načítání návrhů...</div>;
+    if (loading) return <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Načítání návrhů...</div>;
 
     return (
         <div>
@@ -60,7 +60,7 @@ export default function SuggestionsAdminTab() {
                 }} onClick={() => setConfirmDelete(null)}>
                     <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%' }}>
                         <h3 style={{ marginBottom: '0.75rem' }}>Smazat návrh?</h3>
-                        <p style={{ color: '#666', marginBottom: '1.25rem', fontSize: '0.9rem' }}>Tato akce je nevratná.</p>
+                        <p style={{ color: 'var(--text-dim)', marginBottom: '1.25rem', fontSize: '0.9rem' }}>Tato akce je nevratná.</p>
                         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                             <button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>Zrušit</button>
                             <button className="btn btn-primary" onClick={() => handleDelete(confirmDelete)}>Smazat</button>
@@ -72,7 +72,7 @@ export default function SuggestionsAdminTab() {
             <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
                     <h2 style={{ margin: 0, fontSize: '1.3rem' }}>💡 Návrhy členů</h2>
-                    <p style={{ margin: '0.25rem 0 0', color: '#888', fontSize: '0.85rem' }}>{suggestions.length} celkem</p>
+                    <p style={{ margin: '0.25rem 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{suggestions.length} celkem</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                     {STATUS_FILTERS.map(f => (
@@ -83,9 +83,9 @@ export default function SuggestionsAdminTab() {
                                 padding: '0.35rem 0.9rem',
                                 borderRadius: '50px',
                                 border: '1.5px solid',
-                                borderColor: statusFilter === f.id ? 'var(--primary-red)' : '#e0e0e0',
+                                borderColor: statusFilter === f.id ? 'var(--primary-red)' : 'var(--border)',
                                 background: statusFilter === f.id ? 'var(--primary-red)' : 'white',
-                                color: statusFilter === f.id ? 'white' : '#555',
+                                color: statusFilter === f.id ? 'white' : 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 fontSize: '0.82rem',
                                 fontWeight: statusFilter === f.id ? 700 : 400,
@@ -98,7 +98,7 @@ export default function SuggestionsAdminTab() {
             </div>
 
             {filtered.length === 0 ? (
-                <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: '#aaa' }}>
+                <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-subtle)' }}>
                     Žádné návrhy v této kategorii.
                 </div>
             ) : (
@@ -113,7 +113,7 @@ export default function SuggestionsAdminTab() {
                                 borderRadius: '10px',
                                 padding: '1.25rem 1.4rem',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-                                border: '1px solid #f0f0f0',
+                                border: '1px solid var(--surface-hover)',
                             }}>
                                 <SuggestionCard
                                     suggestion={suggestion}
@@ -126,14 +126,14 @@ export default function SuggestionsAdminTab() {
                                 <div style={{
                                     marginTop: '1rem',
                                     paddingTop: '1rem',
-                                    borderTop: '1px solid #f0f0f0',
+                                    borderTop: '1px solid var(--surface-hover)',
                                     display: 'flex',
                                     gap: '0.75rem',
                                     alignItems: 'flex-end',
                                     flexWrap: 'wrap',
                                 }}>
                                     <div style={{ flex: '0 0 160px' }}>
-                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '0.3rem' }}>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-gray)', textTransform: 'uppercase', display: 'block', marginBottom: '0.3rem' }}>
                                             Status
                                         </label>
                                         <select
@@ -148,7 +148,7 @@ export default function SuggestionsAdminTab() {
                                         </select>
                                     </div>
                                     <div style={{ flex: 1, minWidth: '200px' }}>
-                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '0.3rem' }}>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-gray)', textTransform: 'uppercase', display: 'block', marginBottom: '0.3rem' }}>
                                             Poznámka admina
                                         </label>
                                         <input

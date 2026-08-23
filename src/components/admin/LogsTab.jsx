@@ -6,7 +6,7 @@ import { CATEGORY_CONFIG, ACTION_LABELS, formatRelativeTime, formatAbsoluteTime 
 const PAGE_SIZE = 300;
 
 const LogEntry = React.memo(function LogEntry({ id, category, action, userName, detail, timestamp }) {
-  const cat = CATEGORY_CONFIG[category] || { label: category, color: '#555', bg: '#f5f5f5', border: '#ddd', icon: '•' };
+  const cat = CATEGORY_CONFIG[category] || { label: category, color: 'var(--text-secondary)', bg: 'var(--surface-alt)', border: 'var(--border)', icon: '•' };
   const actionLabel = ACTION_LABELS[action] || action;
   const initials = userName ? userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
 
@@ -36,7 +36,7 @@ const LogEntry = React.memo(function LogEntry({ id, category, action, userName, 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
-          <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#222' }}>{userName}</span>
+          <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-primary)' }}>{userName}</span>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
             fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
@@ -45,17 +45,17 @@ const LogEntry = React.memo(function LogEntry({ id, category, action, userName, 
             {cat.icon} {actionLabel}
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: '0.82rem', color: '#555', lineHeight: 1.45 }}>
+        <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
           {detail}
         </p>
       </div>
 
       {/* Timestamp */}
       <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '70px', alignSelf: 'center' }}>
-        <div style={{ fontSize: '0.72rem', color: '#888', fontWeight: 600 }}>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
           {formatRelativeTime(timestamp)}
         </div>
-        <div className="d-desktop-only" style={{ fontSize: '0.65rem', color: '#bbb', marginTop: '0.15rem' }}>
+        <div className="d-desktop-only" style={{ fontSize: '0.65rem', color: 'var(--text-faint)', marginTop: '0.15rem' }}>
           {formatAbsoluteTime(timestamp)}
         </div>
       </div>
@@ -197,13 +197,13 @@ export default function LogsTab({
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
           {/* User filter */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1', minWidth: '200px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: 600, whiteSpace: 'nowrap' }}>Uživatel:</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Uživatel:</span>
             <select
               value={logFilterUser}
               onChange={e => setLogFilterUser(e.target.value)}
               style={{
-                padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #e0e0e0',
-                fontSize: '0.85rem', background: '#fafafa', cursor: 'pointer', width: '100%'
+                padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)',
+                fontSize: '0.85rem', background: 'var(--surface-sunken)', cursor: 'pointer', width: '100%'
               }}
             >
               <option value="all">Všichni</option>
@@ -232,9 +232,9 @@ export default function LogsTab({
                   style={{
                     padding: '0.35rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem',
                     fontWeight: logFilterCategory === cat.id ? 700 : 500,
-                    border: `1px solid ${logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.border || '#aaa') : '#e0e0e0'}`,
-                    background: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.bg || '#eee') : 'white',
-                    color: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.color || '#333') : '#666',
+                    border: `1px solid ${logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.border || 'var(--text-subtle)') : 'var(--border)'}`,
+                    background: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.bg || 'var(--border)') : 'white',
+                    color: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.color || 'var(--text-charcoal)') : 'var(--text-dim)',
                     cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
                     flexShrink: 0
                   }}
@@ -247,20 +247,20 @@ export default function LogsTab({
         </div>
 
         {/* Actions (Refresh) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', width: '100%', marginTop: '0.5rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }} className="mobile-only-border-top">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', width: '100%', marginTop: '0.5rem', borderTop: '1px solid var(--surface-hover)', paddingTop: '0.75rem' }} className="mobile-only-border-top">
           <button
             onClick={() => {
               fetchLogs(true);
             }}
             disabled={logsLoading}
             style={{
-              background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px',
+              background: 'white', border: '1px solid var(--border)', borderRadius: '8px',
               padding: '0.4rem 0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              fontSize: '0.8rem', color: '#555', transition: 'all 0.2s',
+              fontSize: '0.8rem', color: 'var(--text-secondary)', transition: 'all 0.2s',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
-            onMouseOver={e => { e.currentTarget.style.background = '#f9f9f9'; e.currentTarget.style.borderColor = '#ccc'; }}
-            onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e0e0e0'; }}
+            onMouseOver={e => { e.currentTarget.style.background = 'var(--surface-sunken)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border)'; }}
           >
             <span style={{
               display: 'inline-block',
@@ -273,7 +273,7 @@ export default function LogsTab({
           </button>
 
           {/* Count */}
-          <span style={{ fontSize: '0.75rem', color: '#aaa', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', whiteSpace: 'nowrap' }}>
             {activityLogs.length} <span className="d-desktop-only">záznamů</span>
           </span>
         </div>
@@ -283,18 +283,18 @@ export default function LogsTab({
       {indexError && (
         <div style={{
           padding: '1.25rem', marginBottom: '1.5rem',
-          background: '#FFF3E0', border: '1px solid #FFB74D',
-          borderRadius: '10px', color: '#E65100'
+          background: 'var(--warning-bg)', border: '1px solid var(--accent-amber-grad-1)',
+          borderRadius: '10px', color: 'var(--warning-dark)'
         }}>
           <h4 style={{ margin: '0 0 0.5rem' }}>⚠️ Chybí databázový index</h4>
           <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>
             Pro filtrování na serveru je potřeba vytvořit v databázi index. Klikněte na odkaz níže (otevře se Firebase Console) a klikněte na "Vytvořit index".
           </p>
-          <div style={{ wordBreak: 'break-all', fontSize: '0.75rem', background: '#fff', padding: '0.5rem', borderRadius: '4px', border: '1px solid #FFE0B2' }}>
+          <div style={{ wordBreak: 'break-all', fontSize: '0.75rem', background: 'var(--surface)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--warning-border-warm)' }}>
             {(() => {
               const urlMatch = indexError.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
               if (urlMatch) {
-                return <a href={urlMatch[0]} target="_blank" rel="noreferrer" style={{ color: '#1565C0', textDecoration: 'underline' }}>{urlMatch[0]}</a>;
+                return <a href={urlMatch[0]} target="_blank" rel="noreferrer" style={{ color: 'var(--info-text)', textDecoration: 'underline' }}>{urlMatch[0]}</a>;
               }
               return indexError;
             })()}
@@ -304,17 +304,17 @@ export default function LogsTab({
 
       {/* Log List */}
       {logsLoading ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#aaa' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-subtle)' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
           Načítám záznamy...
         </div>
       ) : activityLogs.length === 0 ? (
         <div style={{
-          textAlign: 'center', padding: '3rem', color: '#bbb',
+          textAlign: 'center', padding: '3rem', color: 'var(--text-faint)',
           background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
         }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📭</div>
-          <div style={{ fontWeight: 600, color: '#999', marginBottom: '0.3rem' }}>Žádné záznamy</div>
+          <div style={{ fontWeight: 600, color: 'var(--text-gray)', marginBottom: '0.3rem' }}>Žádné záznamy</div>
           <div style={{ fontSize: '0.82rem' }}>Změňte filtry nebo počkejte, až nějaká akce proběhne.</div>
         </div>
       ) : (
@@ -339,11 +339,11 @@ export default function LogsTab({
                 marginTop: '0.5rem',
                 padding: '0.65rem 1.25rem',
                 background: 'white',
-                border: '1px solid #e0e0e0',
+                border: '1px solid var(--border)',
                 borderRadius: '10px',
                 cursor: loadingMore ? 'default' : 'pointer',
                 fontSize: '0.85rem',
-                color: '#555',
+                color: 'var(--text-secondary)',
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',

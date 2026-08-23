@@ -5,10 +5,10 @@ import { isAnswerCorrect } from '../../../../shared/quizScoring.js';
 // Stejná paleta jako QuizResultsTable/QuizCard — jeden pokus tady může mít
 // jen ty stavy, které se ukazují i v tabulce výsledků a na kartě kvízu.
 const STATUS_CONFIG = {
-  [MEMBER_STATUS.IN_PROGRESS]: { label: 'Rozpracováno', color: '#E65100', bg: '#FFF3E0', border: '#FFCC80' },
-  [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },
-  [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-  [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
+  [MEMBER_STATUS.IN_PROGRESS]: { label: 'Rozpracováno', color: 'var(--warning-dark)', bg: 'var(--warning-bg)', border: 'var(--warning-border)' },
+  [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
+  [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+  [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
 };
 
 function StatusBadge({ status }) {
@@ -28,7 +28,7 @@ function LateBadge() {
   return (
     <span style={{
       fontSize: '0.72rem', fontWeight: 700, padding: '0.15rem 0.5rem', marginLeft: '0.5rem',
-      borderRadius: '999px', color: '#E65100', background: '#FFF3E0', border: '1px solid #FFCC80',
+      borderRadius: '999px', color: 'var(--warning-dark)', background: 'var(--warning-bg)', border: '1px solid var(--warning-border)',
       whiteSpace: 'nowrap',
     }}>
       Po termínu
@@ -178,12 +178,12 @@ export default function QuizAttemptDetail({
           const isCorrect = isText ? null : isAnswerCorrect(question, keyEntry, memberAnswer);
           const manualGrade = attempt.manualGrades?.[question.id];
 
-          let borderColor = '#9E9E9E';
+          let borderColor = 'var(--text-gray)';
           if (isText) {
-            if (manualGrade === 1) borderColor = '#2E7D32';
-            else if (manualGrade === 0) borderColor = '#C62828';
-          } else if (isCorrect === true) borderColor = '#2E7D32';
-          else if (isCorrect === false) borderColor = '#C62828';
+            if (manualGrade === 1) borderColor = 'var(--success-text)';
+            else if (manualGrade === 0) borderColor = 'var(--danger-text)';
+          } else if (isCorrect === true) borderColor = 'var(--success-text)';
+          else if (isCorrect === false) borderColor = 'var(--danger-text)';
 
           return (
             <div key={question.id} className="card" style={{ padding: '1.1rem 1.25rem', borderLeft: `4px solid ${borderColor}` }}>
@@ -210,7 +210,7 @@ export default function QuizAttemptDetail({
               {!isText && (
                 <span style={{
                   fontSize: '0.8rem', fontWeight: 700,
-                  color: isCorrect === true ? '#2E7D32' : (isCorrect === false ? '#C62828' : 'var(--text-secondary)'),
+                  color: isCorrect === true ? 'var(--success-text)' : (isCorrect === false ? 'var(--danger-text)' : 'var(--text-secondary)'),
                 }}>
                   {isCorrect === true ? 'Správně' : (isCorrect === false ? 'Špatně' : 'Nelze automaticky vyhodnotit')}
                 </span>
@@ -224,7 +224,7 @@ export default function QuizAttemptDetail({
                     disabled={gradingQuestionId === question.id}
                     onClick={() => handleGrade(question.id, 1)}
                     style={manualGrade === 1 ? {
-                      color: '#2E7D32', background: '#E8F5E9', borderColor: '#A5D6A7', fontWeight: 700,
+                      color: 'var(--success-text)', background: 'var(--success-bg)', borderColor: 'var(--success-border-strong)', fontWeight: 700,
                     } : { fontSize: '0.85rem' }}
                   >
                     Uznat
@@ -235,13 +235,13 @@ export default function QuizAttemptDetail({
                     disabled={gradingQuestionId === question.id}
                     onClick={() => handleGrade(question.id, 0)}
                     style={manualGrade === 0 ? {
-                      color: '#C62828', background: '#FFEBEE', borderColor: '#FFCDD2', fontWeight: 700,
+                      color: 'var(--danger-text)', background: 'var(--danger-bg)', borderColor: 'var(--danger-border)', fontWeight: 700,
                     } : { fontSize: '0.85rem' }}
                   >
                     Neuznat
                   </button>
                   {manualGrade === undefined && (
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1565C0' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--info-text)' }}>
                       Čeká na hodnocení
                     </span>
                   )}

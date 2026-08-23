@@ -14,9 +14,9 @@ import { bestAttempt, MEMBER_STATUS } from '../../../shared/quizStatus.js';
 import { pluralize } from '../../utils/pluralize';
 
 const STATUS_CONFIG = {
-    draft:     { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
-    published: { label: 'Aktivní', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-    closed:    { label: 'Uzavřený', color: '#616161', bg: '#F5F5F5', border: '#BDBDBD' },
+    draft:     { label: 'Koncept', color: 'var(--neutral)', bg: 'var(--neutral-bg)', border: 'var(--neutral-border)' },
+    published: { label: 'Aktivní', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+    closed:    { label: 'Uzavřený', color: 'var(--text-secondary)', bg: 'var(--surface-alt)', border: 'var(--border-strong)' },
 };
 
 const FILTERS = [
@@ -98,7 +98,7 @@ function UnitNameRow() {
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-            <label htmlFor="unit-name-input" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>
+            <label htmlFor="unit-name-input" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                 Název jednotky (pro tiskový protokol):
             </label>
             <input
@@ -106,7 +106,7 @@ function UnitNameRow() {
                 value={draft}
                 onChange={e => setDraft(e.target.value)}
                 placeholder="např. Sbor dobrovolných hasičů…"
-                style={{ flex: '1 1 260px', minWidth: '200px', padding: '0.4rem 0.6rem', border: '1px solid #ddd', borderRadius: '8px' }}
+                style={{ flex: '1 1 260px', minWidth: '200px', padding: '0.4rem 0.6rem', border: '1px solid var(--border)', borderRadius: '8px' }}
             />
             <button
                 type="button"
@@ -225,7 +225,7 @@ export default function QuizzesTab() {
     }
 
     if (loading) {
-        return <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání kvízů…</div>;
+        return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Načítání kvízů…</div>;
     }
 
     async function handleCreate() {
@@ -327,7 +327,7 @@ export default function QuizzesTab() {
                     >
                         <div className="card" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', width: '90%', animation: 'fadeIn 0.2s' }}>
                             <h3 style={{ marginTop: 0 }}>Poslat připomínku?</h3>
-                            <p style={{ color: '#555', marginBottom: '1.25rem' }}>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
                                 Připomínka bude odeslána {notPassedRows.length} {pluralize(notPassedRows.length, 'členovi', 'členům', 'členům')}, kteří kvíz ještě nesplnili.
                             </p>
                             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -343,7 +343,7 @@ export default function QuizzesTab() {
                 )}
 
                 {results.loading ? (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Načítání výsledků…</div>
+                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Načítání výsledků…</div>
                 ) : detailTab === 'results' ? (
                     <>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
@@ -396,7 +396,7 @@ export default function QuizzesTab() {
                                 ? 'Uzavřít kvíz?'
                                 : confirmAction.quiz.status === 'draft' ? 'Smazat koncept?' : 'Nenávratně smazat kvíz?'}
                         </h3>
-                        <p style={{ color: '#555', marginBottom: '1.25rem' }}>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
                             {confirmAction.type === 'close'
                                 ? <>Kvíz <strong>„{confirmAction.quiz.title}"</strong> bude uzavřen a členové na něj již nebudou moci odpovídat.</>
                                 : confirmAction.quiz.status === 'draft'
@@ -414,7 +414,7 @@ export default function QuizzesTab() {
                         </p>
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmAction(null)}>Zrušit</button>
-                            <button className="btn btn-primary" style={{ flex: 1, background: '#d32f2f', borderColor: '#d32f2f' }} onClick={handleConfirm}>
+                            <button className="btn btn-primary" style={{ flex: 1, background: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={handleConfirm}>
                                 {confirmAction.type === 'close' ? 'Uzavřít' : 'Smazat'}
                             </button>
                         </div>
@@ -511,7 +511,7 @@ export default function QuizzesTab() {
                                     {canManage && quiz.status === 'published' && (
                                         <button
                                             className="btn btn-secondary"
-                                            style={{ fontSize: '0.8rem', color: '#E65100', borderColor: '#FFCC80' }}
+                                            style={{ fontSize: '0.8rem', color: 'var(--warning-dark)', borderColor: 'var(--warning-border)' }}
                                             onClick={() => setConfirmAction({ type: 'close', quiz })}
                                         >
                                             Uzavřít
@@ -520,7 +520,7 @@ export default function QuizzesTab() {
                                     {canManage && (quiz.status === 'draft' || isAdmin) && (
                                         <button
                                             className="btn btn-secondary"
-                                            style={{ fontSize: '0.8rem', color: '#c62828', borderColor: '#ffcdd2' }}
+                                            style={{ fontSize: '0.8rem', color: 'var(--danger-text)', borderColor: 'var(--danger-border)' }}
                                             onClick={() => requestDelete(quiz)}
                                         >
                                             Smazat

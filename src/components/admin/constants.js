@@ -11,12 +11,12 @@ export const CERTIFICATION_OPTIONS = [
 
 // ======== CATEGORY CONFIGURATION ========
 export const CATEGORY_CONFIG = {
-  shifts:      { label: 'Směny',       color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9', icon: '📅' },
-  activities:  { label: 'Aktivity',    color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7', icon: '🎓' },
-  maintenance: { label: 'Údržba',      color: '#E65100', bg: '#FFE0B2', border: '#FFB74D', icon: '🔧' },
-  cleaning:    { label: 'Úklid',       color: '#006064', bg: '#B2EBF2', border: '#4DD0E1', icon: '🧹' },
-  profile:     { label: 'Profil',      color: '#6A1B9A', bg: '#F3E5F5', border: '#CE93D8', icon: '👤' },
-  admin:       { label: 'Administrace', color: '#B71C1C', bg: '#FFEBEE', border: '#EF9A9A', icon: '🛡️' },
+  shifts:      { label: 'Směny',       color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)', icon: '📅' },
+  activities:  { label: 'Aktivity',    color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)', icon: '🎓' },
+  maintenance: { label: 'Údržba',      color: 'var(--warning-dark)', bg: 'var(--warning-border-warm)', border: 'var(--accent-amber-grad-1)', icon: '🔧' },
+  cleaning:    { label: 'Úklid',       color: 'var(--teal)', bg: 'var(--teal-bg)', border: 'var(--teal-border)', icon: '🧹' },
+  profile:     { label: 'Profil',      color: 'var(--accent-purple)', bg: 'var(--accent-purple-bg)', border: 'var(--accent-purple-border-soft)', icon: '👤' },
+  admin:       { label: 'Administrace', color: 'var(--danger-dark)', bg: 'var(--danger-bg)', border: 'var(--danger-border-strong)', icon: '🛡️' },
 };
 
 export const ACTION_LABELS = {
