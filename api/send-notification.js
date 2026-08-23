@@ -1,6 +1,7 @@
 import webpush from 'web-push';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldPath } from 'firebase-admin/firestore';
+import { shouldReceivePush } from '../shared/preferences.js';
 
 if (!getApps().length) {
     initializeApp({
@@ -23,7 +24,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).end();
 
-    const { title, body, url, tag, targetUserId, targetUserIds, targetRoles } = req.body || {};
+    const { title, body, url, tag, category, targetUserId, targetUserIds, targetRoles } = req.body || {};
     if (!title) return res.status(400).json({ error: 'missing title' });
 
     const db = getFirestore();
@@ -42,6 +43,27 @@ export default async function handler(req, res) {
         docs = subs.docs.filter(d => targetUids.has(d.data().userId));
     } else {
         docs = subs.docs;
+    }
+
+    if (category) {
+        const candidateUserIds = [...new Set(docs.map(d => d.data().userId).filter(Boolean))];
+        if (candidateUserIds.length > 0) {
+            // Firestore 'in' queries cap at 30 values per query — chunk if a
+            // broadcast (targetRoles/no target) ever exceeds that.
+            const chunks = [];
+            for (let i = 0; i < candidateUserIds.length; i += 30) {
+                chunks.push(candidateUserIds.slice(i, i + 30));
+            }
+            const userDocs = (await Promise.all(
+                chunks.map(chunk => db.collection('users').where(FieldPath.documentId(), 'in', chunk).get())
+            )).flatMap(snap => snap.docs);
+            const allowedUserIds = new Set(
+                userDocs
+                    .filter(d => shouldReceivePush(d.data().preferences, category))
+                    .map(d => d.id)
+            );
+            docs = docs.filter(d => allowedUserIds.has(d.data().userId));
+        }
     }
 
     await Promise.allSettled(
