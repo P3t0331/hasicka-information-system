@@ -27,7 +27,7 @@ function InfoRow({ label, value, icon, isLast }) {
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                     fontSize: '0.68rem',
-                    color: 'var(--text-muted)',
+                    color: 'var(--text-faint)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.6px',

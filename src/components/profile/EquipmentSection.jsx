@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { WEAR_OPTIONS } from '../../utils/constants';
 
 const WEAR_COLORS = {
-    1: { bg: 'var(--success-bg)', color: 'var(--success-text)', border: 'var(--success-border)' },
+    1: { bg: 'var(--success-bg)', color: 'var(--success-text)', border: 'var(--success-border-strong)' },
     2: { bg: 'var(--info-bg)', color: 'var(--info-text)', border: 'var(--info-border)' },
-    3: { bg: 'var(--warning-bg)', color: 'var(--warning-dark)', border: 'var(--warning-border)' },
-    4: { bg: 'var(--warning-bg)', color: 'var(--danger-dark)', border: 'var(--warning-border)' },
+    3: { bg: 'var(--warning-bg-soft)', color: 'var(--warning-dark)', border: 'var(--warning-border-soft)' },
+    4: { bg: 'var(--warning-bg)', color: 'var(--warning-text-strong)', border: 'var(--warning-border)' },
     5: { bg: 'var(--danger-bg)', color: 'var(--danger-dark)', border: 'var(--danger-border)' },
 };
 
@@ -17,7 +17,7 @@ function pluralPolozek(n) {
 
 function EmptyState({ message }) {
     return (
-        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: 'var(--text-faint)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.4 }}>🧰</div>
             <p style={{ fontStyle: 'italic', margin: 0, fontSize: '0.9rem' }}>{message}</p>
         </div>
@@ -78,7 +78,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                 }
                 .eq-header-sub {
                     font-size: 0.8rem;
-                    color: var(--text-muted);
+                    color: var(--text-faint);
                     margin: 0;
                 }
                 .eq-sort {
@@ -118,7 +118,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     transition: background 0.12s;
                     border-radius: 0 2px 2px 0;
                 }
-                .eq-item:hover { background: var(--danger-bg); }
+                .eq-item:hover { background: var(--danger-bg-soft); }
                 .eq-item:hover::before { background: var(--primary-red); }
                 .eq-info {
                     flex: 0 0 auto;
@@ -172,7 +172,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    color: var(--text-muted);
+                    color: var(--text-faint);
                     white-space: nowrap;
                 }
                 .eq-detail-value {
@@ -206,7 +206,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                 .eq-act-btn.edit { color: var(--info-text); }
                 .eq-act-btn.edit:hover { background: var(--info-bg); border-color: var(--info-border); }
                 .eq-act-btn.del { color: var(--danger-dark); }
-                .eq-act-btn.del:hover { background: var(--danger-bg); border-color: var(--danger-border); }
+                .eq-act-btn.del:hover { background: var(--danger-bg); border-color: var(--danger-border-strong); }
 
                 @media (max-width: 900px) {
                     .eq-divider { display: none; }
@@ -302,7 +302,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                                             <span className="eq-badge" style={{
                                                 background: isJSDH ? 'var(--danger-bg)' : 'var(--info-bg)',
                                                 color: isJSDH ? 'var(--danger-text)' : 'var(--info-text)',
-                                                borderColor: isJSDH ? 'var(--danger-border)' : 'var(--info-border)',
+                                                borderColor: isJSDH ? 'var(--danger-border-strong)' : 'var(--info-border)',
                                             }}>
                                                 {isJSDH ? 'JSDH' : 'Vlastní'}
                                             </span>

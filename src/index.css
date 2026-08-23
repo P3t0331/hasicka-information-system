@@ -83,6 +83,15 @@
   /* Brand-tint text used for readability on the always-dark profile hero */
   --gold-text-on-dark: #FFD54F;
   --success-text-on-dark: #81C784;
+
+  /* Off-palette shades that don't exactly match an existing token */
+  --text-faint: #bbbbbb;
+  --danger-border-strong: #EF9A9A;
+  --success-border-strong: #A5D6A7;
+  --warning-text-strong: #BF360C;
+  --danger-bg-soft: #fef7f7;
+  --warning-bg-soft: #FFF8E1;
+  --warning-border-soft: #FFE082;
 }
 
 :root[data-theme='dark'] {
@@ -110,6 +119,22 @@
   --accent-purple-bg: #2a1830;
   --accent-purple-border: #402349;
   --neutral-bg: #23282b;
+
+  /* Profile hero banner — intentionally theme-invariant (always-dark surface) */
+  --profile-hero-grad-1: #181818;
+  --profile-hero-grad-2: #2a0e0e;
+  --profile-hero-grad-3: #1a1a1a;
+  --gold-text-on-dark: #FFD54F;
+  --success-text-on-dark: #81C784;
+
+  /* Off-palette shades that don't exactly match an existing token */
+  --text-faint: #6b6b6b;
+  --danger-border-strong: #7a2e2e;
+  --success-border-strong: #2f5c3f;
+  --warning-text-strong: #BF360C;
+  --danger-bg-soft: #2a1616;
+  --warning-bg-soft: #3a2c15;
+  --warning-border-soft: #5c452a;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

@@ -342,7 +342,7 @@ export default function ProfilePage() {
                                 ))}
                             </div>
                         ) : (
-                            <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.88rem', margin: 0 }}>
+                            <p style={{ color: 'var(--text-faint)', fontStyle: 'italic', fontSize: '0.88rem', margin: 0 }}>
                                 Žádné kvalifikace.
                             </p>
                         )}

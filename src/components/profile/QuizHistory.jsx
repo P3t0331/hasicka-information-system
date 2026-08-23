@@ -7,7 +7,7 @@ import { pluralize } from '../../utils/pluralize';
 // Stejné barvy jako štítek stavu jinde v modulu kvízů (QuizCard, QuizResultView,
 // QuizResultsTable) — člen musí vidět stejný verdikt stejnou barvou všude.
 const VERDICT_CONFIG = {
-    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border)' },
+    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
     [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
     [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
 };
@@ -44,7 +44,7 @@ function pluralKvizu(n) {
 
 function EmptyState() {
     return (
-        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: 'var(--text-faint)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.4 }}>📝</div>
             <p style={{ fontStyle: 'italic', margin: 0, fontSize: '0.9rem' }}>
                 Zatím jste neabsolvoval žádný kvíz.
@@ -98,7 +98,7 @@ export default function QuizHistory() {
                 }
                 .qh-header-sub {
                     font-size: 0.8rem;
-                    color: var(--text-muted);
+                    color: var(--text-faint);
                     margin: 0;
                 }
                 .qh-list {
@@ -129,7 +129,7 @@ export default function QuizHistory() {
                     transition: background 0.12s;
                     border-radius: 0 2px 2px 0;
                 }
-                .qh-item:hover { background: var(--danger-bg); }
+                .qh-item:hover { background: var(--danger-bg-soft); }
                 .qh-item:hover::before { background: var(--primary-red); }
                 .qh-name {
                     font-size: 1.05rem;
