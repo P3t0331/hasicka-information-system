@@ -267,7 +267,7 @@ export default function ShiftsTab({
                     value={getGrandTotal().toString()}
                     label="Celkem hodin"
                     sublabel="Vč. stáží, zálohy a SMS"
-                    color="#D32F2F"
+                    color="var(--danger)"
                     bg="rgba(211, 47, 47, 0.08)"
                 />
                 <StatCard
@@ -275,7 +275,7 @@ export default function ShiftsTab({
                     value={getGrandSplitTotal().shiftTotal.toString()}
                     label="Služby na hasičce"
                     sublabel="Denní + noční směny"
-                    color="#F57C00"
+                    color="var(--warning)"
                     bg="rgba(245, 124, 0, 0.08)"
                 />
                 <StatCard
@@ -283,7 +283,7 @@ export default function ShiftsTab({
                     value={getGrandSplitTotal().fromHome.toString()}
                     label="Z toho doma (SMS)"
                     sublabel="Směny z domova"
-                    color="#388E3C"
+                    color="var(--success)"
                     bg="rgba(56, 142, 60, 0.08)"
                 />
                 <StatCard
@@ -291,7 +291,7 @@ export default function ShiftsTab({
                     value={users.filter(u => getTotalHoursForUser(u.uid) > 0).length.toString()}
                     label="Aktivních členů"
                     sublabel="S odpracovanými hodinami"
-                    color="#1976D2"
+                    color="var(--info)"
                     bg="rgba(25, 118, 210, 0.08)"
                 />
             </div>
@@ -300,9 +300,9 @@ export default function ShiftsTab({
             {(() => {
                 const splitTotal = getGrandSplitTotal();
                 const donutData = [
-                    { name: 'Denní', value: splitTotal.day, color: '#F57C00' },
-                    { name: 'Noční', value: splitTotal.night, color: '#263238' },
-                    { name: 'Záloha', value: splitTotal.zaloha, color: '#1565C0' },
+                    { name: 'Denní', value: splitTotal.day, color: 'var(--warning)' },
+                    { name: 'Noční', value: splitTotal.night, color: 'var(--shift-night)' },
+                    { name: 'Záloha', value: splitTotal.zaloha, color: 'var(--info-text)' },
                 ].filter(d => d.value > 0);
 
                 const dailyChartData = days
@@ -324,7 +324,7 @@ export default function ShiftsTab({
                                     <Pie data={donutData} cx="50%" cy="45%" innerRadius={65} outerRadius={105} dataKey="value" nameKey="name" labelLine={false} label={PieLabel}>
                                         {donutData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                                     </Pie>
-                                    <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
+                                    <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{value}</span>} />
                                     <Tooltip content={<ChartTooltip unit="h" />} />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -334,14 +334,14 @@ export default function ShiftsTab({
                             <ChartBlock title="📅 Hodiny po dnech" height={300}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={dailyChartData} barSize={14} margin={{ top: 4, right: 10, left: -10, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-hover)" vertical={false} />
                                         <XAxis dataKey="den" tick={{ fontSize: 11 }} tickLine={false} />
                                         <YAxis tick={{ fontSize: 11 }} unit="h" width={38} tickLine={false} axisLine={false} />
-                                        <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: '#f5f5f5' }} />
-                                        <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
-                                        <Bar dataKey="Denní" stackId="a" fill="#F57C00" />
-                                        <Bar dataKey="Noční" stackId="a" fill="#263238" />
-                                        <Bar dataKey="Záloha" stackId="a" fill="#1565C0" radius={[3, 3, 0, 0]} />
+                                        <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: 'var(--surface-alt)' }} />
+                                        <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{value}</span>} />
+                                        <Bar dataKey="Denní" stackId="a" fill="var(--warning)" />
+                                        <Bar dataKey="Noční" stackId="a" fill="var(--shift-night)" />
+                                        <Bar dataKey="Záloha" stackId="a" fill="var(--info-text)" radius={[3, 3, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </ChartBlock>
@@ -354,8 +354,8 @@ export default function ShiftsTab({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
                 {/* LEADERBOARD */}
                 <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'fit-content' }}>
-                    <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>🏆 Top 5 Hasičů</h3>
+                    <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>🏆 Top 5 Hasičů</h3>
                     </div>
                     <div style={{ padding: '0.5rem 1rem' }}>
                         {users
@@ -369,39 +369,39 @@ export default function ShiftsTab({
                                 return (
                                     <div key={user.uid} style={{
                                         display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0',
-                                        borderBottom: i < 4 ? '1px dashed #eee' : 'none'
+                                        borderBottom: i < 4 ? '1px dashed var(--border)' : 'none'
                                     }}>
                                         <div style={{
                                             width: '36px', height: '36px',
-                                            borderRadius: '50%', background: i < 3 ? '#FFF8E1' : '#f5f5f5',
+                                            borderRadius: '50%', background: i < 3 ? 'var(--warning-bg-soft)' : 'var(--surface-alt)',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             fontSize: '1.2rem', fontWeight: 700,
-                                            color: i < 3 ? '#FFC107' : '#999'
+                                            color: i < 3 ? 'var(--accent-gold)' : 'var(--text-gray)'
                                         }}>
                                             {i < 3 ? medals[i] : i + 1}
                                         </div>
 
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>{user.name}</div>
-                                            <div style={{ width: '100%', height: '6px', background: '#f0f0f0', borderRadius: '3px', overflow: 'hidden' }}>
-                                                <div style={{ width: `${pct}%`, height: '100%', background: i === 0 ? '#D32F2F' : (i === 1 ? '#F57C00' : '#1976D2'), borderRadius: '3px' }} />
+                                            <div style={{ width: '100%', height: '6px', background: 'var(--surface-hover)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                <div style={{ width: `${pct}%`, height: '100%', background: i === 0 ? 'var(--danger)' : (i === 1 ? 'var(--warning)' : 'var(--info)'), borderRadius: '3px' }} />
                                             </div>
                                         </div>
 
-                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#333' }}>{hours}h</div>
+                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>{hours}h</div>
                                     </div>
                                 );
                             })}
                         {users.every(u => getTotalHoursForUser(u.uid) === 0) && (
-                            <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-gray)' }}>Zatím nejsou žádná data</div>
                         )}
                     </div>
                 </div>
 
                 {/* MEMBER LIST */}
                 <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>👥 Přehled členů</h3>
+                    <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>👥 Přehled členů</h3>
                     </div>
                     <div style={{
                         padding: '1rem',
@@ -421,29 +421,29 @@ export default function ShiftsTab({
                                 return (
                                     <div key={user.uid} style={{
                                         padding: '0.9rem', borderRadius: '10px',
-                                        border: isMe ? '2px solid #81C784' : '1px solid #e0e0e0',
-                                        background: isMe ? '#F1F8E9' : 'white',
+                                        border: isMe ? '2px solid var(--success-text-on-dark)' : '1px solid var(--border)',
+                                        background: isMe ? 'var(--success-bg-soft)' : 'white',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
                                     }}>
                                         {/* Name + grand total */}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                                            <span style={{ fontWeight: 600, color: '#333', fontSize: '0.9rem' }}>{isMe && '⭐ '}{user.name}</span>
-                                            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#333' }}>{split.total}h</span>
+                                            <span style={{ fontWeight: 600, color: 'var(--text-charcoal)', fontSize: '0.9rem' }}>{isMe && '⭐ '}{user.name}</span>
+                                            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-charcoal)' }}>{split.total}h</span>
                                         </div>
 
                                         {/* Služby na hasičce */}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                                            <span style={{ fontSize: '0.72rem', color: '#777' }}>Služby na hasičce</span>
-                                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#E65100' }}>{split.shiftTotal}h</span>
+                                            <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Služby na hasičce</span>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--warning-dark)' }}>{split.shiftTotal}h</span>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: (split.fromHome > 0 || split.zaloha > 0) ? '0.5rem' : 0 }}>
                                             {split.day > 0 && (
-                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: '#FFF3E0', color: '#E65100', fontWeight: 600 }}>
+                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: 'var(--warning-bg)', color: 'var(--warning-dark)', fontWeight: 600 }}>
                                                     ☀️ {split.day}h
                                                 </span>
                                             )}
                                             {split.night > 0 && (
-                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: '#ECEFF1', color: '#263238', fontWeight: 600 }}>
+                                                <span style={{ fontSize: '0.68rem', padding: '2px 5px', borderRadius: '4px', background: 'var(--neutral-bg)', color: 'var(--shift-night)', fontWeight: 600 }}>
                                                     🌙 {split.night}h
                                                 </span>
                                             )}
@@ -452,23 +452,23 @@ export default function ShiftsTab({
                                         {/* Z toho doma (SMS) */}
                                         {split.fromHome > 0 && (
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: split.zaloha > 0 ? '0.25rem' : 0 }}>
-                                                <span style={{ fontSize: '0.72rem', color: '#777', paddingLeft: '0.6rem' }}>↳ Z toho doma (SMS)</span>
-                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2E7D32' }}>🏠 {split.fromHome}h</span>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', paddingLeft: '0.6rem' }}>↳ Z toho doma (SMS)</span>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--success-text)' }}>🏠 {split.fromHome}h</span>
                                             </div>
                                         )}
 
                                         {/* Záloha/Stáž */}
                                         {split.zaloha > 0 && (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.35rem', borderTop: '1px dashed #eee', marginTop: '0.35rem' }}>
-                                                <span style={{ fontSize: '0.72rem', color: '#777' }}>Záloha/Stáž</span>
-                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1565C0' }}>🛡️ {split.zaloha}h</span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.35rem', borderTop: '1px dashed var(--border)', marginTop: '0.35rem' }}>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Záloha/Stáž</span>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--info-text)' }}>🛡️ {split.zaloha}h</span>
                                             </div>
                                         )}
                                     </div>
                                 );
                             })}
                         {users.every(u => getTotalHoursForUser(u.uid) === 0) && (
-                            <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: '#999' }}>Zatím nejsou žádná data</div>
+                            <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--text-gray)' }}>Zatím nejsou žádná data</div>
                         )}
                     </div>
                 </div>
@@ -476,19 +476,19 @@ export default function ShiftsTab({
 
             {/* Full Data Table */}
             <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>📅 Denní záznamy</h3>
-                    <span style={{ fontSize: '0.85rem', color: '#777' }}>Detailní rozpis hodin</span>
+                <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>📅 Denní záznamy</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>Detailní rozpis hodin</span>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                        <thead style={{ background: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
+                        <thead style={{ background: 'var(--surface-alt)', borderBottom: '2px solid var(--border)' }}>
                             <tr>
-                                <th style={{ padding: '1rem', textAlign: 'left', color: '#555', fontWeight: 600 }}>Datum</th>
-                                <th style={{ padding: '1rem', textAlign: 'left', color: '#555', fontWeight: 600 }}>Složení směny</th>
-                                <th style={{ padding: '1rem', textAlign: 'center', color: '#555', fontWeight: 600 }}>Celkem hodin</th>
-                                {isAdmin && <th style={{ padding: '1rem', textAlign: 'center', color: '#555', fontWeight: 600 }}>Akce</th>}
+                                <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: 600 }}>Datum</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: 600 }}>Složení směny</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 600 }}>Celkem hodin</th>
+                                {isAdmin && <th style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 600 }}>Akce</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -502,33 +502,33 @@ export default function ShiftsTab({
                                     <tr
                                         key={day.date}
                                         style={{
-                                            background: day.isWeekend ? '#fafafa' : 'white',
-                                            borderBottom: '1px solid #eee'
+                                            background: day.isWeekend ? 'var(--surface-sunken)' : 'white',
+                                            borderBottom: '1px solid var(--border)'
                                         }}
                                     >
                                         <td style={{ padding: '0.75rem 1rem', fontWeight: 500, opacity: inFuture ? 0.5 : 1, whiteSpace: 'nowrap' }}>
-                                            <span style={{ display: 'inline-block', width: '25px', textAlign: 'center', marginRight: '4px', fontWeight: 700, color: day.isWeekend ? '#e53935' : '#333' }}>
+                                            <span style={{ display: 'inline-block', width: '25px', textAlign: 'center', marginRight: '4px', fontWeight: 700, color: day.isWeekend ? 'var(--danger-hover)' : 'var(--text-charcoal)' }}>
                                                 {day.date}.
                                             </span>
-                                            <span style={{ textTransform: 'capitalize', color: '#777' }}>{day.dayName}</span>
+                                            <span style={{ textTransform: 'capitalize', color: 'var(--text-dim)' }}>{day.dayName}</span>
                                         </td>
                                         <td style={{ padding: '0.75rem 1rem' }}>
                                             {inFuture ? (
-                                                <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic' }}>Budoucí datum</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-gray)', fontStyle: 'italic' }}>Budoucí datum</span>
                                             ) : (
-                                                desc !== '-' ? <span style={{ color: '#333' }}>{desc}</span> : <span style={{ color: '#ccc' }}>-</span>
+                                                desc !== '-' ? <span style={{ color: 'var(--text-charcoal)' }}>{desc}</span> : <span style={{ color: 'var(--border-medium)' }}>-</span>
                                             )}
                                         </td>
                                         <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                                             {totalHours > 0 || getTotalZalohaHoursForDay(day.date) > 0 ? (
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                                                     {totalHours > 0 && (
-                                                        <span style={{ fontWeight: 700, color: '#2E7D32', background: '#E8F5E9', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                                                        <span style={{ fontWeight: 700, color: 'var(--success-text)', background: 'var(--success-bg)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
                                                             {totalHours}h
                                                         </span>
                                                     )}
                                                     {getTotalZalohaHoursForDay(day.date) > 0 && (
-                                                        <span style={{ fontWeight: 700, color: '#1565C0', background: '#E3F2FD', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem', marginTop: totalHours > 0 ? '2px' : '0' }}>
+                                                        <span style={{ fontWeight: 700, color: 'var(--info-text)', background: 'var(--info-bg)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem', marginTop: totalHours > 0 ? '2px' : '0' }}>
                                                             🛡️ {getTotalZalohaHoursForDay(day.date)}h
                                                         </span>
                                                     )}
@@ -541,7 +541,7 @@ export default function ShiftsTab({
                                                     <button
                                                         onClick={() => setEditingCell(day.date)}
                                                         style={{
-                                                            background: 'white', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px', fontSize: '0.9rem'
+                                                            background: 'white', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px', fontSize: '0.9rem'
                                                         }}
                                                         title="Upravit hodiny"
                                                     >
@@ -555,7 +555,7 @@ export default function ShiftsTab({
                             })}
                         </tbody>
                         <tfoot>
-                            <tr style={{ background: '#37474F', color: 'white' }}>
+                            <tr style={{ background: 'var(--table-header-dark)', color: 'white' }}>
                                 <td style={{ padding: '1rem', fontWeight: 700 }} colSpan={2}>
                                     MĚSÍČNÍ SOUČET
                                 </td>
@@ -566,19 +566,19 @@ export default function ShiftsTab({
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'center' }}>
                                                 <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{grand.total}h</div>
                                                 <div style={{ fontSize: '0.72rem', opacity: 0.75 }}>Celkem (vč. zálohy)</div>
-                                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FFCC80', marginTop: '0.15rem' }}>
+                                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--warning-border)', marginTop: '0.15rem' }}>
                                                     🚒 Služby {grand.shiftTotal}h
                                                     <span style={{ opacity: 0.7, marginLeft: '0.4rem' }}>
                                                         (☀️ {grand.day} + 🌙 {grand.night})
                                                     </span>
                                                 </div>
                                                 {grand.fromHome > 0 && (
-                                                    <div style={{ fontSize: '0.8rem', color: '#A5D6A7', fontWeight: 600 }}>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--success-border-strong)', fontWeight: 600 }}>
                                                         🏠 Z toho doma {grand.fromHome}h
                                                     </div>
                                                 )}
                                                 {grand.zaloha > 0 && (
-                                                    <div style={{ fontSize: '0.8rem', color: '#90CAF9', fontWeight: 600 }}>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--info-border)', fontWeight: 600 }}>
                                                         🛡️ Záloha/Stáž {grand.zaloha}h
                                                     </div>
                                                 )}
@@ -674,7 +674,7 @@ const EditHoursModal = ({
                             const hasNight = user.shifts.includes('nightShift');
 
                             return (
-                                <div key={user.uid} style={{ padding: '0.75rem', background: '#f5f5f5', borderRadius: '6px' }}>
+                                <div key={user.uid} style={{ padding: '0.75rem', background: 'var(--surface-alt)', borderRadius: '6px' }}>
                                     <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.1rem' }}>{user.name}</div>
 
                                     <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>

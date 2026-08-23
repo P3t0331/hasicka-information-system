@@ -58,7 +58,7 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
 
     if (entries.length === 0 && totals.count === 0) {
         return (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                 <p>Žádné záznamy {label} v {MONTHS_CZ[monthIdx]} {year}.</p>
             </div>
         );
@@ -83,19 +83,19 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                     icon="📋"
                     value={totals.count}
                     label="Počet záznamů"
-                    gradient="linear-gradient(135deg, #1976D2, #1565C0)"
+                    gradient="linear-gradient(135deg, var(--info), var(--info-text))"
                 />
                 <KpiCard
                     icon="👥"
                     value={totals.people}
                     label="Celkem účastí"
-                    gradient="linear-gradient(135deg, #388E3C, #2E7D32)"
+                    gradient="linear-gradient(135deg, var(--success), var(--success-text))"
                 />
                 <KpiCard
                     icon="🏆"
                     value={topContributor ? topContributor.name.split(' ')[0] : '—'}
                     label={topContributor ? `Top přispěvatel (${topContributor.hours.toFixed(1).replace(/\.0$/, '')} osobohodin)` : 'Top přispěvatel'}
-                    gradient="linear-gradient(135deg, #F57C00, #E65100)"
+                    gradient="linear-gradient(135deg, var(--warning), var(--warning-dark))"
                     smallValue
                 />
             </div>
@@ -105,7 +105,7 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                     <ChartBlock title={`${emoji} Osobohodiny po dnech`} height={220}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={dailyData} margin={{ top: 5, right: 16, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-hover)" />
                                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                                 <YAxis tick={{ fontSize: 11 }} />
                                 <Tooltip content={<ChartTooltip unit="oh" />} />
@@ -117,12 +117,12 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
             )}
 
             <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '2rem' }}>
-                <div style={{ padding: '1.1rem 1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#444' }}>{emoji} Žebříček přispěvatelů</h3>
+                <div style={{ padding: '1.1rem 1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-charcoal)' }}>{emoji} Žebříček přispěvatelů</h3>
                 </div>
                 <div style={{ padding: '0.4rem 1rem' }}>
                     {userStats.length === 0 ? (
-                        <div style={{ padding: '1.5rem', textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>
+                        <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                             Žádní účastníci tento měsíc.
                         </div>
                     ) : userStats.slice(0, 10).map((u, i) => {
@@ -133,15 +133,15 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                             <div key={u.uid} style={{
                                 display: 'flex', alignItems: 'center', gap: '0.85rem',
                                 padding: '0.7rem 0',
-                                borderBottom: i < visibleCount - 1 ? '1px dashed #eee' : 'none'
+                                borderBottom: i < visibleCount - 1 ? '1px dashed var(--border)' : 'none'
                             }}>
                                 <div style={{
                                     width: '32px', height: '32px', borderRadius: '50%',
-                                    background: i < 3 ? '#FFF8E1' : '#f5f5f5',
+                                    background: i < 3 ? 'var(--warning-bg-soft)' : 'var(--surface-alt)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: i < 3 ? '1.1rem' : '0.85rem',
                                     fontWeight: 700,
-                                    color: i < 3 ? '#FFC107' : '#999'
+                                    color: i < 3 ? 'var(--accent-gold)' : 'var(--text-gray)'
                                 }}>
                                     {i < 3 ? medals[i] : i + 1}
                                 </div>
@@ -149,7 +149,7 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                                     <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {u.name}
                                     </div>
-                                    <div style={{ width: '100%', height: '5px', background: '#f0f0f0', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div style={{ width: '100%', height: '5px', background: 'var(--surface-hover)', borderRadius: '3px', overflow: 'hidden' }}>
                                         <div style={{
                                             width: `${pct}%`,
                                             height: '100%',
@@ -159,10 +159,10 @@ export default function LogStatsTab({ entries, currentDate, accent, emoji, label
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#333' }}>
+                                    <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-charcoal)' }}>
                                         {u.hours.toFixed(2).replace(/\.?0+$/, '')}h
                                     </div>
-                                    <div style={{ fontSize: '0.65rem', color: '#999' }}>osobohodin · {u.count}× účast</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-gray)' }}>osobohodin · {u.count}× účast</div>
                                 </div>
                             </div>
                         );

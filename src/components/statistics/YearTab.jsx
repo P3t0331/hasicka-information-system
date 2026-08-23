@@ -213,7 +213,7 @@ export default function YearTab({ year }) {
 
     if (shiftsLoading) {
         return (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#aaa' }}>
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-subtle)' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
                 Načítám roční data...
             </div>
@@ -229,11 +229,11 @@ export default function YearTab({ year }) {
                 gap: '1.25rem',
                 marginBottom: '2rem'
             }}>
-                <KpiCard icon="⏱️" value={Math.round(totalShiftHours)} suffix="h" label="Hodin služeb" color1="#F57C00" color2="#E65100" />
-                <KpiCard icon="🎓" value={yearTrainings.length} label="Školení" color1="#9C27B0" color2="#6A1B9A" />
-                <KpiCard icon="🏅" value={yearEvents.length} label="Akcí" color1="#E53935" color2="#C62828" />
-                <KpiCard icon="🔧" value={Math.round(maintenanceOH)} suffix="oh" label="Údržba" color1="#FF6F00" color2="#E65100" />
-                <KpiCard icon="🧹" value={Math.round(cleaningOH)} suffix="oh" label="Úklid" color1="#00838F" color2="#006064" />
+                <KpiCard icon="⏱️" value={Math.round(totalShiftHours)} suffix="h" label="Hodin služeb" color1="var(--warning)" color2="var(--warning-dark)" />
+                <KpiCard icon="🎓" value={yearTrainings.length} label="Školení" color1="var(--accent-purple-bright)" color2="var(--accent-purple)" />
+                <KpiCard icon="🏅" value={yearEvents.length} label="Akcí" color1="var(--danger-hover)" color2="var(--danger-text)" />
+                <KpiCard icon="🔧" value={Math.round(maintenanceOH)} suffix="oh" label="Údržba" color1="var(--warning-amber)" color2="var(--warning-dark)" />
+                <KpiCard icon="🧹" value={Math.round(cleaningOH)} suffix="oh" label="Úklid" color1="var(--teal-bright)" color2="var(--teal)" />
             </div>
 
             {/* Monthly shift hours stacked bar */}
@@ -241,14 +241,14 @@ export default function YearTab({ year }) {
                 <ChartBlock title="🚒 Hodiny služeb po měsících" height={280}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={monthlyShiftData} margin={{ top: 5, right: 16, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-hover)" />
                             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                             <YAxis tick={{ fontSize: 11 }} />
                             <Tooltip content={<ChartTooltip unit="h" />} />
                             <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
-                            <Bar dataKey="Den" stackId="a" fill="#F57C00" />
-                            <Bar dataKey="Noc" stackId="a" fill="#263238" />
-                            <Bar dataKey="Záloha" stackId="a" fill="#1565C0" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Den" stackId="a" fill="var(--warning)" />
+                            <Bar dataKey="Noc" stackId="a" fill="var(--shift-night)" />
+                            <Bar dataKey="Záloha" stackId="a" fill="var(--info-text)" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartBlock>
@@ -259,13 +259,13 @@ export default function YearTab({ year }) {
                 <ChartBlock title={`📈 Porovnání se ${year - 1} (hodiny služeb)`} height={260}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={yoyData} margin={{ top: 5, right: 16, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-hover)" />
                             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                             <YAxis tick={{ fontSize: 11 }} />
                             <Tooltip content={<ChartTooltip unit="h" />} />
                             <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
-                            <Bar dataKey={String(year)} fill="#F57C00" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey={String(year - 1)} fill="#B0BEC5" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey={String(year)} fill="var(--warning)" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey={String(year - 1)} fill="var(--neutral-border)" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartBlock>
@@ -277,13 +277,13 @@ export default function YearTab({ year }) {
                     <ChartBlock title="🎓 Akce a školení po měsících" height={220}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={monthlyActivitiesData} margin={{ top: 5, right: 16, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-hover)" />
                                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                                 <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                                 <Tooltip content={<ChartTooltip unit="" />} />
                                 <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
-                                <Bar dataKey="Akce" fill="#E53935" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="Školení" fill="#9C27B0" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Akce" fill="var(--danger-hover)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Školení" fill="var(--accent-purple-bright)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </ChartBlock>
@@ -293,8 +293,8 @@ export default function YearTab({ year }) {
             {/* Member leaderboard */}
             {memberLeaderboard.length > 0 && (
                 <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{ padding: '1.1rem 1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#444' }}>
+                    <div style={{ padding: '1.1rem 1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-charcoal)' }}>
                             🏆 Žebříček – hodiny služeb za {year}
                         </h3>
                     </div>
@@ -307,14 +307,14 @@ export default function YearTab({ year }) {
                                 <div key={u.uid} style={{
                                     display: 'flex', alignItems: 'center', gap: '0.85rem',
                                     padding: '0.7rem 0',
-                                    borderBottom: i < memberLeaderboard.length - 1 ? '1px dashed #eee' : 'none'
+                                    borderBottom: i < memberLeaderboard.length - 1 ? '1px dashed var(--border)' : 'none'
                                 }}>
                                     <div style={{
                                         width: 32, height: 32, borderRadius: '50%',
-                                        background: i < 3 ? '#FFF8E1' : '#f5f5f5',
+                                        background: i < 3 ? 'var(--warning-bg-soft)' : 'var(--surface-alt)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontSize: i < 3 ? '1.1rem' : '0.85rem',
-                                        fontWeight: 700, color: i < 3 ? '#FFC107' : '#999', flexShrink: 0
+                                        fontWeight: 700, color: i < 3 ? 'var(--accent-gold)' : 'var(--text-gray)', flexShrink: 0
                                     }}>
                                         {i < 3 ? medals[i] : i + 1}
                                     </div>
@@ -322,11 +322,11 @@ export default function YearTab({ year }) {
                                         <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                             {u.name}
                                         </div>
-                                        <div style={{ width: '100%', height: 5, background: '#f0f0f0', borderRadius: 3, overflow: 'hidden' }}>
-                                            <div style={{ width: `${pct}%`, height: '100%', background: '#F57C00', borderRadius: 3 }} />
+                                        <div style={{ width: '100%', height: 5, background: 'var(--surface-hover)', borderRadius: 3, overflow: 'hidden' }}>
+                                            <div style={{ width: `${pct}%`, height: '100%', background: 'var(--warning)', borderRadius: 3 }} />
                                         </div>
                                     </div>
-                                    <div style={{ textAlign: 'right', fontWeight: 700, fontSize: '1rem', color: '#333', flexShrink: 0 }}>
+                                    <div style={{ textAlign: 'right', fontWeight: 700, fontSize: '1rem', color: 'var(--text-charcoal)', flexShrink: 0 }}>
                                         {Math.round(u.hours * 10) / 10}h
                                     </div>
                                 </div>

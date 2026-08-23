@@ -18,7 +18,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
 
     if (users.length === 0) {
         return (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                 <p>Žádné aktivity tento měsíc</p>
             </div>
         );
@@ -94,7 +94,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
             }}>
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #E53935, #C62828)',
+                    background: 'linear-gradient(135deg, var(--danger-hover), var(--danger-text))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(229, 57, 53, 0.25)'
@@ -108,7 +108,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
 
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)',
+                    background: 'linear-gradient(135deg, var(--accent-purple-bright), var(--accent-purple))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(156, 39, 176, 0.25)'
@@ -122,7 +122,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
 
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #1976D2, #1565C0)',
+                    background: 'linear-gradient(135deg, var(--info), var(--info-text))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(25, 118, 210, 0.25)'
@@ -134,7 +134,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
 
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #388E3C, #2E7D32)',
+                    background: 'linear-gradient(135deg, var(--success), var(--success-text))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(56, 142, 60, 0.25)'
@@ -150,8 +150,8 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
             {/* Charts Section */}
             {totalActivitiesHours > 0 && (() => {
                 const pieData = [
-                    { name: 'Akce', value: parseFloat(totalEventsHours.toFixed(1)), color: '#E53935' },
-                    { name: 'Školení', value: parseFloat(totalTrainingsHours.toFixed(1)), color: '#9C27B0' },
+                    { name: 'Akce', value: parseFloat(totalEventsHours.toFixed(1)), color: 'var(--danger-hover)' },
+                    { name: 'Školení', value: parseFloat(totalTrainingsHours.toFixed(1)), color: 'var(--accent-purple-bright)' },
                 ].filter(d => d.value > 0);
 
                 const memberBarData = userStats.slice(0, 8).map(u => ({
@@ -168,7 +168,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                     <Pie data={pieData} cx="50%" cy="45%" innerRadius={65} outerRadius={105} dataKey="value" nameKey="name" labelLine={false} label={PieLabel}>
                                         {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                                     </Pie>
-                                    <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
+                                    <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{value}</span>} />
                                     <Tooltip content={<ChartTooltip unit="h" />} />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -178,13 +178,13 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                             <ChartBlock title="👥 Hodiny členů (top 8)" height={300}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={memberBarData} barSize={16} margin={{ top: 4, right: 10, left: -10, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-hover)" vertical={false} />
                                         <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} />
                                         <YAxis tick={{ fontSize: 11 }} unit="h" width={38} tickLine={false} axisLine={false} />
-                                        <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: '#f5f5f5' }} />
-                                        <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: '#555' }}>{value}</span>} />
-                                        <Bar dataKey="Akce" stackId="a" fill="#E53935" />
-                                        <Bar dataKey="Školení" stackId="a" fill="#9C27B0" radius={[3, 3, 0, 0]} />
+                                        <Tooltip content={<ChartTooltip unit="h" />} cursor={{ fill: 'var(--surface-alt)' }} />
+                                        <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{value}</span>} />
+                                        <Bar dataKey="Akce" stackId="a" fill="var(--danger-hover)" />
+                                        <Bar dataKey="Školení" stackId="a" fill="var(--accent-purple-bright)" radius={[3, 3, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </ChartBlock>
@@ -195,9 +195,9 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
 
             {/* DETAILED MEMBER CARDS */}
             <div className="card" style={{ padding: '0', overflow: 'hidden', marginBottom: '2rem' }}>
-                <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>👥 Detailní přehled členů</h3>
-                    <span style={{ fontSize: '0.85rem', color: '#777' }}>{users.length} účastníků</span>
+                <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>👥 Detailní přehled členů</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>{users.length} účastníků</span>
                 </div>
                 <div style={{
                     padding: '1rem',
@@ -209,7 +209,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                         <div key={user.uid} style={{
                             padding: '1.25rem',
                             borderRadius: '10px',
-                            border: '1px solid #e0e0e0',
+                            border: '1px solid var(--border)',
                             background: 'white',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
                             transition: 'transform 0.2s, box-shadow 0.2s'
@@ -222,7 +222,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                 e.currentTarget.style.transform = 'translateY(0)';
                                 e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.06)';
                             }}>
-                            <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '1rem', color: '#333' }}>
+                            <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--text-charcoal)' }}>
                                 {user.name}
                             </div>
 
@@ -231,37 +231,37 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                     flex: 1,
                                     padding: '0.5rem 0.25rem',
                                     borderRadius: '8px',
-                                    background: '#FFEBEE',
+                                    background: 'var(--danger-bg)',
                                     textAlign: 'center'
                                 }}>
                                     <div style={{ fontSize: '1.3rem', marginBottom: '0.25rem' }}>🚩</div>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#E53935', marginBottom: '0.125rem' }}>{user.events}</div>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#c62828' }}>{user.eventsHours.toFixed(1).replace('.0', '')}h</div>
-                                    <div style={{ fontSize: '0.65rem', color: '#777' }}>Akce</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--danger-hover)', marginBottom: '0.125rem' }}>{user.events}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--danger-text)' }}>{user.eventsHours.toFixed(1).replace('.0', '')}h</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>Akce</div>
                                 </div>
                                 <div style={{
                                     flex: 1,
                                     padding: '0.5rem 0.25rem',
                                     borderRadius: '8px',
-                                    background: '#F3E5F5',
+                                    background: 'var(--accent-purple-bg)',
                                     textAlign: 'center'
                                 }}>
                                     <div style={{ fontSize: '1.3rem', marginBottom: '0.25rem' }}>📚</div>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#9C27B0', marginBottom: '0.125rem' }}>{user.trainings}</div>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#7b1fa2' }}>{user.trainingsHours.toFixed(1).replace('.0', '')}h</div>
-                                    <div style={{ fontSize: '0.65rem', color: '#777' }}>Školení</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-purple-bright)', marginBottom: '0.125rem' }}>{user.trainings}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-purple)' }}>{user.trainingsHours.toFixed(1).replace('.0', '')}h</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>Školení</div>
                                 </div>
                                 <div style={{
                                     flex: 1,
                                     padding: '0.5rem 0.25rem',
                                     borderRadius: '8px',
-                                    background: '#FFF3E0',
+                                    background: 'var(--warning-bg)',
                                     textAlign: 'center'
                                 }}>
                                     <div style={{ fontSize: '1.3rem', marginBottom: '0.25rem' }}>📊</div>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#FF9800', marginBottom: '0.125rem' }}>{user.total}</div>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#ef6c00' }}>{user.totalHours.toFixed(1).replace('.0', '')}h</div>
-                                    <div style={{ fontSize: '0.65rem', color: '#777' }}>Celkem</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--warning-bright)', marginBottom: '0.125rem' }}>{user.total}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--warning-text)' }}>{user.totalHours.toFixed(1).replace('.0', '')}h</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>Celkem</div>
                                 </div>
                             </div>
 
@@ -269,16 +269,16 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                                 <div style={{
                                     padding: '0.75rem',
                                     borderRadius: '6px',
-                                    background: '#f9f9f9',
-                                    borderLeft: '3px solid ' + (user.latestActivity.type === 'event' ? '#E53935' : '#9C27B0')
+                                    background: 'var(--surface-sunken)',
+                                    borderLeft: '3px solid ' + (user.latestActivity.type === 'event' ? 'var(--danger-hover)' : 'var(--accent-purple-bright)')
                                 }}>
-                                    <div style={{ fontSize: '0.7rem', color: '#777', marginBottom: '0.25rem' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginBottom: '0.25rem' }}>
                                         Poslední aktivita
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#333' }}>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-charcoal)' }}>
                                         {user.latestActivity.type === 'event' ? '🚩' : '📚'} {user.latestActivity.title || user.latestActivity.name}
                                     </div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '0.125rem' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '0.125rem' }}>
                                         {new Date(user.latestActivity.date).toLocaleDateString('cs-CZ')}
                                     </div>
                                 </div>

@@ -128,6 +128,15 @@
   --teal-bg: #B2EBF2;
   --teal-border: #4DD0E1;
   --accent-purple-border-soft: #CE93D8;
+
+  /* Off-palette shades added for Statistics retheme (task 7) — chart series
+     colors kept distinct per category (night shift vs. day/zaloha, cleaning
+     vs. maintenance vs. absences KPI accents) */
+  --shift-night: #263238;
+  --table-header-dark: #37474F;
+  --warning-amber: #FF6F00;
+  --teal-bright: #00838F;
+  --warning-deep: #E64A19;
 }
 
 :root[data-theme='dark'] {
@@ -202,6 +211,12 @@
   --teal-bg: #0d3a3d;
   --teal-border: #1f5f66;
   --accent-purple-border-soft: #4a2f52;
+
+  --shift-night: #455a64;
+  --table-header-dark: #263238;
+  --warning-amber: #FF6F00;
+  --teal-bright: #00838F;
+  --warning-deep: #E64A19;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);
