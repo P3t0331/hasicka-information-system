@@ -151,6 +151,10 @@
   --warning-glow: #FFECB3;
   --success-bright: #4CAF50;
   --info-bg-soft: #F5F9FF;
+
+  /* Off-palette shade added for Quiz-taking retheme (task 9) — QuizProtocolPage
+     definition-list label color, too far from --text-secondary to reuse */
+  --text-slate: #444444;
 }
 
 :root[data-theme='dark'] {
@@ -245,6 +249,9 @@
   --warning-glow: #4d3d1a;
   --success-bright: #4CAF50;
   --info-bg-soft: #132a42;
+
+  /* Off-palette shade added for Quiz-taking retheme (task 9) */
+  --text-slate: #b8b8b8;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

@@ -16,7 +16,7 @@ import { pluralize } from '../utils/pluralize.js';
 const SAVE_STATE_CONFIG = {
   saving: { text: 'Ukládám…', color: 'var(--text-secondary)' },
   saved: { text: 'Uloženo', color: 'var(--text-secondary)' },
-  error: { text: 'Odpověď se nepodařilo uložit — zkontrolujte připojení.', color: '#C62828' },
+  error: { text: 'Odpověď se nepodařilo uložit — zkontrolujte připojení.', color: 'var(--danger-text)' },
 };
 
 // `canStart` (z useMyQuizzes) je false ze čtyř různých důvodů, které member
@@ -205,7 +205,7 @@ export default function QuizTakePage() {
   return (
     <div className="container mt-4 mb-5">
       {error && (
-        <p style={{ color: '#C62828', marginBottom: '0.75rem', fontWeight: 600 }}>{error}</p>
+        <p style={{ color: 'var(--danger-text)', marginBottom: '0.75rem', fontWeight: 600 }}>{error}</p>
       )}
       <QuizIntro
         quiz={quiz}

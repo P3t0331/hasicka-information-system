@@ -66,7 +66,7 @@ function formatScoreCell(row) {
 
 const styles = `
   .protocol-page {
-    background: #eef0f2;
+    background: var(--bg-light);
     min-height: 100vh;
     padding: 2rem 1rem 4rem;
   }
@@ -81,15 +81,15 @@ const styles = `
   .protocol {
     max-width: 800px;
     margin: 0 auto;
-    background: #fff;
+    background: var(--surface);
     padding: 3rem;
     box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-    color: #111;
+    color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
   }
   .protocol__header {
     text-align: center;
-    border-bottom: 2px solid #222;
+    border-bottom: 2px solid var(--text-primary);
     padding-bottom: 1.25rem;
     margin-bottom: 1.5rem;
   }
@@ -113,7 +113,7 @@ const styles = `
     font-size: 0.92rem;
   }
   .protocol__info dt {
-    color: #444;
+    color: var(--text-slate);
     font-weight: 600;
   }
   .protocol__info dd {
@@ -125,13 +125,13 @@ const styles = `
     margin-bottom: 1.25rem;
   }
   .protocol th, .protocol td {
-    border: 1px solid #333;
+    border: 1px solid var(--text-charcoal);
     padding: 0.45rem 0.6rem;
     font-size: 0.85rem;
     text-align: left;
   }
   .protocol thead th {
-    background: #e8e8e8;
+    background: var(--surface-hover);
     font-weight: 700;
   }
   .protocol td.num, .protocol th.num {
@@ -156,11 +156,11 @@ const styles = `
     text-align: center;
   }
   .protocol__signature-line {
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--text-charcoal);
     margin-top: 3.5rem;
     padding-top: 0.4rem;
     font-size: 0.82rem;
-    color: #333;
+    color: var(--text-charcoal);
   }
 
   @media print {
@@ -242,7 +242,7 @@ export default function QuizProtocolPage() {
     return (
       <div className="protocol-page">
         <div className="protocol" style={{ textAlign: 'center' }}>
-          <h2 style={{ color: '#d32f2f' }}>Přístup zamítnut</h2>
+          <h2 style={{ color: 'var(--danger)' }}>Přístup zamítnut</h2>
           <p className="text-secondary">Protokol o absolvování školení smí zobrazit jen velitel jednotky a administrátoři.</p>
           <Link to="/" className="btn btn-secondary">Zpět</Link>
         </div>
@@ -253,7 +253,7 @@ export default function QuizProtocolPage() {
   if (pageLoading) {
     return (
       <div className="protocol-page">
-        <div className="protocol" style={{ textAlign: 'center', color: '#888' }}>Načítání protokolu…</div>
+        <div className="protocol" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Načítání protokolu…</div>
       </div>
     );
   }
@@ -337,7 +337,7 @@ export default function QuizProtocolPage() {
             ))}
             {sortedRows.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', color: '#666' }}>Žádní přiřazení členové.</td>
+                <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-steel)' }}>Žádní přiřazení členové.</td>
               </tr>
             )}
           </tbody>

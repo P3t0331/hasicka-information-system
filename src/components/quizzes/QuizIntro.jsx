@@ -78,7 +78,7 @@ export default function QuizIntro({ quiz, attemptsUsed, canStart, blockReason, o
 
       {isPastDeadline && (
         <div style={{
-          background: '#FFF3E0', border: '1px solid #FFCC80', color: '#E65100',
+          background: 'var(--warning-bg)', border: '1px solid var(--warning-border)', color: 'var(--warning-dark)',
           borderRadius: '8px', padding: '0.65rem 0.85rem', fontSize: '0.88rem', fontWeight: 600,
         }}
         >
@@ -97,7 +97,7 @@ export default function QuizIntro({ quiz, attemptsUsed, canStart, blockReason, o
           {starting ? 'Zahajuji…' : 'Zahájit kvíz'}
         </button>
       ) : (
-        <p style={{ margin: 0, color: '#C62828', fontWeight: 600 }}>
+        <p style={{ margin: 0, color: 'var(--danger-text)', fontWeight: 600 }}>
           {BLOCK_MESSAGES[blockReason] || BLOCK_MESSAGES.exhausted}
         </p>
       )}

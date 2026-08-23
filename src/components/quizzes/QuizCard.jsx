@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { MEMBER_STATUS, pragueDateString } from '../../../shared/quizStatus.js';
 
 const STATUS_CONFIG = {
-    [MEMBER_STATUS.NOT_STARTED]: { label: 'Nesplněno', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
-    [MEMBER_STATUS.IN_PROGRESS]: { label: 'Rozpracováno', color: '#E65100', bg: '#FFF3E0', border: '#FFCC80' },
-    [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },
-    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-    [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
+    [MEMBER_STATUS.NOT_STARTED]: { label: 'Nesplněno', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
+    [MEMBER_STATUS.IN_PROGRESS]: { label: 'Rozpracováno', color: 'var(--warning-dark)', bg: 'var(--warning-bg)', border: 'var(--warning-border)' },
+    [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
+    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+    [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
 };
 
 const DESCRIPTION_MAX_LENGTH = 140;
@@ -58,7 +58,7 @@ export default function QuizCard({ quiz }) {
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem',
-        ...(countdown?.isPast ? { borderLeft: '4px solid #d32f2f' } : {}),
+        ...(countdown?.isPast ? { borderLeft: '4px solid var(--danger)' } : {}),
     };
 
     return (
@@ -83,7 +83,7 @@ export default function QuizCard({ quiz }) {
             <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 <span>Termín: {formatDate(quiz.deadline)}</span>
                 {countdown && (
-                    <span style={{ fontWeight: 600, color: countdown.isPast ? '#d32f2f' : 'var(--text-secondary)' }}>
+                    <span style={{ fontWeight: 600, color: countdown.isPast ? 'var(--danger)' : 'var(--text-secondary)' }}>
                         {countdown.text}
                     </span>
                 )}
