@@ -6,7 +6,7 @@ const WEAR_COLORS = {
     2: { bg: 'var(--info-bg)', color: 'var(--info-text)', border: 'var(--info-border)' },
     3: { bg: 'var(--warning-bg-soft)', color: 'var(--warning-dark)', border: 'var(--warning-border-soft)' },
     4: { bg: 'var(--warning-bg)', color: 'var(--warning-text-strong)', border: 'var(--warning-border)' },
-    5: { bg: 'var(--danger-bg)', color: 'var(--danger-dark)', border: 'var(--danger-border)' },
+    5: { bg: 'var(--danger-bg)', color: 'var(--danger-dark)', border: 'var(--danger-border-strong)' },
 };
 
 function pluralPolozek(n) {
