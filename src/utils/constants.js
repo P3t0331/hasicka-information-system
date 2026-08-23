@@ -28,14 +28,14 @@ export const WEAR_OPTIONS = [
 ];
 
 export function getWearStyle(wear) {
-  if (wear === 4) return { background: '#FFF3E0', color: '#E65100', border: '1px solid #FFB74D' };
-  if (wear === 5) return { background: '#FFEBEE', color: '#B71C1C', border: '1px solid #EF9A9A' };
-  return { background: '#F5F5F5', color: '#555', border: '1px solid #E0E0E0' };
+  if (wear === 4) return { background: 'var(--warning-bg)', color: 'var(--warning-text-strong)', border: '1px solid var(--warning-border)' };
+  if (wear === 5) return { background: 'var(--danger-bg)', color: 'var(--danger-dark)', border: '1px solid var(--danger-border-strong)' };
+  return { background: 'var(--surface-alt)', color: 'var(--text-secondary)', border: '1px solid var(--border)' };
 }
 
 export function getWearRowStyle(wear) {
-  if (wear === 4) return { background: '#FFF8E1', borderLeft: '4px solid #FB8C00' };
-  if (wear === 5) return { background: '#FFEBEE', borderLeft: '4px solid #D32F2F' };
+  if (wear === 4) return { background: 'var(--warning-bg-soft)', borderLeft: '4px solid var(--warning-bright)' };
+  if (wear === 5) return { background: 'var(--danger-bg)', borderLeft: '4px solid var(--danger)' };
   return null;
 }
 
