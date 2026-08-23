@@ -199,7 +199,7 @@ export default function ShiftCalendarPage() {
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
           }}>
             <h3 style={{ marginTop: 0, marginBottom: '0.75rem' }}>{modal.title}</h3>
-            <p style={{ marginBottom: '1.5rem', color: '#555' }}>{modal.message}</p>
+            <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>{modal.message}</p>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={modal.onCancel}>Zrušit</button>
               <button className="btn btn-primary" onClick={modal.onConfirm}>Potvrdit</button>
@@ -210,7 +210,7 @@ export default function ShiftCalendarPage() {
 
       {/* Month Navigation */}
       <div style={{
-        background: 'linear-gradient(135deg, #37474F, #263238)',
+        background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
         borderRadius: '10px',
         padding: '0.75rem 1rem',
         color: 'white',
@@ -259,9 +259,9 @@ export default function ShiftCalendarPage() {
           onClick={handleExportShifts}
           title="Exportovat mé služby do kalendáře (.ics)"
           style={{
-            background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px',
+            background: 'white', border: '1px solid var(--border)', borderRadius: '8px',
             padding: '0.4rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem',
-            color: '#555', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem',
+            color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem',
             transition: 'all 0.2s'
           }}
         >
@@ -273,9 +273,9 @@ export default function ShiftCalendarPage() {
             style={{
               padding: '0.4rem 0.85rem',
               borderRadius: '8px',
-              border: retroMode ? '1px solid #FFB300' : '1px solid #e0e0e0',
-              background: retroMode ? '#FFF8E1' : 'white',
-              color: retroMode ? '#E65100' : '#666',
+              border: retroMode ? '1px solid var(--warning-strong)' : '1px solid var(--border)',
+              background: retroMode ? 'var(--warning-bg-soft)' : 'white',
+              color: retroMode ? 'var(--warning-dark)' : 'var(--text-steel)',
               fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer',
               transition: 'all 0.2s'
             }}
@@ -288,9 +288,9 @@ export default function ShiftCalendarPage() {
       {/* Retro Mode Banner */}
       {retroMode && (
         <div style={{
-          background: '#FFF8E1', border: '1px solid #FFB300', borderRadius: '8px',
+          background: 'var(--warning-bg-soft)', border: '1px solid var(--warning-strong)', borderRadius: '8px',
           padding: '0.65rem 1rem', marginBottom: '1rem',
-          fontSize: '0.85rem', color: '#E65100', fontWeight: 500
+          fontSize: '0.85rem', color: 'var(--warning-dark)', fontWeight: 500
         }}>
           ⚠️ Admin mód je aktivní – kliknutím na prázdný slot přiřadíte libovolného člena.
         </div>
@@ -337,7 +337,7 @@ export default function ShiftCalendarPage() {
         <div
           onClick={() => setZalohaSectionOpen(!zalohaSectionOpen)}
           style={{
-            background: 'linear-gradient(135deg, #1976D2, #0D47A1)',
+            background: 'linear-gradient(135deg, var(--info), var(--info-dark))',
             color: 'white',
             padding: '0.75rem 1rem',
             borderRadius: zalohaSectionOpen ? '8px 8px 0 0' : '8px',
@@ -368,7 +368,7 @@ export default function ShiftCalendarPage() {
         </div>
 
         {zalohaSectionOpen && (
-          <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--surface-hover)', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
           {(() => {
             const displayedZalohaShifts = showPastZaloha ? enabledZalohaShifts : enabledZalohaShifts.filter(d => !isZalohaDayPast(d.date));
             return displayedZalohaShifts.length > 0 && groupWeeks(displayedZalohaShifts).map((week, index) => {
@@ -379,29 +379,29 @@ export default function ShiftCalendarPage() {
             const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 
             return (
-              <div key={weekId} style={{ borderBottom: '1px solid #eee' }}>
+              <div key={weekId} style={{ borderBottom: '1px solid var(--surface-hover)' }}>
                 <div
                   onClick={() => toggleWeek(weekId)}
                   style={{
                     padding: '0.6rem 1rem',
-                    background: '#fafafa',
+                    background: 'var(--surface-sunken)',
                     cursor: 'pointer',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '0.85rem',
-                    color: '#555',
+                    color: 'var(--text-secondary)',
                     fontWeight: 600,
                     userSelect: 'none',
-                    borderBottom: !isCollapsed ? '1px dashed #eee' : 'none'
+                    borderBottom: !isCollapsed ? '1px dashed var(--surface-hover)' : 'none'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-sunken)'}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    📅 <span style={{ color: '#333' }}>{weekLabel}</span>
+                    📅 <span style={{ color: 'var(--text-charcoal)' }}>{weekLabel}</span>
                   </span>
-                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#888' }}>▼</span>
+                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-muted)' }}>▼</span>
                 </div>
 
                 {!isCollapsed && week.map(day => {
@@ -413,12 +413,12 @@ export default function ShiftCalendarPage() {
                   return (
                     <React.Fragment key={`zaloha-${day.date}`}>
                       {(config || isAdmin) && (
-                        <div style={{ background: '#E3F2FD', padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#1565C0', fontWeight: 600, borderBottom: '1px solid #BBDEFB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                        <div style={{ background: 'var(--info-bg)', padding: '0.5rem 1rem', fontSize: '0.8rem', color: 'var(--info-text)', fontWeight: 600, borderBottom: '1px solid var(--info-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <span style={{
-                              background: getZalohaKind(config) === 'staz' ? '#EDE7F6' : '#E8F5E9',
-                              color: getZalohaKind(config) === 'staz' ? '#4527A0' : '#2E7D32',
-                              border: `1px solid ${getZalohaKind(config) === 'staz' ? '#B39DDB' : '#A5D6A7'}`,
+                              background: getZalohaKind(config) === 'staz' ? 'var(--accent-purple-bg)' : 'var(--success-bg)',
+                              color: getZalohaKind(config) === 'staz' ? 'var(--accent-purple-deep)' : 'var(--success-text)',
+                              border: `1px solid ${getZalohaKind(config) === 'staz' ? 'var(--accent-purple-medium-border)' : 'var(--success-border-strong)'}`,
                               padding: '0.1rem 0.5rem', borderRadius: '12px', fontSize: '0.72rem',
                               textTransform: 'uppercase', letterSpacing: '0.5px'
                             }}>
@@ -433,7 +433,7 @@ export default function ShiftCalendarPage() {
                               onClick={() => setZalohaModal({ date: day.date, mode: 'edit', config: config || {} })}
                               title="Upravit čas a počet pozic"
                               style={{
-                                background: 'white', border: '1px solid #90CAF9', color: '#1565C0',
+                                background: 'white', border: '1px solid var(--info-border)', color: 'var(--info-text)',
                                 padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem',
                                 fontWeight: 600, cursor: 'pointer'
                               }}
@@ -476,8 +476,8 @@ export default function ShiftCalendarPage() {
 
           {/* Add Zaloha Form (Only for Admins) */}
           {isAdmin && (
-            <div style={{ padding: '1rem', background: '#E3F2FD', borderTop: '1px solid #eee', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <label style={{ fontWeight: 500, color: '#1565C0' }}>Přidat Záloha / Stáž:</label>
+            <div style={{ padding: '1rem', background: 'var(--info-bg)', borderTop: '1px solid var(--surface-hover)', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label style={{ fontWeight: 500, color: 'var(--info-text)' }}>Přidat Záloha / Stáž:</label>
               <select
                 onChange={(e) => {
                   if (e.target.value) {
@@ -485,7 +485,7 @@ export default function ShiftCalendarPage() {
                     e.target.value = "";
                   }
                 }}
-                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #90CAF9', minWidth: '180px' }}
+                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--info-border)', minWidth: '180px' }}
               >
                 <option value="">-- Vyberte den --</option>
                 {days.filter(d => !enabledZalohaShifts.some(e => e.date === d.date)).map(day => (
@@ -505,7 +505,7 @@ export default function ShiftCalendarPage() {
         <div
           onClick={() => setDaySectionOpen(!daySectionOpen)}
           style={{
-            background: 'linear-gradient(135deg, #FF9800, #F57C00)',
+            background: 'linear-gradient(135deg, var(--warning-bright), var(--warning))',
             color: 'white',
             padding: '0.75rem 1rem',
             borderRadius: daySectionOpen ? '8px 8px 0 0' : '8px',
@@ -528,7 +528,7 @@ export default function ShiftCalendarPage() {
         </div>
 
         {daySectionOpen && (
-          <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--surface-hover)', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
           {enabledDayShifts.length > 0 && groupWeeks(enabledDayShifts).map((week, index) => {
             const firstDay = week[0];
             const lastDay = week[week.length - 1];
@@ -537,29 +537,29 @@ export default function ShiftCalendarPage() {
             const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 
             return (
-              <div key={weekId} style={{ borderBottom: index < groupWeeks(enabledDayShifts).length - 1 ? '1px solid #eee' : 'none' }}>
+              <div key={weekId} style={{ borderBottom: index < groupWeeks(enabledDayShifts).length - 1 ? '1px solid var(--surface-hover)' : 'none' }}>
                 <div
                   onClick={() => toggleWeek(weekId)}
                   style={{
                     padding: '0.6rem 1rem',
-                    background: '#fafafa',
+                    background: 'var(--surface-sunken)',
                     cursor: 'pointer',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '0.85rem',
-                    color: '#555',
+                    color: 'var(--text-secondary)',
                     fontWeight: 600,
                     userSelect: 'none',
-                    borderBottom: !isCollapsed ? '1px dashed #eee' : 'none'
+                    borderBottom: !isCollapsed ? '1px dashed var(--surface-hover)' : 'none'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-sunken)'}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    📅 <span style={{ color: '#333' }}>{weekLabel}</span>
+                    📅 <span style={{ color: 'var(--text-charcoal)' }}>{weekLabel}</span>
                   </span>
-                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#888' }}>▼</span>
+                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-muted)' }}>▼</span>
                 </div>
 
                 {!isCollapsed && week.map(day => {
@@ -597,19 +597,19 @@ export default function ShiftCalendarPage() {
             );
           })}
           {enabledDayShifts.length === 0 && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
               Zatím nebyly vytvořeny žádné denní služby.
             </div>
           )}
 
           {/* Add Day Shift Form */}
           {isAdmin && (
-            <div style={{ padding: '1rem', background: '#FFF8E1', borderTop: '1px solid #eee', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <label style={{ fontWeight: 500, color: '#F57C00' }}>Přidat denní službu:</label>
+            <div style={{ padding: '1rem', background: 'var(--warning-bg-soft)', borderTop: '1px solid var(--surface-hover)', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label style={{ fontWeight: 500, color: 'var(--warning)' }}>Přidat denní službu:</label>
               <select
                 value={newDayShiftDate}
                 onChange={(e) => setNewDayShiftDate(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #FFCC80', minWidth: '180px' }}
+                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--warning-border)', minWidth: '180px' }}
               >
                 <option value="">-- Vyberte den --</option>
                 {days.filter(d => !enabledDayShifts.some(e => e.date === d.date)).map(day => (
@@ -632,7 +632,7 @@ export default function ShiftCalendarPage() {
         <div
           onClick={() => setNightSectionOpen(!nightSectionOpen)}
           style={{
-            background: 'linear-gradient(135deg, #37474F, #263238)',
+            background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
             color: 'white',
             padding: '0.75rem 1rem',
             borderRadius: nightSectionOpen ? '8px 8px 0 0' : '8px',
@@ -653,7 +653,7 @@ export default function ShiftCalendarPage() {
         </div>
 
         {nightSectionOpen && (
-          <div style={{ border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--surface-hover)', borderTop: 'none', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
           {groupWeeks(days).map((week, index) => {
             const firstDay = week[0];
             const lastDay = week[week.length - 1];
@@ -662,29 +662,29 @@ export default function ShiftCalendarPage() {
             const weekLabel = `${firstDay.date}. – ${lastDay.date}. ${MONTHS_CZ[currentDate.getMonth()]}`;
 
             return (
-              <div key={weekId} style={{ borderBottom: index < groupWeeks(days).length - 1 ? '1px solid #eee' : 'none' }}>
+              <div key={weekId} style={{ borderBottom: index < groupWeeks(days).length - 1 ? '1px solid var(--surface-hover)' : 'none' }}>
                 <div
                   onClick={() => toggleWeek(weekId)}
                   style={{
                     padding: '0.6rem 1rem',
-                    background: '#fafafa',
+                    background: 'var(--surface-sunken)',
                     cursor: 'pointer',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '0.85rem',
-                    color: '#555',
+                    color: 'var(--text-secondary)',
                     fontWeight: 600,
                     userSelect: 'none',
-                    borderBottom: !isCollapsed ? '1px dashed #eee' : 'none'
+                    borderBottom: !isCollapsed ? '1px dashed var(--surface-hover)' : 'none'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-sunken)'}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    🌙 <span style={{ color: '#333' }}>{weekLabel}</span>
+                    🌙 <span style={{ color: 'var(--text-charcoal)' }}>{weekLabel}</span>
                   </span>
-                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#888' }}>▼</span>
+                  <span style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-muted)' }}>▼</span>
                 </div>
 
                 {!isCollapsed && week.map(day => {

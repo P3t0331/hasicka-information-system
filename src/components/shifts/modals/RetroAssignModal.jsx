@@ -64,7 +64,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                 </div>
                 <div className="modal-body">
                     {modal.slotKey && (
-                        <p style={{ margin: '0 0 0.75rem', color: '#666', fontSize: '0.85rem' }}>
+                        <p style={{ margin: '0 0 0.75rem', color: 'var(--text-steel)', fontSize: '0.85rem' }}>
                             Den <strong>{modal.day}.</strong>, pozice <strong>{modal.slotKey}</strong>
                         </p>
                     )}
@@ -79,15 +79,15 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                     padding: '0.65rem 0.85rem',
                                     borderRadius: '8px',
-                                    background: fromHome ? '#E8F5E9' : '#f8f8f8',
-                                    border: fromHome ? '1.5px solid #81C784' : '1.5px solid #e0e0e0',
+                                    background: fromHome ? 'var(--success-bg)' : 'var(--surface-sunken)',
+                                    border: fromHome ? '1.5px solid var(--success-text-on-dark)' : '1.5px solid var(--border)',
                                     cursor: 'pointer', userSelect: 'none', transition: 'all 0.15s',
                                 }}
                             >
-                                <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#333' }}>🏠 Z domu (SMS)</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-charcoal)' }}>🏠 Z domu (SMS)</div>
                                 <div style={{
                                     width: '36px', height: '20px', borderRadius: '10px',
-                                    background: fromHome ? '#4CAF50' : '#ddd',
+                                    background: fromHome ? 'var(--success-bright)' : 'var(--border)',
                                     position: 'relative', transition: 'background 0.2s', flexShrink: 0,
                                 }}>
                                     <div style={{
@@ -108,16 +108,16 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                         padding: '0.65rem 0.85rem',
                                         borderRadius: customTime ? '8px 8px 0 0' : '8px',
-                                        background: customTime ? '#E3F2FD' : '#f8f8f8',
-                                        border: customTime ? '1.5px solid #90CAF9' : '1.5px solid #e0e0e0',
+                                        background: customTime ? 'var(--info-bg)' : 'var(--surface-sunken)',
+                                        border: customTime ? '1.5px solid var(--info-border)' : '1.5px solid var(--border)',
                                         borderBottom: customTime ? 'none' : undefined,
                                         cursor: 'pointer', userSelect: 'none', transition: 'all 0.15s',
                                     }}
                                 >
-                                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#333' }}>⏰ Zkrácená služba</div>
+                                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-charcoal)' }}>⏰ Zkrácená služba</div>
                                     <div style={{
                                         width: '36px', height: '20px', borderRadius: '10px',
-                                        background: customTime ? '#2196F3' : '#ddd',
+                                        background: customTime ? 'var(--info-bright)' : 'var(--border)',
                                         position: 'relative', transition: 'background 0.2s', flexShrink: 0,
                                     }}>
                                         <div style={{
@@ -133,32 +133,32 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                     <div style={{
                                         display: 'flex', gap: '0.75rem', alignItems: 'center',
                                         padding: '0.65rem 0.85rem',
-                                        background: '#E3F2FD',
-                                        border: '1.5px solid #90CAF9', borderTop: '1px solid #BBDEFB',
+                                        background: 'var(--info-bg)',
+                                        border: '1.5px solid var(--info-border)', borderTop: '1px solid var(--info-border-soft)',
                                         borderRadius: '0 0 8px 8px',
                                     }}>
                                         <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: '#1565C0', marginBottom: '0.25rem' }}>OD</label>
+                                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--info-text)', marginBottom: '0.25rem' }}>OD</label>
                                             <input
                                                 type="time" value={timeFrom}
                                                 onChange={e => setTimeFrom(e.target.value)}
                                                 style={{
                                                     width: '100%', padding: '0.4rem 0.4rem',
-                                                    borderRadius: '6px', border: '1.5px solid #90CAF9',
+                                                    borderRadius: '6px', border: '1.5px solid var(--info-border)',
                                                     fontSize: '0.95rem', fontWeight: 600, textAlign: 'center',
                                                     background: 'white', boxSizing: 'border-box',
                                                 }}
                                             />
                                         </div>
-                                        <div style={{ paddingTop: '1.1rem', color: '#90CAF9', fontWeight: 700 }}>→</div>
+                                        <div style={{ paddingTop: '1.1rem', color: 'var(--info-border)', fontWeight: 700 }}>→</div>
                                         <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: '#1565C0', marginBottom: '0.25rem' }}>DO</label>
+                                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--info-text)', marginBottom: '0.25rem' }}>DO</label>
                                             <input
                                                 type="time" value={timeTo}
                                                 onChange={e => setTimeTo(e.target.value)}
                                                 style={{
                                                     width: '100%', padding: '0.4rem 0.4rem',
-                                                    borderRadius: '6px', border: '1.5px solid #90CAF9',
+                                                    borderRadius: '6px', border: '1.5px solid var(--info-border)',
                                                     fontSize: '0.95rem', fontWeight: 600, textAlign: 'center',
                                                     background: 'white', boxSizing: 'border-box',
                                                 }}
@@ -178,15 +178,15 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                         autoFocus
                         style={{
                             width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px',
-                            border: '1px solid #e0e0e0', fontSize: '0.9rem',
+                            border: '1px solid var(--border)', fontSize: '0.9rem',
                             marginBottom: '0.75rem', boxSizing: 'border-box'
                         }}
                     />
 
                     {loading ? (
-                        <div style={{ padding: '1.5rem', textAlign: 'center', color: '#aaa' }}>Načítám...</div>
+                        <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-subtle)' }}>Načítám...</div>
                     ) : filtered.length === 0 ? (
-                        <div style={{ padding: '1rem', background: '#f5f5f5', borderRadius: '8px', textAlign: 'center', color: '#888' }}>
+                        <div style={{ padding: '1rem', background: 'var(--surface-alt)', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>
                             Žádný člen nenalezen.
                         </div>
                     ) : (
@@ -198,7 +198,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                     style={{
                                         padding: '0.65rem 0.75rem',
                                         background: 'white',
-                                        border: '1px solid #e0e0e0',
+                                        border: '1px solid var(--border)',
                                         borderRadius: '8px',
                                         textAlign: 'left',
                                         cursor: 'pointer',
@@ -207,16 +207,16 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                         alignItems: 'center',
                                         transition: 'all 0.15s',
                                     }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#FFB300'; e.currentTarget.style.background = '#FFF8E1'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.background = 'white'; }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--warning-strong)'; e.currentTarget.style.background = 'var(--warning-bg-soft)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'white'; }}
                                 >
                                     <div>
-                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#222' }}>{user.fullName}</div>
-                                        <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '0.1rem' }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{user.fullName}</div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
                                             {user.roles.join(', ')}
                                         </div>
                                     </div>
-                                    <span style={{ fontSize: '1.1rem', color: '#FFB300' }}>+</span>
+                                    <span style={{ fontSize: '1.1rem', color: 'var(--warning-strong)' }}>+</span>
                                 </button>
                             ))}
                         </div>

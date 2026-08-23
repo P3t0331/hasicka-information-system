@@ -6,25 +6,25 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
   const isOccupied = !!assignee;
 
   let bg = 'white';
-  let border = '1px dashed #ddd';
-  let color = '#999';
+  let border = '1px dashed var(--border)';
+  let color = 'var(--text-gray)';
   let shadow = 'none';
 
   if (isOccupied) {
     border = '1px solid transparent';
     shadow = '0 1px 2px rgba(0,0,0,0.05)';
     if (isSelf) {
-      bg = isUnqualified ? '#FFF3E0' : '#E8F5E9';
-      border = isUnqualified ? '1px solid #FFE0B2' : '1px solid #C8E6C9';
-      color = isUnqualified ? '#EF6C00' : '#2E7D32';
+      bg = isUnqualified ? 'var(--warning-bg)' : 'var(--success-bg)';
+      border = isUnqualified ? '1px solid var(--warning-border-warm)' : '1px solid var(--success-border)';
+      color = isUnqualified ? 'var(--warning-text)' : 'var(--success-text)';
     } else {
-      bg = isUnqualified ? '#FFF8E1' : 'linear-gradient(to bottom, #f5f5f5, #eeeeee)';
-      border = isUnqualified ? '1px solid #FFCC80' : '1px solid #e0e0e0';
-      color = isUnqualified ? '#F57C00' : '#424242';
+      bg = isUnqualified ? 'var(--warning-bg-soft)' : 'linear-gradient(to bottom, var(--surface-alt), var(--surface-hover))';
+      border = isUnqualified ? '1px solid var(--warning-border)' : '1px solid var(--border)';
+      color = isUnqualified ? 'var(--warning)' : 'var(--text-charcoal)';
     }
   } else if (retroMode) {
-    border = '1px dashed #FFB300';
-    color = '#E65100';
+    border = '1px dashed var(--warning-strong)';
+    color = 'var(--warning-dark)';
   }
 
   const icon = SLOT_ICONS[slotKey] || '👤';
@@ -52,25 +52,25 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-1px)';
         e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
-        if (!isOccupied) e.currentTarget.style.borderColor = '#bbb';
+        if (!isOccupied) e.currentTarget.style.borderColor = 'var(--border-strong)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = shadow;
-        if (!isOccupied) e.currentTarget.style.borderColor = '#ddd';
+        if (!isOccupied) e.currentTarget.style.borderColor = 'var(--border)';
       }}
     >
       <div style={{
         width: '26px', height: '26px',
         borderRadius: '50%',
-        background: isOccupied ? 'white' : '#f5f5f5',
+        background: isOccupied ? 'white' : 'var(--surface-alt)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: '0.9rem',
         boxShadow: isOccupied ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
         flexShrink: 0
       }}>
         {isOccupied && assignee.name ? (
-          <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#555' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             {icon}
           </span>
         ) : (
@@ -79,7 +79,7 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', lineHeight: 1.1 }}>
-        <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: '#888', fontWeight: 600, letterSpacing: '0.5px' }}>
+        <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.5px' }}>
           {SLOT_LABELS[slotKey]}
         </span>
         <span style={{
@@ -99,7 +99,7 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
                 fontSize: '0.6rem', fontWeight: 700,
                 padding: '1px 4px', borderRadius: '3px',
                 background: isSelf ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.07)',
-                color: isSelf ? '#1B5E20' : '#555'
+                color: isSelf ? 'var(--success-dark)' : 'var(--text-secondary)'
               }}>
                 🏠 SMS
               </span>
@@ -109,7 +109,7 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
                 fontSize: '0.6rem', fontWeight: 700,
                 padding: '1px 4px', borderRadius: '3px',
                 background: isSelf ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.07)',
-                color: isSelf ? '#1B5E20' : '#555'
+                color: isSelf ? 'var(--success-dark)' : 'var(--text-secondary)'
               }}>
                 ⏰ {assignee.timeFrom}–{assignee.timeTo}
               </span>
@@ -119,7 +119,7 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
       </div>
 
       {!isOccupied && (
-        <div style={{ fontSize: '0.9rem', color: retroMode ? '#FFB300' : '#ccc', fontWeight: 300 }}>
+        <div style={{ fontSize: '0.9rem', color: retroMode ? 'var(--warning-strong)' : 'var(--border-medium)', fontWeight: 300 }}>
           {retroMode ? '⏱' : '+'}
         </div>
       )}

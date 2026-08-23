@@ -137,6 +137,20 @@
   --warning-amber: #FF6F00;
   --teal-bright: #00838F;
   --warning-deep: #E64A19;
+
+  /* Off-palette shades added for Shifts calendar retheme (task 8) */
+  --warning-strong: #FFB300;
+  --text-steel: #666666;
+  --accent-purple-deep: #4527A0;
+  --accent-purple-medium-border: #B39DDB;
+  --accent-purple-light: #9575CD;
+  --indigo-bg: #E8EAF6;
+  --indigo: #7986CB;
+  --indigo-dark: #5C6BC0;
+  --indigo-deep: #3949AB;
+  --warning-glow: #FFECB3;
+  --success-bright: #4CAF50;
+  --info-bg-soft: #F5F9FF;
 }
 
 :root[data-theme='dark'] {
@@ -217,6 +231,20 @@
   --warning-amber: #FF6F00;
   --teal-bright: #00838F;
   --warning-deep: #E64A19;
+
+  /* Off-palette shades added for Shifts calendar retheme (task 8) */
+  --warning-strong: #FFB300;
+  --text-steel: #9a9a9a;
+  --accent-purple-deep: #B39DDB;
+  --accent-purple-medium-border: #B39DDB;
+  --accent-purple-light: #9575CD;
+  --indigo-bg: #1c2340;
+  --indigo: #7986CB;
+  --indigo-dark: #5C6BC0;
+  --indigo-deep: #9FA8DA;
+  --warning-glow: #4d3d1a;
+  --success-bright: #4CAF50;
+  --info-bg-soft: #132a42;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);
