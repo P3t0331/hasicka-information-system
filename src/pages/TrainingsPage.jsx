@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import useTrainings from '../hooks/useTrainings';
 import useMembers from '../hooks/useMembers';
 import useMyQuizzes from '../hooks/useMyQuizzes';
@@ -40,6 +41,13 @@ export default function TrainingsPage() {
     const { filteredMembers: members } = useMembers();
     const { myQuizzes } = useMyQuizzes();
     const { addToast } = useToast();
+
+    const location = useLocation();
+    useEffect(() => {
+        if (location.state?.scrollTo) {
+            document.getElementById(location.state.scrollTo)?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [location.state]);
 
     // Na Školení patří jen kvízy, se kterými má člen ještě co dělat. Splněné,
     // uzavřené i vyčerpané mizí — jejich historie zůstává v Profilu.

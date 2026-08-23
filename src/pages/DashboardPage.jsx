@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getLandingPage } from '../../shared/preferences.js';
 import useDashboardData from '../hooks/useDashboardData';
 import WeatherWarnings from '../components/dashboard/WeatherWarnings';
 import NewActivitiesBanner from '../components/dashboard/NewActivitiesBanner';
@@ -23,6 +24,14 @@ export default function DashboardPage() {
         newZalohaShifts,
         newActivities
     } = useDashboardData();
+
+    useEffect(() => {
+        const landing = getLandingPage(userData?.preferences);
+        if (landing === 'dashboard') return;
+        if (landing === 'sluzby') navigate('/shifts', { replace: true });
+        else if (landing === 'skoleni') navigate('/skoleni', { replace: true });
+        else if (landing === 'kvizy') navigate('/skoleni', { replace: true, state: { scrollTo: 'kvizy-sekce' } });
+    }, [userData?.preferences, navigate]);
 
     const [activitiesDismissed, setActivitiesDismissed] = useState(
         sessionStorage.getItem('dismissed_new_activities') === 'true'
