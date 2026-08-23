@@ -155,6 +155,12 @@
   /* Off-palette shade added for Quiz-taking retheme (task 9) — QuizProtocolPage
      definition-list label color, too far from --text-secondary to reuse */
   --text-slate: #444444;
+
+  /* Off-palette shades added for Trainings/Events retheme (task 11) */
+  --danger-crimson: #dc3545;
+  /* Selected-item text paired with --indigo-bg (attendee picker) — kept
+     distinct from --indigo-deep, which is used in an unrelated context */
+  --indigo-darkest: #283593;
 }
 
 :root[data-theme='dark'] {
@@ -252,6 +258,10 @@
 
   /* Off-palette shade added for Quiz-taking retheme (task 9) */
   --text-slate: #b8b8b8;
+
+  /* Off-palette shades added for Trainings/Events retheme (task 11) */
+  --danger-crimson: #dc3545;
+  --indigo-darkest: #9FA8DA;
 
   --glass-bg: rgba(30, 30, 30, 0.7);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);

@@ -103,30 +103,30 @@ export default function EventsPage() {
                         style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             padding: '0.6rem 0.85rem', borderRadius: '8px',
-                            background: '#f5f5f5', border: '1px solid #e0e0e0',
+                            background: 'var(--surface-alt)', border: '1px solid var(--border)',
                             cursor: 'pointer', userSelect: 'none'
                         }}
                     >
-                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-slate)' }}>
                             📋 Šablony {templates.length > 0 ? `(${templates.length})` : ''}
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: '#888' }}>{showTemplates ? '▲' : '▼'}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{showTemplates ? '▲' : '▼'}</span>
                     </div>
                     {showTemplates && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.4rem' }}>
                             {templates.length === 0 ? (
-                                <p style={{ color: '#888', fontSize: '0.85rem', padding: '0.5rem 0.85rem', margin: 0 }}>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.5rem 0.85rem', margin: 0 }}>
                                     Zatím žádné šablony. Vytvořte akci a zaškrtněte "Uložit jako šablonu".
                                 </p>
                             ) : templates.map(t => (
                                 <div key={t.id} style={{
                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                     padding: '0.65rem 0.85rem', background: 'white',
-                                    border: '1px solid #e0e0e0', borderRadius: '8px', gap: '0.75rem'
+                                    border: '1px solid var(--border)', borderRadius: '8px', gap: '0.75rem'
                                 }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#222' }}>{t.title}</div>
-                                        <div style={{ fontSize: '0.78rem', color: '#888', marginTop: '0.1rem' }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{t.title}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
                                             {t.time}{t.timeEnd ? ` – ${t.timeEnd}` : ''}
                                             {t.location ? ` · ${t.location}` : ''}
                                             {t.vehicles ? ` · ${t.vehicles}` : ''}
@@ -138,16 +138,16 @@ export default function EventsPage() {
                                             onClick={() => { setActiveTemplate(t); setShowCreateModal(true); }}
                                             style={{
                                                 padding: '0.35rem 0.75rem', borderRadius: '6px',
-                                                border: '1px solid #90CAF9', background: '#E3F2FD',
-                                                color: '#1565C0', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer'
+                                                border: '1px solid var(--info-border)', background: 'var(--info-bg)',
+                                                color: 'var(--info-text)', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer'
                                             }}
                                         >Použít</button>
                                         <button
                                             onClick={() => deleteTemplate(t.id)}
                                             style={{
                                                 padding: '0.35rem 0.5rem', borderRadius: '6px',
-                                                border: '1px solid #ffcdd2', background: '#fff',
-                                                color: '#c62828', fontSize: '0.9rem', cursor: 'pointer'
+                                                border: '1px solid var(--danger-border)', background: 'var(--surface)',
+                                                color: 'var(--danger-text)', fontSize: '0.9rem', cursor: 'pointer'
                                             }}
                                         >×</button>
                                     </div>
@@ -192,20 +192,20 @@ export default function EventsPage() {
                             display: 'flex',
                             gap: '0.5rem',
                             padding: '0.75rem 1rem',
-                            background: '#f8f9fa',
-                            borderBottom: '1px solid #e9ecef',
+                            background: 'var(--surface-alt)',
+                            borderBottom: '1px solid var(--border)',
                             alignItems: 'center'
                         }}>
-                            <span style={{ fontSize: '0.85rem', color: '#495057', fontWeight: 600, marginRight: '0.5rem' }}>Filtr:</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginRight: '0.5rem' }}>Filtr:</span>
                             <button
                                 onClick={() => setUpcomingFilter('all')}
                                 style={{
                                     padding: '0.25rem 0.75rem',
                                     borderRadius: '20px',
                                     border: '1px solid',
-                                    borderColor: upcomingFilter === 'all' ? '#1565C0' : '#ced4da',
-                                    background: upcomingFilter === 'all' ? '#E3F2FD' : 'white',
-                                    color: upcomingFilter === 'all' ? '#1565C0' : '#495057',
+                                    borderColor: upcomingFilter === 'all' ? 'var(--info-text)' : 'var(--border-medium)',
+                                    background: upcomingFilter === 'all' ? 'var(--info-bg)' : 'white',
+                                    color: upcomingFilter === 'all' ? 'var(--info-text)' : 'var(--text-secondary)',
                                     fontSize: '0.8rem',
                                     fontWeight: 600,
                                     cursor: 'pointer',
@@ -220,9 +220,9 @@ export default function EventsPage() {
                                     padding: '0.25rem 0.75rem',
                                     borderRadius: '20px',
                                     border: '1px solid',
-                                    borderColor: upcomingFilter === 'thisMonth' ? '#1565C0' : '#ced4da',
-                                    background: upcomingFilter === 'thisMonth' ? '#E3F2FD' : 'white',
-                                    color: upcomingFilter === 'thisMonth' ? '#1565C0' : '#495057',
+                                    borderColor: upcomingFilter === 'thisMonth' ? 'var(--info-text)' : 'var(--border-medium)',
+                                    background: upcomingFilter === 'thisMonth' ? 'var(--info-bg)' : 'white',
+                                    color: upcomingFilter === 'thisMonth' ? 'var(--info-text)' : 'var(--text-secondary)',
                                     fontSize: '0.8rem',
                                     fontWeight: 600,
                                     cursor: 'pointer',
@@ -281,13 +281,13 @@ export default function EventsPage() {
                                 gap: '0.75rem',
                                 marginBottom: '1rem',
                                 padding: '0.75rem 1rem',
-                                background: '#f8f9fa',
+                                background: 'var(--surface-alt)',
                                 borderRadius: '8px',
-                                border: '1px solid #e9ecef',
+                                border: '1px solid var(--border)',
                                 flexWrap: 'wrap',
                                 alignItems: 'center'
                             }}>
-                                <span style={{ fontSize: '0.9rem', color: '#495057', fontWeight: 600 }}>Filtr:</span>
+                                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Filtr:</span>
                                 
                                 <select
                                     value={filterYear}
@@ -295,7 +295,7 @@ export default function EventsPage() {
                                     style={{
                                         padding: '0.35rem 0.75rem',
                                         borderRadius: '6px',
-                                        border: '1px solid #ced4da',
+                                        border: '1px solid var(--border-medium)',
                                         background: 'white',
                                         fontSize: '0.9rem',
                                         outline: 'none',
@@ -314,7 +314,7 @@ export default function EventsPage() {
                                     style={{
                                         padding: '0.35rem 0.75rem',
                                         borderRadius: '6px',
-                                        border: '1px solid #ced4da',
+                                        border: '1px solid var(--border-medium)',
                                         background: 'white',
                                         fontSize: '0.9rem',
                                         outline: 'none',
@@ -332,7 +332,7 @@ export default function EventsPage() {
                                         style={{
                                             background: 'none',
                                             border: 'none',
-                                            color: '#dc3545',
+                                            color: 'var(--danger-crimson)',
                                             fontSize: '0.85rem',
                                             cursor: 'pointer',
                                             padding: '0.25rem',
