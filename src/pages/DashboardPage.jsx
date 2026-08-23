@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getLandingPage } from '../../shared/preferences.js';
+import { getLandingPage, getDashboardWidgetOrder, DEFAULT_DASHBOARD_WIDGET_ORDER } from '../../shared/preferences.js';
 import useDashboardData from '../hooks/useDashboardData';
 import WeatherWarnings from '../components/dashboard/WeatherWarnings';
 import NewActivitiesBanner from '../components/dashboard/NewActivitiesBanner';
@@ -12,6 +12,16 @@ import UpcomingActivities from '../components/dashboard/UpcomingActivities';
 import MyAbsences from '../components/dashboard/MyAbsences';
 import BulletinWidget from '../components/dashboard/BulletinWidget';
 import QuizWidget from '../components/dashboard/QuizWidget';
+
+const WIDGET_COMPONENTS = {
+    bulletin: BulletinWidget,
+    nextShift: (props) => <NextShiftCard allShifts={props.allShifts} userData={props.userData} />,
+    quiz: QuizWidget,
+    monthlyStats: (props) => <MonthlyStatistics monthlyStats={props.monthlyStats} />,
+    upcomingActivities: (props) => <UpcomingActivities upcomingActivities={props.upcomingActivities} />,
+    myAbsences: (props) => <MyAbsences absences={props.absences} />,
+    importantLinks: ImportantLinks,
+};
 
 export default function DashboardPage() {
     const navigate = useNavigate();
@@ -90,26 +100,11 @@ export default function DashboardPage() {
                 />
             )}
 
-            {/* Bulletin Board Widget */}
-            <BulletinWidget />
-
-            {/* Quick Links / Important Links */}
-            <ImportantLinks />
-
-            {/* Next Shift Section */}
-            <NextShiftCard allShifts={allShifts} userData={userData} />
-
-            {/* Unfinished Quizzes Widget */}
-            <QuizWidget />
-
-            {/* Upcoming Activities */}
-            <UpcomingActivities upcomingActivities={upcomingActivities} />
-
-            {/* Monthly Statistics Cards */}
-            <MonthlyStatistics monthlyStats={monthlyStats} />
-
-            {/* My Absences Panel */}
-            <MyAbsences absences={absences} />
+            {getDashboardWidgetOrder(userData?.preferences, DEFAULT_DASHBOARD_WIDGET_ORDER).map((widgetId) => {
+                const Widget = WIDGET_COMPONENTS[widgetId];
+                if (!Widget) return null;
+                return <Widget key={widgetId} allShifts={allShifts} userData={userData} monthlyStats={monthlyStats} upcomingActivities={upcomingActivities} absences={absences} />;
+            })}
         </div>
     );
 }
