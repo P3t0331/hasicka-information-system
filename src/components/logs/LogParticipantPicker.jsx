@@ -36,10 +36,10 @@ export default function LogParticipantPicker({ members, selectedUids, onChange, 
                     {selectedMembers.map(m => (
                         <span key={m.uid} style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            background: '#E3F2FD', color: '#1565C0',
+                            background: 'var(--info-bg)', color: 'var(--info-text)',
                             padding: '0.2rem 0.55rem', borderRadius: '999px',
                             fontSize: '0.8rem', fontWeight: 600,
-                            border: '1px solid #90CAF9'
+                            border: '1px solid var(--info-border)'
                         }}>
                             {m.firstName} {m.lastName}
                             <button
@@ -47,7 +47,7 @@ export default function LogParticipantPicker({ members, selectedUids, onChange, 
                                 onClick={() => toggle(m.uid)}
                                 aria-label="Odebrat"
                                 style={{
-                                    background: 'transparent', border: 'none', color: '#1565C0',
+                                    background: 'transparent', border: 'none', color: 'var(--info-text)',
                                     cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: 0
                                 }}
                             >×</button>
@@ -67,11 +67,11 @@ export default function LogParticipantPicker({ members, selectedUids, onChange, 
 
             <div style={{
                 maxHeight: '180px', overflowY: 'auto',
-                border: '1px solid #e0e0e0', borderRadius: '8px',
-                background: '#fafafa'
+                border: '1px solid var(--border)', borderRadius: '8px',
+                background: 'var(--surface-sunken)'
             }}>
                 {filtered.length === 0 ? (
-                    <div style={{ padding: '0.75rem', color: '#888', fontSize: '0.85rem', textAlign: 'center' }}>
+                    <div style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>
                         Nikdo neodpovídá hledání.
                     </div>
                 ) : filtered.map(m => {
@@ -80,8 +80,8 @@ export default function LogParticipantPicker({ members, selectedUids, onChange, 
                         <label key={m.uid} style={{
                             display: 'flex', alignItems: 'center', gap: '0.5rem',
                             padding: '0.4rem 0.6rem', cursor: 'pointer',
-                            background: isSelected ? '#E3F2FD' : 'transparent',
-                            borderBottom: '1px solid #f0f0f0',
+                            background: isSelected ? 'var(--info-bg)' : 'transparent',
+                            borderBottom: '1px solid var(--surface-hover)',
                             fontSize: '0.85rem'
                         }}>
                             <input
@@ -99,7 +99,7 @@ export default function LogParticipantPicker({ members, selectedUids, onChange, 
             </div>
 
             <div className="input-group" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-                <label className="input-label" style={{ fontSize: '0.8rem', color: '#666' }}>
+                <label className="input-label" style={{ fontSize: '0.8rem', color: 'var(--text-steel)' }}>
                     Externí osoby (volitelné, oddělte čárkou)
                 </label>
                 <input
