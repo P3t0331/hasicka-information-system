@@ -7,7 +7,7 @@ import {
   shouldReceivePush,
 } from './preferences.js';
 
-const ALL_WIDGETS = ['bulletin', 'nextShift', 'quiz', 'monthlyStats', 'upcomingActivities', 'myAbsences', 'importantLinks'];
+const ALL_WIDGETS = ['bulletin', 'importantLinks', 'nextShift', 'quiz', 'upcomingActivities', 'monthlyStats', 'myAbsences'];
 
 describe('DEFAULT_PREFERENCES', () => {
   it('has theme system, landingPage dashboard, all widgets visible in default order, all push categories on', () => {

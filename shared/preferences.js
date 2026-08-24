@@ -7,7 +7,7 @@
 // (žádná migrace existujících uživatelů).
 
 export const DEFAULT_DASHBOARD_WIDGET_ORDER = [
-  'bulletin', 'nextShift', 'quiz', 'monthlyStats', 'upcomingActivities', 'myAbsences', 'importantLinks',
+  'bulletin', 'importantLinks', 'nextShift', 'quiz', 'upcomingActivities', 'monthlyStats', 'myAbsences',
 ];
 
 export const DEFAULT_PREFERENCES = {
