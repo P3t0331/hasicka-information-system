@@ -21,33 +21,33 @@ export default function NextShiftCard({ allShifts, userData }) {
                 (() => {
                     const shift = allShifts[0];
                     return (
-                        <div key={shift.date + shift.type} className="dashboard-card highlight" style={{ padding: '1.5rem', borderLeft: '4px solid #E53935' }}>
+                        <div key={shift.date + shift.type} className="dashboard-card highlight" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                                 <div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#E53935', marginBottom: '0.25rem', lineHeight: 1.2 }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--danger)', marginBottom: '0.25rem', lineHeight: 1.2 }}>
                                         {formatDate(shift.date)}
                                     </div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#333', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <span style={{ fontSize: '1.4rem' }}>{shift.type === 'denní' ? '☀️' : '🌙'}</span>
                                         {shift.type === 'denní' ? 'Denní služba' : 'Noční služba'}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#333' }}>
+                                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                                         {shift.start}
                                     </div>
-                                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                                         do {shift.end}
                                     </div>
                                 </div>
                             </div>
 
-                            <div style={{ borderTop: '1px solid #ffcdd2', paddingTop: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ borderTop: '1px solid var(--danger-border)', paddingTop: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#888', fontWeight: 700, marginBottom: '0.25rem', letterSpacing: '0.5px' }}>
+                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '0.25rem', letterSpacing: '0.5px' }}>
                                         Kolegové
                                     </div>
-                                    <div style={{ fontWeight: 600, color: '#333', fontSize: '0.9rem' }}>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>
                                         {shift.colleagues && shift.colleagues.length > 0 ? (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
                                                 {shift.colleagues.map((name, i) => (
@@ -55,15 +55,15 @@ export default function NextShiftCard({ allShifts, userData }) {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span style={{ color: '#888', fontStyle: 'italic' }}>Žádní další kolegové</span>
+                                            <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Žádní další kolegové</span>
                                         )}
                                     </div>
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#888', fontWeight: 700, marginBottom: '0.25rem', letterSpacing: '0.5px' }}>
+                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '0.25rem', letterSpacing: '0.5px' }}>
                                         Role
                                     </div>
-                                    <div style={{ fontWeight: 600, color: '#333' }}>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                                         {shift.role || 'Hasič'}
                                     </div>
                                 </div>
@@ -72,7 +72,7 @@ export default function NextShiftCard({ allShifts, userData }) {
                     );
                 })()
             ) : (
-                <div className="dashboard-card" style={{ textAlign: 'center', padding: '1.5rem', color: '#888' }}>
+                <div className="dashboard-card" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
                     Žádné nadcházející služby.
                     <div style={{ marginTop: '0.5rem' }}>
                         <Link to="/shifts" className="btn btn-primary btn-sm">Naplánovat službu</Link>

@@ -64,7 +64,7 @@ function ShiftRow({
       background: 'white',
       margin: '0.35rem 0.25rem',
       borderRadius: '8px',
-      border: day.isToday ? '2px solid #FFD54F' : '1px solid #e0e0e0',
+      border: day.isToday ? '2px solid var(--gold-text-on-dark)' : '1px solid var(--border)',
       boxShadow: day.isToday ? '0 4px 12px rgba(255, 193, 7, 0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
       transition: 'transform 0.2s, box-shadow 0.2s',
       overflow: 'hidden',
@@ -78,13 +78,13 @@ function ShiftRow({
         width: '75px',
         minWidth: '75px',
         padding: '0.25rem',
-        borderRight: '1px solid #f0f0f0',
+        borderRight: '1px solid var(--surface-hover)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        background: day.isToday ? 'linear-gradient(135deg, #FFF8E1, #FFECB3)' : (day.isWeekend ? '#fafafa' : 'white'),
-        color: day.isToday ? '#FF6F00' : (day.isWeekend ? '#757575' : '#333'),
+        background: day.isToday ? 'linear-gradient(135deg, var(--warning-bg-soft), var(--warning-glow))' : (day.isWeekend ? 'var(--surface-sunken)' : 'white'),
+        color: day.isToday ? 'var(--warning-amber)' : (day.isWeekend ? 'var(--text-dim)' : 'var(--text-charcoal)'),
         position: 'relative'
       }}>
         <div style={{ fontWeight: 800, fontSize: '1.2rem', lineHeight: 1 }}>{day.date}.</div>
@@ -108,7 +108,7 @@ function ShiftRow({
               height: '18px',
               border: 'none',
               background: 'rgba(239, 83, 80, 0.1)',
-              color: '#e53935',
+              color: 'var(--danger-hover)',
               borderRadius: '50%',
               fontSize: '1rem',
               lineHeight: 0,
@@ -119,8 +119,8 @@ function ShiftRow({
               padding: '0 0 1px 0',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#e53935'; e.currentTarget.style.color = 'white'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 83, 80, 0.1)'; e.currentTarget.style.color = '#e53935'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-hover)'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 83, 80, 0.1)'; e.currentTarget.style.color = 'var(--danger-hover)'; }}
           >
             ×
           </button>
@@ -154,16 +154,16 @@ function ShiftRow({
         
         {/* Zajemci Pool rendering */}
         {section === 'zalohaStaz' && (
-          <div style={{ width: '100%', marginTop: '0.5rem', borderTop: '1px dashed #e0e0e0', paddingTop: '0.5rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ width: '100%', marginTop: '0.5rem', borderTop: '1px dashed var(--border)', paddingTop: '0.5rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               {isPast ? (
-                <span style={{ fontSize: '0.78rem', color: '#9E9E9E', fontStyle: 'italic', padding: '0.2rem 0' }}>Proběhlo</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-gray)', fontStyle: 'italic', padding: '0.2rem 0' }}>Proběhlo</span>
               ) : (
                 <button
                   onClick={() => onZalohaInterestedClick(day.date)}
                   style={{
-                    background: isCurrentlyInterested || isAssignedToThis ? '#FFEBEE' : '#E3F2FD',
-                    color: isCurrentlyInterested || isAssignedToThis ? '#D32F2F' : '#1565C0',
-                    border: isCurrentlyInterested || isAssignedToThis ? '1px solid #FFCDD2' : '1px solid #BBDEFB',
+                    background: isCurrentlyInterested || isAssignedToThis ? 'var(--danger-bg)' : 'var(--info-bg)',
+                    color: isCurrentlyInterested || isAssignedToThis ? 'var(--danger)' : 'var(--info-text)',
+                    border: isCurrentlyInterested || isAssignedToThis ? '1px solid var(--danger-border)' : '1px solid var(--info-border-soft)',
                     padding: '0.4rem 0.75rem',
                     borderRadius: '20px',
                     fontSize: '0.8rem',
@@ -184,10 +184,10 @@ function ShiftRow({
               
               {interestedPool.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: '0.5rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#777', marginRight: '0.25rem' }}>Zájemci:</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginRight: '0.25rem' }}>Zájemci:</span>
                   {interestedPool.map(u => (
                     <span key={u.uid} style={{
-                      background: '#f5f5f5', color: '#555', border: '1px solid #e0e0e0', padding: '0.2rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem'
+                      background: 'var(--surface-alt)', color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '0.2rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem'
                     }}>
                       {u.name}
                     </span>

@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
 import { getEffectiveRoles } from '../utils/roles';
+import { sendPushNotification } from '../utils/pushNotification';
 import {
   DAYS_CZ,
   MONTHS_CZ,
@@ -529,16 +530,13 @@ export default function useShiftCalendar(currentUser, userData) {
         logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
           'INTERESTED_IN_STAZ', 'shifts',
           `Projevil zájem o ${kind.accusative} dne ${dateLabel}`);
-        fetch('/api/send-notification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: `✋ Nový zájemce o ${kind.accusative}`,
-            body: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''} · ${dateLabel}`,
-            url: '/shifts',
-            tag: 'staz-zajem',
-            targetRoles: ['Admin', 'VJ', 'Zástupce VJ'],
-          }),
+        sendPushNotification({
+          title: `✋ Nový zájemce o ${kind.accusative}`,
+          body: `${userData.lastName} ${userData.firstName ? userData.firstName[0] + '.' : ''} · ${dateLabel}`,
+          url: '/shifts',
+          tag: 'staz-zajem',
+          category: 'sluzby',
+          targetRoles: ['Admin', 'VJ', 'Zástupce VJ'],
         });
         showToast('success', 'Přidáni do seznamu zájemců.');
       } catch (err) {
@@ -599,16 +597,13 @@ export default function useShiftCalendar(currentUser, userData) {
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ASSIGNED_USER_TO_STAZ', 'shifts',
         `Přiřadil ${targetUser.name} na pozici ${slotKey} – ${kind.label} ${dateLabel}`);
-      fetch('/api/send-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: `📋 Přiřazen na ${kind.accusative}`,
-          body: `Pozice: ${slotKey} · ${dateLabel}`,
-          url: '/shifts',
-          tag: 'staz-assign',
-          targetUserId: targetUser.uid,
-        }),
+      sendPushNotification({
+        title: `📋 Přiřazen na ${kind.accusative}`,
+        body: `Pozice: ${slotKey} · ${dateLabel}`,
+        url: '/shifts',
+        tag: 'staz-assign',
+        category: 'sluzby',
+        targetUserId: targetUser.uid,
       });
       showToast('success', 'Uživatel přiřazen na pozici.');
       setZalohaAssignModal(null);
@@ -808,18 +803,15 @@ export default function useShiftCalendar(currentUser, userData) {
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         'ADMIN_ADDED_SHIFT', 'admin',
         `Vytvořil ${kind.accusative} pro den ${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()} (${config.timeFrom}-${config.timeTo})`);
-      fetch('/api/send-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: `🚑 Nová ${kind.label.toLowerCase()}`,
-          body: [
-            `${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
-            config.timeFrom && config.timeTo ? `${config.timeFrom}–${config.timeTo}` : null,
-          ].filter(Boolean).join(' · '),
-          url: '/shifts',
-          tag: 'staz',
-        }),
+      sendPushNotification({
+        title: `🚑 Nová ${kind.label.toLowerCase()}`,
+        body: [
+          `${dateNum}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
+          config.timeFrom && config.timeTo ? `${config.timeFrom}–${config.timeTo}` : null,
+        ].filter(Boolean).join(' · '),
+        url: '/shifts',
+        tag: 'staz',
+        category: 'sluzby',
       });
       showToast('success', `${kind.label} vytvořena.`);
       setZalohaModal(null);
@@ -928,36 +920,30 @@ export default function useShiftCalendar(currentUser, userData) {
         'ADMIN_UPDATED_SHIFT', 'admin', logDetail);
 
       dropped.forEach(([slotKey, assignee]) => {
-        fetch('/api/send-notification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: `⚠️ Odebrán ze ${newKind.genitive}`,
-            body: `${getSlotLabel(slotKey)} · ${dateLabel} – počet pozic byl snížen`,
-            url: '/shifts',
-            tag: 'staz-edit',
-            targetUserId: assignee.uid,
-          }),
+        sendPushNotification({
+          title: `⚠️ Odebrán ze ${newKind.genitive}`,
+          body: `${getSlotLabel(slotKey)} · ${dateLabel} – počet pozic byl snížen`,
+          url: '/shifts',
+          tag: 'staz-edit',
+          category: 'sluzby',
+          targetUserId: assignee.uid,
         });
       });
       if (timeChanged || kindChanged) {
         keptAssignees.forEach(([, assignee]) => {
-          fetch('/api/send-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: kindChanged && !timeChanged
-                ? `🔄 Změna typu služby na ${newKind.label.toLowerCase()}`
-                : `🕒 Změna času ${newKind.genitive}`,
-              body: [
-                dateLabel,
-                kindChanged ? `nově ${newKind.label.toLowerCase()}` : null,
-                timeChanged ? `nově ${config.timeFrom}–${config.timeTo}` : null,
-              ].filter(Boolean).join(' · '),
-              url: '/shifts',
-              tag: 'staz-edit',
-              targetUserId: assignee.uid,
-            }),
+          sendPushNotification({
+            title: kindChanged && !timeChanged
+              ? `🔄 Změna typu služby na ${newKind.label.toLowerCase()}`
+              : `🕒 Změna času ${newKind.genitive}`,
+            body: [
+              dateLabel,
+              kindChanged ? `nově ${newKind.label.toLowerCase()}` : null,
+              timeChanged ? `nově ${config.timeFrom}–${config.timeTo}` : null,
+            ].filter(Boolean).join(' · '),
+            url: '/shifts',
+            tag: 'staz-edit',
+            category: 'sluzby',
+            targetUserId: assignee.uid,
           });
         });
       }
@@ -1010,16 +996,13 @@ export default function useShiftCalendar(currentUser, userData) {
         'ADMIN_BACKDATED_SHIFT', 'admin',
         `Zpětně přiřazen ${targetUser.compactName} na pozici ${slotKey} (${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()})`);
       if (section === 'zalohaStaz') {
-        fetch('/api/send-notification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: `📋 Přiřazen na ${getZalohaKindForms(shiftsData[day]?.zalohaStaz?.config).accusative}`,
-            body: `Pozice: ${slotKey} · ${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
-            url: '/shifts',
-            tag: 'staz-assign',
-            targetUserId: targetUser.uid,
-          }),
+        sendPushNotification({
+          title: `📋 Přiřazen na ${getZalohaKindForms(shiftsData[day]?.zalohaStaz?.config).accusative}`,
+          body: `Pozice: ${slotKey} · ${day}. ${MONTHS_CZ[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
+          url: '/shifts',
+          tag: 'staz-assign',
+          category: 'sluzby',
+          targetUserId: targetUser.uid,
         });
       }
       showToast('success', `${targetUser.compactName} přiřazen na ${slotKey}.`);

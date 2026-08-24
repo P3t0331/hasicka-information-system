@@ -7,13 +7,13 @@ function InfoRow({ label, value, icon, isLast }) {
             gap: '0.9rem',
             alignItems: 'flex-start',
             padding: '0.85rem 0',
-            borderBottom: isLast ? 'none' : '1px solid #f2f2f2'
+            borderBottom: isLast ? 'none' : '1px solid var(--border)'
         }}>
             <div style={{
                 width: '34px',
                 height: '34px',
-                background: '#f6f6f6',
-                border: '1px solid #ebebeb',
+                background: 'var(--surface-alt)',
+                border: '1px solid var(--border)',
                 borderRadius: '9px',
                 display: 'flex',
                 alignItems: 'center',
@@ -27,7 +27,7 @@ function InfoRow({ label, value, icon, isLast }) {
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                     fontSize: '0.68rem',
-                    color: '#aaa',
+                    color: 'var(--text-faint)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.6px',
@@ -38,7 +38,7 @@ function InfoRow({ label, value, icon, isLast }) {
                 <div style={{
                     fontSize: '0.95rem',
                     fontWeight: 500,
-                    color: '#2a2a2a',
+                    color: 'var(--text-primary)',
                     wordBreak: 'break-word',
                     lineHeight: 1.4
                 }}>
@@ -66,12 +66,12 @@ export default function ProfileInfo({ userData, isEditing, setIsEditing, editFor
                 alignItems: 'center',
                 marginBottom: isEditing ? '1.1rem' : '0',
                 paddingBottom: '0.85rem',
-                borderBottom: '1px solid #efefef'
+                borderBottom: '1px solid var(--border)'
             }}>
                 <div style={{
                     fontSize: '0.78rem',
                     fontWeight: 700,
-                    color: '#999',
+                    color: 'var(--text-muted)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.8px'
                 }}>

@@ -3,6 +3,7 @@ import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 import { useToast } from '../../contexts/ToastContext';
+import { sendPushNotification } from '../../utils/pushNotification';
 
 export default function CreateEventModal({ onClose, currentUser, userData, initialData, onSaveAsTemplate }) {
     const { addToast: showToast } = useToast();
@@ -85,20 +86,17 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                     participants: []
                 });
                 if (sendNotification) {
-                fetch('/api/send-notification', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: '🚒 Nová akce',
-                        body: [
-                            title.trim(),
-                            date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
-                            time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
-                            location.trim() || null,
-                        ].filter(Boolean).join(' · '),
-                        url: '/akce',
-                        tag: 'akce',
-                    }),
+                sendPushNotification({
+                    title: '🚒 Nová akce',
+                    body: [
+                        title.trim(),
+                        date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
+                        time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
+                        location.trim() || null,
+                    ].filter(Boolean).join(' · '),
+                    url: '/akce',
+                    tag: 'akce',
+                    category: 'akce',
                 });
                 }
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
@@ -167,7 +165,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                                         width: '24px',
                                         height: '24px',
                                         border: 'none',
-                                        color: '#333',
+                                        color: 'var(--text-charcoal)',
                                         fontSize: '1rem',
                                         fontWeight: 'bold',
                                         cursor: 'pointer',
@@ -214,7 +212,7 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                                             width: '24px',
                                             height: '24px',
                                             border: 'none',
-                                            color: '#333',
+                                            color: 'var(--text-charcoal)',
                                             fontSize: '1rem',
                                             fontWeight: 'bold',
                                             cursor: 'pointer',
@@ -257,10 +255,10 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                                     <label key={v} style={{
                                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                                         padding: '0.4rem 0.75rem', borderRadius: '8px',
-                                        background: isSelected ? '#E8EAF6' : '#f5f5f5',
-                                        border: `1px solid ${isSelected ? '#7986CB' : '#e0e0e0'}`,
+                                        background: isSelected ? 'var(--indigo-bg)' : 'var(--surface-alt)',
+                                        border: `1px solid ${isSelected ? 'var(--indigo)' : 'var(--border)'}`,
                                         cursor: 'pointer', fontSize: '0.85rem', fontWeight: isSelected ? 600 : 500,
-                                        color: isSelected ? '#283593' : '#555',
+                                        color: isSelected ? 'var(--indigo-darkest)' : 'var(--text-secondary)',
                                         transition: 'all 0.15s'
                                     }}>
                                         <input 
@@ -276,19 +274,19 @@ export default function CreateEventModal({ onClose, currentUser, userData, initi
                         </div>
                     </div>
 
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                         <input type="checkbox" checked={isImportant} onChange={e => setIsImportant(e.target.checked)} />
                         ⚠️ Důležitá akce (zvýraznit oranžově)
                     </label>
 
                     {!isEdit && (
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                             <input type="checkbox" checked={sendNotification} onChange={e => setSendNotification(e.target.checked)} />
                             🔔 Odeslat push notifikaci členům
                         </label>
                     )}
                     {!isEdit && onSaveAsTemplate && (
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                             <input type="checkbox" checked={saveTemplate} onChange={e => setSaveTemplate(e.target.checked)} />
                             💾 Uložit jako šablonu pro příště
                         </label>

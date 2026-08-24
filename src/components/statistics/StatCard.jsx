@@ -27,13 +27,13 @@ export default function StatCard({ icon, value, label, sublabel, color, bg }) {
                 {icon}
             </div>
             <div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: '#333', lineHeight: 1 }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-charcoal)', lineHeight: 1 }}>
                     {value}
                 </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555', marginTop: '4px' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: '4px' }}>
                     {label}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#999' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-gray)' }}>
                     {sublabel}
                 </div>
             </div>

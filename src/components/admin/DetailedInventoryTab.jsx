@@ -117,26 +117,26 @@ export default function DetailedInventoryTab({
         </div>
       </div>
 
-      <div style={{ borderRadius: '8px', border: '1px solid #eee' }}>
+      <div style={{ borderRadius: '8px', border: '1px solid var(--border)' }}>
         <table className="responsive-table" style={{ width: '100%', fontSize: '0.85rem' }}>
-          <thead style={{ background: '#f5f5f5' }}>
+          <thead style={{ background: 'var(--surface-alt)' }}>
             <tr>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Uživatel</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Typ vybavení</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Vlastnictví</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Značka</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Detaily (Vel/Ks)</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Evid. čísla</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Roky (Výr/Naf)</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Stav</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Polep</th>
-              <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Akce</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Uživatel</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Typ vybavení</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Vlastnictví</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Značka</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Detaily (Vel/Ks)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Evid. čísla</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Roky (Výr/Naf)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Stav</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border)' }}>Polep</th>
+              <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid var(--border)' }}>Akce</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                   Žádné vybavení neodpovídá filtru.
                 </td>
               </tr>
@@ -148,30 +148,30 @@ export default function DetailedInventoryTab({
               const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);
 
               return (
-                <tr key={item.id} style={{ background: i % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f0f0f0', ...(wearRowStyle || {}) }}>
+                <tr key={item.id} style={{ background: i % 2 === 0 ? 'white' : 'var(--surface-sunken)', borderBottom: '1px solid var(--surface-hover)', ...(wearRowStyle || {}) }}>
                   <td data-label="Uživatel" style={{ padding: '0.75rem', fontWeight: 600 }}>{item._userName}</td>
-                  <td data-label="Typ vybavení" style={{ padding: '0.75rem', color: '#1565C0', fontWeight: 600 }}>{eqType.name}</td>
+                  <td data-label="Typ vybavení" style={{ padding: '0.75rem', color: 'var(--info-text)', fontWeight: 600 }}>{eqType.name}</td>
                   <td data-label="Vlastnictví" style={{ padding: '0.75rem' }}>
                     {item.ownership === 'vlastni' ? (
-                      <span style={{ color: '#1565C0', background: '#E3F2FD', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Vlastní</span>
+                      <span style={{ color: 'var(--info-text)', background: 'var(--info-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Vlastní</span>
                     ) : (
-                      <span style={{ color: '#2E7D32', background: '#E8F5E9', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>JSDH</span>
+                      <span style={{ color: 'var(--success-text)', background: 'var(--success-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>JSDH</span>
                     )}
                   </td>
-                  <td data-label="Značka" style={{ padding: '0.75rem', color: '#555' }}>
-                    {item.brand || <span style={{ color: '#ccc' }}>—</span>}
+                  <td data-label="Značka" style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {item.brand || <span style={{ color: 'var(--border-medium)' }}>—</span>}
                   </td>
                   <td data-label="Detaily" style={{ padding: '0.75rem' }}>
-                    {item.size && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Vel:</span> {item.size}</div>}
-                    {eqType.hasAmount && <div><span style={{ color: '#888' }}>Ks:</span> {item.amount || 1}</div>}
+                    {item.size && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: 'var(--text-muted)' }}>Vel:</span> {item.size}</div>}
+                    {eqType.hasAmount && <div><span style={{ color: 'var(--text-muted)' }}>Ks:</span> {item.amount || 1}</div>}
                   </td>
                   <td data-label="Evid. čísla" style={{ padding: '0.75rem' }}>
-                    {item.inventoryNumber && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Evid:</span> {item.inventoryNumber}</div>}
-                    {item.serialNumber && <div><span style={{ color: '#888' }}>S/N:</span> {item.serialNumber}</div>}
+                    {item.inventoryNumber && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: 'var(--text-muted)' }}>Evid:</span> {item.inventoryNumber}</div>}
+                    {item.serialNumber && <div><span style={{ color: 'var(--text-muted)' }}>S/N:</span> {item.serialNumber}</div>}
                   </td>
                   <td data-label="Roky" style={{ padding: '0.75rem' }}>
-                    {item.manufactureYear && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: '#888' }}>Výr:</span> {item.manufactureYear}</div>}
-                    {item.issueYear && <div><span style={{ color: '#888' }}>Naf:</span> {item.issueYear}</div>}
+                    {item.manufactureYear && <div style={{ marginBottom: '0.2rem' }}><span style={{ color: 'var(--text-muted)' }}>Výr:</span> {item.manufactureYear}</div>}
+                    {item.issueYear && <div><span style={{ color: 'var(--text-muted)' }}>Naf:</span> {item.issueYear}</div>}
                   </td>
                   <td data-label="Stav" style={{ padding: '0.75rem' }}>
                     {showWear && wearOption ? (
@@ -179,21 +179,21 @@ export default function DetailedInventoryTab({
                         {wearOption.label}
                       </span>
                     ) : (
-                      <span style={{ color: '#ccc' }}>—</span>
+                      <span style={{ color: 'var(--border-medium)' }}>—</span>
                     )}
                   </td>
                   <td data-label="Polep" style={{ padding: '0.75rem' }}>
                     {eqType.hasPolep && item.polep != null ? (
                       <span style={{
-                        background: item.polep ? '#E8F5E9' : '#FFEBEE',
-                        color: item.polep ? '#2E7D32' : '#C62828',
+                        background: item.polep ? 'var(--success-bg)' : 'var(--danger-bg)',
+                        color: item.polep ? 'var(--success-text)' : 'var(--danger-text)',
                         padding: '0.15rem 0.5rem', borderRadius: '4px',
                         fontSize: '0.8rem', fontWeight: 600
                       }}>
                         {item.polep ? 'ANO' : 'NE'}
                       </span>
                     ) : (
-                      <span style={{ color: '#ccc' }}>—</span>
+                      <span style={{ color: 'var(--border-medium)' }}>—</span>
                     )}
                   </td>
                   <td data-label="Akce" style={{ padding: '0.75rem', textAlign: 'center' }}>
@@ -207,7 +207,7 @@ export default function DetailedInventoryTab({
                       </button>
                       <button
                         onClick={() => onDeleteEquipment(item.id, item._userId)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#d32f2f' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--danger)' }}
                         title="Smazat"
                       >
                         ×

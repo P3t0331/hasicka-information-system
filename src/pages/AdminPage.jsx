@@ -61,8 +61,8 @@ export default function AdminPage() {
   if (!isAdminOrVJ) {
     return (
       <div className="page-layout flex-center" style={{ textAlign: 'center', height: '80vh' }}>
-        <div className="card" style={{ maxWidth: '400px', borderLeft: '4px solid #d32f2f' }}>
-          <h2 style={{ color: '#d32f2f', marginBottom: '1rem' }}>⛔ Přístup zamítnut</h2>
+        <div className="card" style={{ maxWidth: '400px', borderLeft: '4px solid var(--danger)' }}>
+          <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>⛔ Přístup zamítnut</h2>
           <p className="text-secondary">Nemáte dostatečná oprávnění pro přístup do administrace.</p>
           <Link to="/" className="btn btn-secondary mt-3">Zpět na profil</Link>
         </div>
@@ -113,13 +113,13 @@ export default function AdminPage() {
 
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div className="card" style={{ padding: '0.8rem 1.2rem', minWidth: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#666', fontWeight: 'bold' }}>Celkem</span>
+            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-dim)', fontWeight: 'bold' }}>Celkem</span>
             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{allUsers.length}</span>
           </div>
           {pendingUsers.length > 0 && (
             <div className="card" style={{ padding: '0.8rem 1.2rem', minWidth: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '2px solid var(--accent-gold)' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#d32f2f', fontWeight: 'bold' }}>Ke schválení</span>
-              <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#d32f2f' }}>{pendingUsers.length}</span>
+              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--danger)', fontWeight: 'bold' }}>Ke schválení</span>
+              <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--danger)' }}>{pendingUsers.length}</span>
             </div>
           )}
         </div>
@@ -130,7 +130,7 @@ export default function AdminPage() {
         display: 'flex',
         gap: '0',
         marginBottom: '2rem',
-        borderBottom: '2px solid #e0e0e0',
+        borderBottom: '2px solid var(--border)',
         overflowX: 'auto',
         overflowY: 'hidden',
         WebkitOverflowScrolling: 'touch',
@@ -156,7 +156,7 @@ export default function AdminPage() {
               background: 'none',
               cursor: 'pointer',
               fontWeight: activeTab === tab.id ? 700 : 500,
-              color: activeTab === tab.id ? 'var(--primary-red)' : '#666',
+              color: activeTab === tab.id ? 'var(--primary-red)' : 'var(--text-dim)',
               borderBottom: activeTab === tab.id ? '2px solid var(--primary-red)' : '2px solid transparent',
               marginBottom: '-2px',
               fontSize: '0.9rem',

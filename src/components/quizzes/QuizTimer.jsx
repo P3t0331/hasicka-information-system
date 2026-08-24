@@ -80,7 +80,7 @@ export default function QuizTimer({ startedAt, timeLimitMinutes, onExpire }) {
       style={{
         fontWeight: 700,
         fontSize: '0.95rem',
-        color: isLastMinute ? '#C62828' : 'var(--text-primary)',
+        color: isLastMinute ? 'var(--danger-text)' : 'var(--text-primary)',
       }}
     >
       Zbývající čas: {formatClock(seconds)}

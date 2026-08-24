@@ -5,7 +5,7 @@ import MonthlyLogTable from '../components/logs/MonthlyLogTable';
 import LogEntryEditor from '../components/logs/LogEntryEditor';
 import { LOG_PRESETS_CLEANING } from '../utils/constants';
 
-const ACCENT = { from: '#00838F', to: '#006064' };
+const ACCENT = { from: 'var(--teal-bright)', to: 'var(--teal)' };
 
 export default function CleaningLogPage() {
     const {

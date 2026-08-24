@@ -3,9 +3,9 @@ import useBulletin from '../../hooks/useBulletin';
 import LinkifiedText from '../LinkifiedText';
 
 const PRIORITY_CONFIG = {
-    normal:    { label: 'Normální', color: '#546E7A', bg: '#fff',     border: '#B0BEC5', accent: '#ECEFF1' },
-    important: { label: 'Důležité', color: '#E65100', bg: '#FFFDE7', border: '#FFCC80', accent: '#FFF3E0' },
-    urgent:    { label: 'Urgentní', color: '#C62828', bg: '#FFF5F5', border: '#EF9A9A', accent: '#FFEBEE' },
+    normal:    { label: 'Normální', color: 'var(--neutral)', bg: 'var(--surface)', border: 'var(--neutral-border)', accent: 'var(--neutral-bg)' },
+    important: { label: 'Důležité', color: 'var(--warning-dark)', bg: 'var(--warning-bg-soft)', border: 'var(--warning-border)', accent: 'var(--warning-bg)' },
+    urgent:    { label: 'Urgentní', color: 'var(--danger-text)', bg: 'var(--danger-bg-soft)', border: 'var(--danger-border-strong)', accent: 'var(--danger-bg)' },
 };
 
 function formatDate(iso) {
@@ -33,12 +33,12 @@ export default function BulletinWidget() {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '1rem' }}>📌</span>
-                    <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                         Nástěnka
                     </h2>
                     {unseenPosts.length > 0 && (
                         <span style={{
-                            background: '#D32F2F', color: 'white',
+                            background: 'var(--danger)', color: 'white',
                             fontSize: '0.65rem', fontWeight: 700,
                             padding: '0.1rem 0.45rem', borderRadius: '999px', lineHeight: 1.4
                         }}>
@@ -51,7 +51,7 @@ export default function BulletinWidget() {
                         onClick={() => setShowArchive(v => !v)}
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            fontSize: '0.78rem', color: '#888', padding: 0
+                            fontSize: '0.78rem', color: 'var(--text-muted)', padding: 0
                         }}
                     >
                         {showArchive ? '▲ Skrýt archiv' : `▼ Archiv (${seenCount})`}
@@ -63,7 +63,7 @@ export default function BulletinWidget() {
             {displayPosts.length === 0 && !showArchive && (
                 <div style={{
                     padding: '0.85rem 1rem', background: 'white', borderRadius: '10px',
-                    border: '1px solid #eee', color: '#aaa', fontSize: '0.85rem', textAlign: 'center'
+                    border: '1px solid var(--border)', color: 'var(--text-faint)', fontSize: '0.85rem', textAlign: 'center'
                 }}>
                     Žádné nové příspěvky.
                 </div>
@@ -91,7 +91,7 @@ export default function BulletinWidget() {
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
                                         {post.isPinned && (
-                                            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#F57C00' }}>📌</span>
+                                            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--warning)' }}>📌</span>
                                         )}
                                         {post.priority !== 'normal' && (
                                             <span style={{
@@ -101,14 +101,14 @@ export default function BulletinWidget() {
                                                 {pc.label}
                                             </span>
                                         )}
-                                        <span style={{ fontSize: '0.7rem', color: '#aaa' }}>
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-faint)' }}>
                                             {post.createdBy?.name} · {formatDate(post.createdAt)}
                                         </span>
                                     </div>
-                                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#222', marginBottom: '0.35rem' }}>
+                                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
                                         {post.title}
                                     </div>
-                                    <div style={{ fontSize: '0.85rem', color: '#444', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.5 }}>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.5 }}>
                                         <LinkifiedText text={post.content} />
                                     </div>
                                 </div>
@@ -119,8 +119,8 @@ export default function BulletinWidget() {
                                     <button
                                         onClick={() => markAsSeen(post.id)}
                                         style={{
-                                            background: '#E8F5E9', border: '1px solid #A5D6A7',
-                                            color: '#2E7D32', borderRadius: '6px', cursor: 'pointer',
+                                            background: 'var(--success-bg)', border: '1px solid var(--success-border-strong)',
+                                            color: 'var(--success-text)', borderRadius: '6px', cursor: 'pointer',
                                             fontSize: '0.78rem', fontWeight: 600,
                                             padding: '0.3rem 0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
                                         }}
@@ -130,7 +130,7 @@ export default function BulletinWidget() {
                                 </div>
                             )}
                             {isSeen && (
-                                <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: '#aaa', textAlign: 'right' }}>
+                                <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: 'var(--text-faint)', textAlign: 'right' }}>
                                     ✓ Viděno
                                 </div>
                             )}

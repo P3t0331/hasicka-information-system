@@ -32,7 +32,7 @@ export default function UpcomingActivities({ upcomingActivities }) {
                     ))}
                 </div>
             ) : (
-                <div className="dashboard-card" style={{ textAlign: 'center', color: '#888', padding: '1.5rem' }}>
+                <div className="dashboard-card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1.5rem' }}>
                     Zatím nemáte žádné naplánované aktivity.
                 </div>
             )}

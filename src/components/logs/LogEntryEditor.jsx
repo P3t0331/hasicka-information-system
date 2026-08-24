@@ -157,7 +157,7 @@ export default function LogEntryEditor({
                 onClick={e => e.stopPropagation()}
                 style={{ maxWidth: '560px', width: '94%', animation: 'fadeIn 0.2s', maxHeight: '90vh', overflowY: 'auto' }}
             >
-                <h3 style={{ marginTop: 0, marginBottom: '1.25rem', color: '#333' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '1.25rem', color: 'var(--text-charcoal)' }}>
                     {isEdit ? '✏️ Upravit záznam' : `+ ${title}`}
                 </h3>
 
@@ -235,7 +235,7 @@ export default function LogEntryEditor({
                         <div className="input-group">
                             <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <span>Počet osob</span>
-                                <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 400 }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
                                     {overrideCount ? '(ručně)' : '(auto)'}
                                 </span>
                             </label>
@@ -260,7 +260,7 @@ export default function LogEntryEditor({
                                     style={{
                                         marginTop: '0.25rem',
                                         background: 'none', border: 'none',
-                                        color: '#1976D2', cursor: 'pointer',
+                                        color: 'var(--info)', cursor: 'pointer',
                                         fontSize: '0.75rem', padding: 0, textAlign: 'left'
                                     }}
                                 >
@@ -271,7 +271,7 @@ export default function LogEntryEditor({
                         <div className="input-group">
                             <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <span>Osobohodiny</span>
-                                <span style={{ fontSize: '0.7rem', color: '#888', fontWeight: 400 }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
                                     {overridePersonHours ? '(ručně)' : '(auto)'}
                                 </span>
                             </label>
@@ -297,7 +297,7 @@ export default function LogEntryEditor({
                                     style={{
                                         marginTop: '0.25rem',
                                         background: 'none', border: 'none',
-                                        color: '#1976D2', cursor: 'pointer',
+                                        color: 'var(--info)', cursor: 'pointer',
                                         fontSize: '0.75rem', padding: 0, textAlign: 'left'
                                     }}
                                 >
@@ -311,11 +311,11 @@ export default function LogEntryEditor({
                         <div style={{
                             marginTop: '0.75rem',
                             padding: '0.5rem 0.75rem',
-                            background: '#FFEBEE',
-                            color: '#C62828',
+                            background: 'var(--danger-bg)',
+                            color: 'var(--danger-text)',
                             borderRadius: '6px',
                             fontSize: '0.85rem',
-                            border: '1px solid #FFCDD2'
+                            border: '1px solid var(--danger-border)'
                         }}>
                             {error}
                         </div>

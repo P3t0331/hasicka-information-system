@@ -104,12 +104,12 @@ export default function AuthPage() {
       <div className="card" style={{ maxWidth: '400px', width: '90%', margin: '1rem' }}>
         <div className="flex-center mb-2" style={{ flexDirection: 'column' }}>
           <h1 style={{ color: 'var(--primary-red)', fontSize: '3rem', marginBottom: '0.25rem', letterSpacing: '2px' }}>HASIČKA</h1>
-          <p style={{ color: '#888', fontWeight: 500, letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.8rem' }}>Informační Systém</p>
+          <p style={{ color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.8rem' }}>Informační Systém</p>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
         {successMsg && (
-          <div className="alert alert-success" style={{ background: '#e8f5e9', color: '#2e7d32', border: '1px solid #c8e6c9' }}>
+          <div className="alert alert-success" style={{ background: 'var(--success-bg)', color: 'var(--success-text)', border: '1px solid var(--success-border)' }}>
             {successMsg}
           </div>
         )}
@@ -143,7 +143,7 @@ export default function AuthPage() {
         {mode === 'forgot' && (
           <>
             <h2 className="mb-2" style={{ textAlign: 'center' }}>Reset hesla</h2>
-            <p style={{ fontSize: '0.88rem', color: '#666', marginBottom: '1rem', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-steel)', marginBottom: '1rem', textAlign: 'center' }}>
               Zadejte svůj email a pošleme vám odkaz pro nastavení nového hesla.
             </p>
             <form onSubmit={handleForgotSubmit}>

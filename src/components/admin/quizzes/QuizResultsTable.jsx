@@ -4,11 +4,11 @@ import { MEMBER_STATUS } from '../../../../shared/quizStatus.js';
 // Stejné barvy jako štítek stavu na kartě kvízu (src/components/quizzes/QuizCard.jsx) —
 // admin i člen mají pro stejný stav vidět stejnou barvu.
 const STATUS_CONFIG = {
-    [MEMBER_STATUS.NOT_STARTED]: { label: 'Nevyplnil', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
-    [MEMBER_STATUS.IN_PROGRESS]: { label: 'Rozpracováno', color: '#E65100', bg: '#FFF3E0', border: '#FFCC80' },
-    [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },
-    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-    [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
+    [MEMBER_STATUS.NOT_STARTED]: { label: 'Nevyplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
+    [MEMBER_STATUS.IN_PROGRESS]: { label: 'Rozpracováno', color: 'var(--warning-dark)', bg: 'var(--warning-bg)', border: 'var(--warning-border)' },
+    [MEMBER_STATUS.PENDING_REVIEW]: { label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
+    [MEMBER_STATUS.PASSED]: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+    [MEMBER_STATUS.FAILED]: { label: 'Nesplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
 };
 
 // Souhrnné karty nad tabulkou. `filterKey` je hodnota lokálního filtru — 'all'
@@ -21,11 +21,11 @@ const STATUS_CONFIG = {
 // by ho přečetl jako "kolik lidí to musí vyplnit" a číslo je vyšší, kdykoli
 // se změnilo obsazení jednotky. Počet se neupravuje, mění se jen popisek.
 const SUMMARY_CARDS = [
-    { key: 'assigned', filterKey: 'all', label: 'Celkem', color: '#455A64', bg: '#ECEFF1', border: '#B0BEC5' },
-    { key: 'passed', filterKey: 'passed', label: 'Splnilo', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-    { key: 'failed', filterKey: 'failed', label: 'Nesplnilo', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
-    { key: 'pending', filterKey: 'pending', label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },
-    { key: 'notStarted', filterKey: 'notStarted', label: 'Nevyplnilo', color: '#616161', bg: '#F5F5F5', border: '#BDBDBD' },
+    { key: 'assigned', filterKey: 'all', label: 'Celkem', color: 'var(--neutral-dark)', bg: 'var(--neutral-bg)', border: 'var(--neutral-border)' },
+    { key: 'passed', filterKey: 'passed', label: 'Splnilo', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+    { key: 'failed', filterKey: 'failed', label: 'Nesplnilo', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
+    { key: 'pending', filterKey: 'pending', label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
+    { key: 'notStarted', filterKey: 'notStarted', label: 'Nevyplnilo', color: 'var(--text-secondary)', bg: 'var(--surface-alt)', border: 'var(--border-strong)' },
 ];
 
 function matchesFilter(status, filterKey) {
@@ -81,7 +81,7 @@ function LateMarker() {
     return (
         <span style={{
             fontSize: '0.68rem', fontWeight: 700, padding: '0.1rem 0.4rem', marginLeft: '0.4rem',
-            borderRadius: '999px', color: '#E65100', background: '#FFF3E0', border: '1px solid #FFCC80',
+            borderRadius: '999px', color: 'var(--warning-dark)', background: 'var(--warning-bg)', border: '1px solid var(--warning-border)',
             whiteSpace: 'nowrap',
         }}>
             Pozdě
@@ -91,10 +91,10 @@ function LateMarker() {
 
 const thStyle = {
     padding: '0.85rem 1rem', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600,
-    color: '#555', background: '#f8f9fa', borderBottom: '2px solid #eee',
+    color: 'var(--text-secondary)', background: 'var(--surface-alt)', borderBottom: '2px solid var(--border)',
 };
 const tdStyle = {
-    padding: '0.85rem 1rem', fontSize: '0.88rem', color: 'var(--text-primary)', borderBottom: '1px solid #eee',
+    padding: '0.85rem 1rem', fontSize: '0.88rem', color: 'var(--text-primary)', borderBottom: '1px solid var(--border)',
 };
 
 export default function QuizResultsTable({ rows, onSelectMember }) {
@@ -139,15 +139,15 @@ export default function QuizResultsTable({ rows, onSelectMember }) {
                             onClick={() => setFilterKey(active && card.filterKey !== 'all' ? 'all' : card.filterKey)}
                             style={{
                                 textAlign: 'left', cursor: 'pointer', borderRadius: '10px',
-                                padding: '0.85rem 1rem', background: active ? card.bg : '#fff',
-                                border: `1px solid ${active ? card.border : '#e0e0e0'}`,
+                                padding: '0.85rem 1rem', background: active ? card.bg : 'var(--surface)',
+                                border: `1px solid ${active ? card.border : 'var(--border)'}`,
                                 boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
                             }}
                         >
                             <div style={{ fontSize: '1.35rem', fontWeight: 700, color: card.color }}>
                                 {summary[card.key]}
                             </div>
-                            <div style={{ fontSize: '0.78rem', color: '#666', marginTop: '0.15rem' }}>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '0.15rem' }}>
                                 {card.label}
                             </div>
                         </button>
@@ -166,7 +166,7 @@ export default function QuizResultsTable({ rows, onSelectMember }) {
                     {/* Desktop: tabulka */}
                     <div
                         className="d-desktop-only"
-                        style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                        style={{ background: 'var(--surface)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                     >
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
@@ -186,7 +186,7 @@ export default function QuizResultsTable({ rows, onSelectMember }) {
                                             key={row.uid}
                                             onClick={() => handleRowClick(row)}
                                             style={{ cursor: clickable ? 'pointer' : 'default' }}
-                                            onMouseEnter={e => { if (clickable) e.currentTarget.style.background = '#fafafa'; }}
+                                            onMouseEnter={e => { if (clickable) e.currentTarget.style.background = 'var(--surface-sunken)'; }}
                                             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                                         >
                                             <td style={tdStyle}>{row.name}</td>

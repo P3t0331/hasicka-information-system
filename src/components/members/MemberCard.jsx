@@ -29,7 +29,7 @@ function MemberCard({ member, roleLabels }) {
         >
             {/* Header with Avatar */}
             <div style={{
-                background: 'linear-gradient(135deg, #263238 0%, #37474F 100%)',
+                background: 'linear-gradient(135deg, var(--shift-night) 0%, var(--table-header-dark) 100%)',
                 padding: '1.5rem',
                 display: 'flex',
                 alignItems: 'center',
@@ -72,7 +72,7 @@ function MemberCard({ member, roleLabels }) {
                                 borderRadius: '12px',
                                 fontSize: '0.7rem',
                                 fontWeight: 600,
-                                color: '#FFD54F',
+                                color: 'var(--gold-text-on-dark)',
                                 border: '1px solid rgba(255, 193, 7, 0.3)'
                             }}>
                                 Ev. č. {member.registrationNumber}
@@ -106,7 +106,7 @@ function MemberCard({ member, roleLabels }) {
                         <div style={{
                             width: '36px',
                             height: '36px',
-                            background: '#E3F2FD',
+                            background: 'var(--info-bg)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
@@ -117,12 +117,12 @@ function MemberCard({ member, roleLabels }) {
                             ✉️
                         </div>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.25rem' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
                                 Email
                             </div>
                             <div style={{
                                 fontSize: '0.9rem',
-                                color: '#333',
+                                color: 'var(--text-charcoal)',
                                 wordBreak: 'break-word'
                             }}>
                                 {member.email || 'Neuvedeno'}
@@ -135,7 +135,7 @@ function MemberCard({ member, roleLabels }) {
                         <div style={{
                             width: '36px',
                             height: '36px',
-                            background: '#E8F5E9',
+                            background: 'var(--success-bg)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
@@ -146,10 +146,10 @@ function MemberCard({ member, roleLabels }) {
                             📱
                         </div>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.25rem' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
                                 Telefon
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: '#333' }}>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-charcoal)' }}>
                                 {member.phone || 'Neuvedeno'}
                             </div>
                         </div>
@@ -160,7 +160,7 @@ function MemberCard({ member, roleLabels }) {
                         <div style={{
                             width: '36px',
                             height: '36px',
-                            background: '#FFF3E0',
+                            background: 'var(--warning-bg)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
@@ -171,10 +171,10 @@ function MemberCard({ member, roleLabels }) {
                             🏠
                         </div>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.25rem' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
                                 Adresa
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: '#333' }}>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-charcoal)' }}>
                                 {member.address || 'Neuvedeno'}
                             </div>
                         </div>
@@ -184,11 +184,11 @@ function MemberCard({ member, roleLabels }) {
                     <div style={{
                         marginTop: '0.5rem',
                         paddingTop: '1rem',
-                        borderTop: '1px solid #eee'
+                        borderTop: '1px solid var(--border)'
                     }}>
                         <div style={{
                             fontSize: '0.75rem',
-                            color: '#888',
+                            color: 'var(--text-muted)',
                             marginBottom: '0.5rem',
                             fontWeight: 600
                         }}>
@@ -202,13 +202,13 @@ function MemberCard({ member, roleLabels }) {
                             }}>
                                 {member.certifications.map(cert => (
                                     <span key={cert} style={{
-                                        background: '#FFF3E0',
-                                        color: '#E65100',
+                                        background: 'var(--warning-bg)',
+                                        color: 'var(--warning-dark)',
                                         padding: '0.35rem 0.75rem',
                                         borderRadius: '6px',
                                         fontSize: '0.75rem',
                                         fontWeight: 600,
-                                        border: '1px solid #FFE0B2'
+                                        border: '1px solid var(--warning-border-warm)'
                                     }}>
                                         {cert}
                                     </span>
@@ -217,7 +217,7 @@ function MemberCard({ member, roleLabels }) {
                         ) : (
                             <div style={{
                                 fontSize: '0.85rem',
-                                color: '#999',
+                                color: 'var(--text-gray)',
                                 fontStyle: 'italic'
                             }}>
                                 Bez kvalifikace

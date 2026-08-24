@@ -20,10 +20,10 @@ export default function ZalohaAssignModal({ shiftsData, zalohaAssignModal, onAss
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <p style={{ marginBottom: '1rem', color: '#555' }}>Vyberte zájemce pro obsazení této pozice:</p>
-          
+          <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>Vyberte zájemce pro obsazení této pozice:</p>
+
           {interestedPool.length === 0 ? (
-            <div style={{ padding: '1rem', background: '#f5f5f5', borderRadius: '8px', textAlign: 'center', color: '#888' }}>
+            <div style={{ padding: '1rem', background: 'var(--surface-alt)', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>
               Žádní volní zájemci v tuto chvíli.
             </div>
           ) : (
@@ -35,7 +35,7 @@ export default function ZalohaAssignModal({ shiftsData, zalohaAssignModal, onAss
                   style={{
                     padding: '0.75rem',
                     background: 'white',
-                    border: '1px solid #e0e0e0',
+                    border: '1px solid var(--border)',
                     borderRadius: '8px',
                     textAlign: 'left',
                     cursor: 'pointer',
@@ -44,10 +44,10 @@ export default function ZalohaAssignModal({ shiftsData, zalohaAssignModal, onAss
                     alignItems: 'center',
                     transition: 'all 0.2s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#1976D2'; e.currentTarget.style.background = '#F5F9FF'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.background = 'white'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--info)'; e.currentTarget.style.background = 'var(--info-bg-soft)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'white'; }}
                 >
-                  <span style={{ fontWeight: 600, color: '#333' }}>{user.name}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-charcoal)' }}>{user.name}</span>
                   <span style={{ fontSize: '1.2rem' }}>+</span>
                 </button>
               ))}

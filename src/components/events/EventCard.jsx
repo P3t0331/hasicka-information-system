@@ -88,7 +88,7 @@ export default function EventCard({ event, isPast, currentUser, onJoin, onLeave,
                     {event.vehicles && (
                         <>
                             <span className="event-card__meta-sep">•</span>
-                            <span className="event-card__meta-item" title="Technika" style={{ color: '#E65100', fontWeight: 600 }}>
+                            <span className="event-card__meta-item" title="Technika" style={{ color: 'var(--warning-dark)', fontWeight: 600 }}>
                                 🚒 {event.vehicles}
                             </span>
                         </>
@@ -122,7 +122,7 @@ export default function EventCard({ event, isPast, currentUser, onJoin, onLeave,
                                 Odhlásit
                             </button>
                         ) : (event.maxParticipants && count >= parseInt(event.maxParticipants)) ? (
-                            <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}>
+                            <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--border)', color: 'var(--text-dim)', borderColor: 'var(--border-medium)' }}>
                                 Plno
                             </button>
                         ) : (

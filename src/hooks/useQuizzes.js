@@ -7,6 +7,7 @@ import { logAction } from '../utils/logger';
 import { getEffectiveRoles } from '../utils/roles';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { sendPushNotification } from '../utils/pushNotification';
 
 const MANAGE_ROLES = ['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ'];
 
@@ -31,19 +32,7 @@ export const EMPTY_QUIZ = {
 // (ne uvnitř hooku), aby ji šlo importovat i z useQuizResults.js (hodnocení
 // textových otázek) bez nutnosti instanciovat celý useQuizzes.
 export async function sendQuizNotification({ title, body, url = '/skoleni', tag, targetRoles, targetUserIds }) {
-  try {
-    await fetch('/api/send-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title, body, url, tag,
-        ...(targetRoles ? { targetRoles } : {}),
-        ...(targetUserIds ? { targetUserIds } : {}),
-      }),
-    });
-  } catch (err) {
-    console.error('Chyba při odesílání notifikace:', err);
-  }
+  await sendPushNotification({ title, body, url, tag, category: 'kvizy', targetRoles, targetUserIds });
 }
 
 export function validateForPublish(quiz, answerKey) {

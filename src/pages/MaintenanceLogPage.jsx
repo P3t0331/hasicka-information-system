@@ -5,7 +5,7 @@ import MonthlyLogTable from '../components/logs/MonthlyLogTable';
 import LogEntryEditor from '../components/logs/LogEntryEditor';
 import { LOG_PRESETS_MAINTENANCE } from '../utils/constants';
 
-const ACCENT = { from: '#FF6F00', to: '#E65100' };
+const ACCENT = { from: 'var(--warning-amber)', to: 'var(--warning-dark)' };
 
 export default function MaintenanceLogPage() {
     const {

@@ -33,7 +33,7 @@ export default function AbsencePanel({
     <section style={{ marginBottom: '2rem' }}>
       <div
         style={{
-          background: 'linear-gradient(135deg, #7B1FA2, #512DA8)',
+          background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-purple-deep))',
           color: 'white',
           padding: '0.75rem 1rem',
           borderRadius: absencePanelOpen ? '12px 12px 0 0' : '12px',
@@ -67,14 +67,14 @@ export default function AbsencePanel({
 
       {absencePanelOpen && (
         <div style={{
-          border: '1px solid #E1BEE7',
+          border: '1px solid var(--accent-purple-border)',
           borderTop: 'none',
           borderRadius: '0 0 12px 12px',
           overflow: 'hidden',
           background: 'white'
         }}>
           {displayAbsences.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#9575CD' }}>
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--accent-purple-light)' }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
               Žádné {showPast ? '' : 'nadcházející'} absence v tomto měsíci
             </div>
@@ -89,22 +89,22 @@ export default function AbsencePanel({
 
                 let cardBg, cardBorder, cardOpacity, badgeBg, statusLabel;
                 if (isPast) {
-                  cardBg = '#f5f5f5';
-                  cardBorder = '1px solid #e0e0e0';
+                  cardBg = 'var(--surface-alt)';
+                  cardBorder = '1px solid var(--border)';
                   cardOpacity = 0.6;
-                  badgeBg = 'linear-gradient(135deg, #9E9E9E, #757575)';
+                  badgeBg = 'linear-gradient(135deg, var(--text-gray), var(--text-dim))';
                   statusLabel = 'Proběhlo';
                 } else if (isFuture) {
-                  cardBg = isMine ? '#E8EAF6' : '#FAFAFA';
-                  cardBorder = isMine ? '2px dashed #7986CB' : '2px dashed #BDBDBD';
+                  cardBg = isMine ? 'var(--indigo-bg)' : 'var(--surface-sunken)';
+                  cardBorder = isMine ? '2px dashed var(--indigo)' : '2px dashed var(--border-strong)';
                   cardOpacity = 1;
-                  badgeBg = 'linear-gradient(135deg, #5C6BC0, #3949AB)';
+                  badgeBg = 'linear-gradient(135deg, var(--indigo-dark), var(--indigo-deep))';
                   statusLabel = 'Naplánováno';
                 } else {
-                  cardBg = isMine ? '#F3E5F5' : '#FAFAFA';
-                  cardBorder = isMine ? '1px solid #CE93D8' : '1px solid #eee';
+                  cardBg = isMine ? 'var(--accent-purple-bg)' : 'var(--surface-sunken)';
+                  cardBorder = isMine ? '1px solid var(--accent-purple-border-soft)' : '1px solid var(--surface-hover)';
                   cardOpacity = 1;
-                  badgeBg = 'linear-gradient(135deg, #9C27B0, #7B1FA2)';
+                  badgeBg = 'linear-gradient(135deg, var(--accent-purple-bright), var(--accent-purple))';
                   statusLabel = null;
                 }
 
@@ -141,7 +141,7 @@ export default function AbsencePanel({
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: isPast ? '#888' : '#333' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: isPast ? 'var(--text-muted)' : 'var(--text-charcoal)' }}>
                           {absence.userName}
                         </span>
                         {statusLabel && (
@@ -151,8 +151,8 @@ export default function AbsencePanel({
                             borderRadius: '4px',
                             fontWeight: 600,
                             textTransform: 'uppercase',
-                            background: isPast ? '#EEEEEE' : '#E8EAF6',
-                            color: isPast ? '#757575' : '#3949AB'
+                            background: isPast ? 'var(--surface-hover)' : 'var(--indigo-bg)',
+                            color: isPast ? 'var(--text-dim)' : 'var(--indigo-deep)'
                           }}>
                             {statusLabel}
                           </span>
@@ -160,7 +160,7 @@ export default function AbsencePanel({
                       </div>
                       <div style={{
                         fontSize: '0.8rem',
-                        color: isPast ? '#aaa' : '#666',
+                        color: isPast ? 'var(--text-subtle)' : 'var(--text-steel)',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
@@ -175,7 +175,7 @@ export default function AbsencePanel({
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#E53935',
+                          color: 'var(--danger-hover)',
                           cursor: 'pointer',
                           fontSize: '1.1rem',
                           padding: '0.3rem',
@@ -186,7 +186,7 @@ export default function AbsencePanel({
                           transition: 'background 0.2s',
                           flexShrink: 0
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#FFEBEE'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}
                       >
                         ✕
@@ -199,11 +199,11 @@ export default function AbsencePanel({
           )}
 
           {pastAbsences.length > 0 && (
-            <div style={{ padding: '0.5rem', textAlign: 'center', background: '#FAFAFA', borderTop: '1px solid #F3E5F5' }}>
-              <button 
+            <div style={{ padding: '0.5rem', textAlign: 'center', background: 'var(--surface-sunken)', borderTop: '1px solid var(--accent-purple-bg)' }}>
+              <button
                 onClick={() => setShowPast(!showPast)}
                 style={{
-                  background: 'none', border: 'none', color: '#7B1FA2', 
+                  background: 'none', border: 'none', color: 'var(--accent-purple)',
                   fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                   textDecoration: 'underline'
                 }}
@@ -216,15 +216,15 @@ export default function AbsencePanel({
           {userData?.approved && (
             <div style={{
               padding: '0.75rem',
-              borderTop: '1px solid #F3E5F5',
-              background: '#FAFAFA'
+              borderTop: '1px solid var(--accent-purple-bg)',
+              background: 'var(--surface-sunken)'
             }}>
               <button
                 className="btn btn-primary"
                 onClick={() => setAbsenceModal({ mode: 'add' })}
                 style={{
                   width: '100%',
-                  background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)',
+                  background: 'linear-gradient(135deg, var(--accent-purple-bright), var(--accent-purple))',
                   border: 'none',
                   padding: '0.7rem 1rem',
                   borderRadius: '8px',
@@ -241,9 +241,9 @@ export default function AbsencePanel({
                   style={{
                     width: '100%',
                     marginTop: '0.5rem',
-                    background: '#FFF8E1',
-                    border: '1px solid #FFB300',
-                    color: '#E65100',
+                    background: 'var(--warning-bg-soft)',
+                    border: '1px solid var(--warning-strong)',
+                    color: 'var(--warning-dark)',
                     padding: '0.7rem 1rem',
                     borderRadius: '8px',
                     fontSize: '0.9rem',

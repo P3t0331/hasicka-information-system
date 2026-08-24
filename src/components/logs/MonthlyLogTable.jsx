@@ -161,17 +161,17 @@ export default function MonthlyLogTable({
                     borderRadius: '999px',
                     padding: '0.25rem',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                    border: '1px solid #eee'
+                    border: '1px solid var(--border)'
                 }}>
                     <button
                         onClick={() => onMonthChange(-1)}
                         style={{
                             border: 'none', background: 'transparent', cursor: 'pointer',
-                            padding: '0.35rem 0.8rem', fontSize: '1rem', color: '#555', borderRadius: '999px'
+                            padding: '0.35rem 0.8rem', fontSize: '1rem', color: 'var(--text-secondary)', borderRadius: '999px'
                         }}
                     >←</button>
                     <span style={{
-                        fontWeight: 700, color: '#333', textTransform: 'uppercase',
+                        fontWeight: 700, color: 'var(--text-charcoal)', textTransform: 'uppercase',
                         letterSpacing: '0.5px', fontSize: '0.85rem', padding: '0 0.4rem'
                     }}>
                         {MONTHS_CZ[monthIdx]} {year}
@@ -180,16 +180,16 @@ export default function MonthlyLogTable({
                         onClick={() => onMonthChange(1)}
                         style={{
                             border: 'none', background: 'transparent', cursor: 'pointer',
-                            padding: '0.35rem 0.8rem', fontSize: '1rem', color: '#555', borderRadius: '999px'
+                            padding: '0.35rem 0.8rem', fontSize: '1rem', color: 'var(--text-secondary)', borderRadius: '999px'
                         }}
                     >→</button>
                 </div>
 
                 <label style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
-                    fontSize: '0.85rem', color: '#444', cursor: 'pointer',
+                    fontSize: '0.85rem', color: 'var(--text-slate)', cursor: 'pointer',
                     userSelect: 'none', background: 'white', borderRadius: '999px',
-                    padding: '0.45rem 0.9rem', border: '1px solid #eee',
+                    padding: '0.45rem 0.9rem', border: '1px solid var(--border)',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                 }}>
                     <input
@@ -210,9 +210,9 @@ export default function MonthlyLogTable({
                 marginBottom: '1.25rem'
             }}>
                 <StatPill icon="⏱️" value={`${formatHours(totals.hours)}h`} label="Čas trvání" color={accentColor.from} />
-                <StatPill icon="👥" value={`${formatHours(totals.personHours)}h`} label="Osobohodin" color="#1976D2" />
-                <StatPill icon="🧑" value={totals.people} label="Účastí" color="#388E3C" />
-                <StatPill icon="📋" value={totals.count} label="Záznamů" color="#F57C00" />
+                <StatPill icon="👥" value={`${formatHours(totals.personHours)}h`} label="Osobohodin" color="var(--info)" />
+                <StatPill icon="🧑" value={totals.people} label="Účastí" color="var(--success)" />
+                <StatPill icon="📋" value={totals.count} label="Záznamů" color="var(--warning)" />
             </div>
 
             {/* Mini calendar */}
@@ -221,10 +221,10 @@ export default function MonthlyLogTable({
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     marginBottom: '0.6rem'
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-steel)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         📅 Přehled měsíce
                     </h3>
-                    <span style={{ fontSize: '0.7rem', color: '#999' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-gray)' }}>
                         Klikněte na den pro přidání záznamu
                     </span>
                 </div>
@@ -232,7 +232,7 @@ export default function MonthlyLogTable({
                     {DAYS_HEAD.map(d => (
                         <div key={d} style={{
                             textAlign: 'center', fontSize: '0.7rem',
-                            color: '#999', fontWeight: 600, padding: '0.25rem 0'
+                            color: 'var(--text-gray)', fontWeight: 600, padding: '0.25rem 0'
                         }}>{d}</div>
                     ))}
                 </div>
@@ -252,10 +252,10 @@ export default function MonthlyLogTable({
                                 style={{
                                     aspectRatio: '1',
                                     minHeight: '40px',
-                                    border: c.isToday ? `2px solid ${accentColor.from}` : '1px solid #eee',
+                                    border: c.isToday ? `2px solid ${accentColor.from}` : '1px solid var(--border)',
                                     background: hasEntries
                                         ? `linear-gradient(135deg, ${accentColor.from}22, ${accentColor.to}22)`
-                                        : (c.isWeekend ? '#FFEBEE' : 'white'),
+                                        : (c.isWeekend ? 'var(--danger-bg)' : 'white'),
                                     borderRadius: '8px',
                                     cursor: clickable ? 'pointer' : 'default',
                                     padding: '0.3rem',
@@ -265,7 +265,7 @@ export default function MonthlyLogTable({
                                     justifyContent: 'center',
                                     fontSize: '0.85rem',
                                     fontWeight: c.isToday ? 700 : 500,
-                                    color: c.isToday ? accentColor.to : (isFuture ? '#bbb' : '#444'),
+                                    color: c.isToday ? accentColor.to : (isFuture ? 'var(--text-faint)' : 'var(--text-slate)'),
                                     opacity: isFuture ? 0.55 : 1,
                                     position: 'relative',
                                     transition: 'transform 0.15s'
@@ -297,7 +297,7 @@ export default function MonthlyLogTable({
             {/* Timeline */}
             <div>
                 <h3 style={{
-                    fontSize: '0.85rem', color: '#666', textTransform: 'uppercase',
+                    fontSize: '0.85rem', color: 'var(--text-steel)', textTransform: 'uppercase',
                     letterSpacing: '0.5px', margin: '0 0 0.75rem 0.25rem'
                 }}>
                     📋 Záznamy ({groupedDays.length} {groupedDays.length === 1 ? 'den' : (groupedDays.length >= 2 && groupedDays.length <= 4 ? 'dny' : 'dnů')})
@@ -307,9 +307,9 @@ export default function MonthlyLogTable({
                     <div className="card" style={{
                         padding: '2.5rem 1.5rem',
                         textAlign: 'center',
-                        color: '#888',
-                        background: '#fafafa',
-                        border: '1px dashed #ddd'
+                        color: 'var(--text-muted)',
+                        background: 'var(--surface-sunken)',
+                        border: '1px dashed var(--border)'
                     }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem', opacity: 0.5 }}>📭</div>
                         <p style={{ margin: 0, fontSize: '0.95rem' }}>
@@ -364,7 +364,7 @@ function StatPill({ icon, value, label, color }) {
             display: 'flex',
             alignItems: 'center',
             gap: '0.7rem',
-            border: '1px solid #eee',
+            border: '1px solid var(--border)',
             boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
         }}>
             <div style={{
@@ -374,8 +374,8 @@ function StatPill({ icon, value, label, color }) {
                 fontSize: '1.1rem', flexShrink: 0
             }}>{icon}</div>
             <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#222', lineHeight: 1.1 }}>{value}</div>
-                <div style={{ fontSize: '0.7rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{label}</div>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)', lineHeight: 1.1 }}>{value}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{label}</div>
             </div>
         </div>
     );
@@ -386,7 +386,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
         <div className="card" style={{
             padding: 0,
             overflow: 'hidden',
-            border: day.isToday ? `2px solid ${accentColor.from}` : '1px solid #eee'
+            border: day.isToday ? `2px solid ${accentColor.from}` : '1px solid var(--border)'
         }}>
             {/* Day header */}
             <div style={{
@@ -397,8 +397,8 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                 padding: '0.75rem 1rem',
                 background: day.isToday
                     ? `linear-gradient(90deg, ${accentColor.from}15, transparent)`
-                    : (day.isWeekend ? '#FFF5F5' : '#fafafa'),
-                borderBottom: '1px solid #f0f0f0'
+                    : (day.isWeekend ? 'var(--danger-bg-soft)' : 'var(--surface-sunken)'),
+                borderBottom: '1px solid var(--surface-hover)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
                     <div style={{
@@ -406,8 +406,8 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                         borderRadius: '10px',
                         background: day.isToday
                             ? `linear-gradient(135deg, ${accentColor.from}, ${accentColor.to})`
-                            : (day.isWeekend ? '#FFCDD2' : '#eceff1'),
-                        color: day.isToday ? 'white' : (day.isWeekend ? '#C62828' : '#37474F'),
+                            : (day.isWeekend ? 'var(--danger-border)' : 'var(--neutral-bg)'),
+                        color: day.isToday ? 'var(--text-on-dark)' : (day.isWeekend ? 'var(--danger-text)' : 'var(--neutral)'),
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center',
                         fontWeight: 700, lineHeight: 1, flexShrink: 0
@@ -419,7 +419,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                     </div>
                     <div style={{ minWidth: 0 }}>
                         <div style={{
-                            fontWeight: 600, color: '#222', fontSize: '0.95rem',
+                            fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem',
                             textTransform: 'capitalize'
                         }}>
                             {day.dayName}
@@ -433,7 +433,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                                 }}>Dnes</span>
                             )}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.1rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
                             ⏱️ {formatHours(day.dayHours)}h · 👥 {day.dayPeople}
                         </div>
                     </div>
@@ -481,7 +481,7 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
     return (
         <div style={{
             padding: '0.85rem 1rem',
-            borderBottom: isLast ? 'none' : '1px solid #f5f5f5',
+            borderBottom: isLast ? 'none' : '1px solid var(--surface-alt)',
             display: 'flex',
             gap: '0.75rem',
             alignItems: 'flex-start',
@@ -493,7 +493,7 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
             }} />
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                    fontWeight: 500, color: '#222',
+                    fontWeight: 500, color: 'var(--text-primary)',
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                     fontSize: '0.95rem', marginBottom: '0.4rem'
                 }}>
@@ -505,9 +505,9 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
                         {(entry.participants || []).map(p => (
                             <span key={p.uid} style={{
                                 fontSize: '0.7rem',
-                                background: '#E3F2FD', color: '#1565C0',
+                                background: 'var(--info-bg)', color: 'var(--info-text)',
                                 padding: '0.15rem 0.5rem', borderRadius: '999px',
-                                border: '1px solid #BBDEFB'
+                                border: '1px solid var(--info-border-soft)'
                             }}>
                                 {p.name}
                             </span>
@@ -515,9 +515,9 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
                         {(entry.externalParticipants || []).map((name, i) => (
                             <span key={`ext-${i}`} style={{
                                 fontSize: '0.7rem',
-                                background: '#F3E5F5', color: '#7B1FA2',
+                                background: 'var(--accent-purple-bg)', color: 'var(--accent-purple)',
                                 padding: '0.15rem 0.5rem', borderRadius: '999px',
-                                border: '1px solid #E1BEE7'
+                                border: '1px solid var(--accent-purple-border)'
                             }}>
                                 {name}
                             </span>
@@ -525,7 +525,7 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
                     </div>
                 )}
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-steel)' }}>
                     <Badge icon="⏱️" text={`${formatHours(Number(entry.hours) || 0)}h`} />
                     <Badge icon="👥" text={`${entry.peopleCount || 0} osob`} />
                     {entry.personHoursOverride != null && (
@@ -544,7 +544,7 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
                         title="Upravit"
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            fontSize: '1rem', color: '#1976D2',
+                            fontSize: '1rem', color: 'var(--info)',
                             padding: '0.3rem', borderRadius: '6px'
                         }}
                     >✏️</button>
@@ -553,7 +553,7 @@ function EntryRow({ entry, accentColor, canModify, onEdit, onDelete, isLast }) {
                         title="Smazat"
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            fontSize: '1.25rem', color: '#d32f2f', lineHeight: 1,
+                            fontSize: '1.25rem', color: 'var(--danger)', lineHeight: 1,
                             padding: '0.2rem 0.45rem', borderRadius: '6px'
                         }}
                     >×</button>
@@ -567,10 +567,10 @@ function Badge({ icon, text, muted }) {
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-            background: muted ? 'transparent' : '#f5f5f5',
+            background: muted ? 'transparent' : 'var(--surface-alt)',
             padding: muted ? 0 : '0.15rem 0.5rem',
             borderRadius: '999px',
-            color: muted ? '#999' : '#555',
+            color: muted ? 'var(--text-gray)' : 'var(--text-secondary)',
             fontSize: '0.7rem',
             fontWeight: muted ? 400 : 500
         }}>

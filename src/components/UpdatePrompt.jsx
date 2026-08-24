@@ -21,7 +21,7 @@ export default function UpdatePrompt() {
             bottom: '1rem',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#1E1E1E',
+            background: 'var(--bg-dark-paper)',
             color: 'white',
             padding: '0.75rem 1rem',
             borderRadius: '10px',
@@ -37,7 +37,7 @@ export default function UpdatePrompt() {
             <button
                 onClick={() => updateServiceWorker(true)}
                 style={{
-                    background: '#B71C1C',
+                    background: 'var(--primary-red-dark)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '6px',

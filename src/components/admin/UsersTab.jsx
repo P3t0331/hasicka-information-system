@@ -52,11 +52,11 @@ export default function UsersTab({
 
           {/* Roles Stats */}
           <div>
-            <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '0.75rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>FUNKCE (ROLE)</h4>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>FUNKCE (ROLE)</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {ROLE_OPTIONS.filter(r => r !== 'Admin').map(role => (
                 <div key={role} style={{
-                  background: '#e3f2fd', color: '#1565c0', padding: '0.4rem 0.8rem', borderRadius: '8px',
+                  background: 'var(--info-bg)', color: 'var(--info-text)', padding: '0.4rem 0.8rem', borderRadius: '8px',
                   display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600
                 }}>
                   <span>{role}</span>
@@ -68,11 +68,11 @@ export default function UsersTab({
 
           {/* Certs Stats */}
           <div>
-            <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '0.75rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>KVALIFIKACE</h4>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>KVALIFIKACE</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {CERTIFICATION_OPTIONS.map(cert => (
                 <div key={cert} style={{
-                  background: '#fff3e0', color: '#e65100', padding: '0.4rem 0.8rem', borderRadius: '8px',
+                  background: 'var(--warning-bg)', color: 'var(--warning-dark)', padding: '0.4rem 0.8rem', borderRadius: '8px',
                   display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600
                 }}>
                   <span>{cert}</span>
@@ -93,7 +93,7 @@ export default function UsersTab({
             style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.6rem 1.2rem', borderRadius: '10px', border: 'none',
-              background: 'linear-gradient(135deg, #1565C0, #0D47A1)',
+              background: 'linear-gradient(135deg, var(--info-text), var(--info-dark))',
               color: 'white', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(21, 101, 192, 0.3)'
             }}
@@ -128,7 +128,7 @@ export default function UsersTab({
                 <div style={{
                   padding: '1.5rem',
                   borderLeft: '5px solid var(--accent-gold)',
-                  background: 'linear-gradient(to right, #fff, #fbfbfb)'
+                  background: 'linear-gradient(to right, var(--surface), var(--surface-sunken))'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                     <div>
@@ -136,19 +136,19 @@ export default function UsersTab({
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.email}</span>
                     </div>
                     <div style={{
-                      background: '#FFF8E1', color: '#FFA000', padding: '0.25rem 0.6rem',
+                      background: 'var(--warning-bg-soft)', color: 'var(--accent-gold-dark)', padding: '0.25rem 0.6rem',
                       borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase'
                     }}>
                       Nový
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Požadované role</div>
+                  <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Požadované role</div>
                     <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                       {(user.roles || [user.role]).map(r => (
                         <span key={r} style={{
-                          fontSize: '0.8rem', background: '#eee', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444'
+                          fontSize: '0.8rem', background: 'var(--border)', padding: '0.2rem 0.5rem', borderRadius: '4px', color: 'var(--text-charcoal)'
                         }}>
                           {r}
                         </span>
@@ -157,13 +157,13 @@ export default function UsersTab({
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', borderTop: '1px solid #eee' }}>
+                <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
                   <button
                     style={{
                       flex: 1, padding: '1rem', border: 'none', background: 'white',
-                      color: '#d32f2f', fontWeight: 600, cursor: 'pointer',
+                      color: 'var(--danger)', fontWeight: 600, cursor: 'pointer',
                       transition: 'background 0.2s',
-                      borderRight: '1px solid #eee'
+                      borderRight: '1px solid var(--border)'
                     }}
                     className="hover-bg-red-50"
                     onClick={() => rejectPendingUser(user)}
@@ -173,7 +173,7 @@ export default function UsersTab({
                   <button
                     style={{
                       flex: 1, padding: '1rem', border: 'none', background: 'white',
-                      color: '#2e7d32', fontWeight: 600, cursor: 'pointer',
+                      color: 'var(--success-text)', fontWeight: 600, cursor: 'pointer',
                       transition: 'background 0.2s'
                     }}
                     className="hover-bg-green-50"
@@ -190,11 +190,11 @@ export default function UsersTab({
 
       {/* All Users / Role Management */}
       <div className="card" style={{ overflow: 'hidden', padding: 0, border: 'none', background: 'transparent', boxShadow: 'none' }}>
-        <div style={{ padding: '1rem', background: '#fff', borderBottom: '1px solid #eee', borderRadius: '12px 12px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '1rem', background: 'var(--surface)', borderBottom: '1px solid var(--border)', borderRadius: '12px 12px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h3 style={{ margin: 0 }}>Všichni uživatelé</h3>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '0 0 12px 12px', overflowX: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '0 0 12px 12px', overflowX: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <table className="responsive-table">
             <thead>
               <tr>
@@ -216,7 +216,7 @@ export default function UsersTab({
 
                 return (
                   <tr key={user.uid} className="hover-row" style={{
-                    background: isDisabled ? '#fafafa' : 'white',
+                    background: isDisabled ? 'var(--surface-sunken)' : 'white',
                     opacity: isDisabled ? 0.8 : 1
                   }}>
                     {/* COL 1: User Info */}
@@ -225,25 +225,25 @@ export default function UsersTab({
                         <div style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{
                             width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
-                            background: isAdmin ? 'var(--primary-red)' : (isDisabled ? '#ccc' : '#2196F3'),
+                            background: isAdmin ? 'var(--primary-red)' : (isDisabled ? 'var(--border-medium)' : 'var(--info-bright)'),
                             color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem'
                           }}>
                             {user.firstName ? user.firstName[0] : ''}{user.lastName ? user.lastName[0] : ''}
                           </div>
                           <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontWeight: 600, color: isDisabled ? '#999' : 'var(--text-primary)', textDecoration: isDisabled ? 'line-through' : 'none' }}>
+                            <div style={{ fontWeight: 600, color: isDisabled ? 'var(--text-gray)' : 'var(--text-primary)', textDecoration: isDisabled ? 'line-through' : 'none' }}>
                               {user.firstName} {user.lastName}
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#777', wordBreak: 'break-all' }}>{user.email}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', wordBreak: 'break-all' }}>{user.email}</div>
                             {user.mustChangePassword && user.tempPassword && currentUserIsAdmin && (
                               <div style={{
                                 display: 'flex', alignItems: 'center', gap: '0.35rem',
                                 marginTop: '0.3rem', padding: '0.2rem 0.5rem',
-                                background: '#FFF3E0', border: '1px solid #FFB300',
+                                background: 'var(--warning-bg)', border: '1px solid var(--accent-gold)',
                                 borderRadius: '6px', fontSize: '0.75rem'
                               }}>
-                                <span style={{ color: '#E65100', fontWeight: 600 }}>⏳ Dočasné heslo:</span>
-                                <span style={{ fontFamily: 'monospace', color: '#333', letterSpacing: revealedPasswords.has(user.uid) ? '0' : '0.1em' }}>
+                                <span style={{ color: 'var(--warning-dark)', fontWeight: 600 }}>⏳ Dočasné heslo:</span>
+                                <span style={{ fontFamily: 'monospace', color: 'var(--text-charcoal)', letterSpacing: revealedPasswords.has(user.uid) ? '0' : '0.1em' }}>
                                   {revealedPasswords.has(user.uid) ? user.tempPassword : '••••••••'}
                                 </span>
                                 <button
@@ -303,9 +303,9 @@ export default function UsersTab({
                               key={roleOption}
                               style={{
                                 display: 'inline-flex', alignItems: 'center', padding: '0.2rem 0.6rem', borderRadius: '99px',
-                                border: isAssigned ? `1px solid ${isRoleAdmin ? '#d32f2f' : (isProtectedRole ? '#F57C00' : (isAccessRole ? '#6A1B9A' : '#1976D2'))}` : '1px solid #e0e0e0',
-                                background: isAssigned ? (isRoleAdmin ? '#ffebee' : (isProtectedRole ? '#FFF3E0' : (isAccessRole ? '#F3E5F5' : '#e3f2fd'))) : 'transparent',
-                                color: isAssigned ? (isRoleAdmin ? '#c62828' : (isProtectedRole ? '#E65100' : (isAccessRole ? '#6A1B9A' : '#1565c0'))) : '#777',
+                                border: isAssigned ? `1px solid ${isRoleAdmin ? 'var(--danger)' : (isProtectedRole ? 'var(--warning)' : (isAccessRole ? 'var(--accent-purple)' : 'var(--info)'))}` : '1px solid var(--border)',
+                                background: isAssigned ? (isRoleAdmin ? 'var(--danger-bg)' : (isProtectedRole ? 'var(--warning-bg)' : (isAccessRole ? 'var(--accent-purple-bg)' : 'var(--info-bg)'))) : 'transparent',
+                                color: isAssigned ? (isRoleAdmin ? 'var(--danger-text)' : (isProtectedRole ? 'var(--warning-dark)' : (isAccessRole ? 'var(--accent-purple)' : 'var(--info-text)'))) : 'var(--text-dim)',
                                 fontSize: '0.75rem', fontWeight: 600,
                                 cursor: disabled ? 'default' : 'pointer',
                                 opacity: (disabled && !isAssigned) ? 0.5 : (isAutoGranted ? 0.7 : 1),
@@ -339,9 +339,9 @@ export default function UsersTab({
                               key={certOption}
                               style={{
                                 display: 'inline-flex', alignItems: 'center', padding: '0.2rem 0.6rem', borderRadius: '4px',
-                                border: isAssigned ? '1px solid #F57C00' : '1px solid #e0e0e0',
-                                background: isAssigned ? '#fff3e0' : 'transparent',
-                                color: isAssigned ? '#e65100' : '#777',
+                                border: isAssigned ? '1px solid var(--warning)' : '1px solid var(--border)',
+                                background: isAssigned ? 'var(--warning-bg)' : 'transparent',
+                                color: isAssigned ? 'var(--warning-dark)' : 'var(--text-dim)',
                                 fontSize: '0.75rem', fontWeight: 600,
                                 cursor: disabled ? 'default' : 'pointer',
                                 opacity: disabled && !isAssigned ? 0.5 : 1,
@@ -371,8 +371,8 @@ export default function UsersTab({
                             style={{
                               border: 'none', cursor: 'pointer',
                               padding: '0.5rem 0.8rem', borderRadius: '6px',
-                              color: isDisabled ? '#2e7d32' : '#c62828',
-                              background: isDisabled ? '#E8F5E9' : '#FFEBEE',
+                              color: isDisabled ? 'var(--success-text)' : 'var(--danger-text)',
+                              background: isDisabled ? 'var(--success-bg)' : 'var(--danger-bg)',
                               fontWeight: 600, fontSize: '0.8rem',
                               transition: 'background 0.2s'
                             }}
@@ -387,8 +387,8 @@ export default function UsersTab({
                               style={{
                                 border: 'none', cursor: 'pointer',
                                 padding: '0.5rem 0.8rem', borderRadius: '6px',
-                                color: '#fff',
-                                background: '#d32f2f',
+                                color: 'var(--text-on-dark)',
+                                background: 'var(--danger)',
                                 fontWeight: 600, fontSize: '0.8rem',
                                 transition: 'background 0.2s',
                                 boxShadow: '0 2px 4px rgba(211, 47, 47, 0.2)'
@@ -400,7 +400,7 @@ export default function UsersTab({
                           )}
                         </div>
                       )}
-                      {(isAdmin || isSelf) && <span style={{ color: '#ccc', fontSize: '0.8rem' }}>---</span>}
+                      {(isAdmin || isSelf) && <span style={{ color: 'var(--border-medium)', fontSize: '0.8rem' }}>---</span>}
                     </td>
                   </tr>
                 );

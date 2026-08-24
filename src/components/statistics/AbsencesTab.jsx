@@ -23,7 +23,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
 
     if (users.length === 0) {
         return (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                 <p>Žádné absence tento měsíc</p>
             </div>
         );
@@ -82,7 +82,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
             }}>
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #757575, #616161)',
+                    background: 'linear-gradient(135deg, var(--text-dim), var(--text-secondary))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(117, 117, 117, 0.25)'
@@ -94,7 +94,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
 
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #F57C00, #E64A19)',
+                    background: 'linear-gradient(135deg, var(--warning), var(--warning-deep))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(245, 124, 0, 0.25)'
@@ -106,7 +106,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
 
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #D32F2F, #C62828)',
+                    background: 'linear-gradient(135deg, var(--danger), var(--danger-text))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(211, 47, 47, 0.25)'
@@ -118,7 +118,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
 
                 <div className="card" style={{
                     padding: '1.5rem',
-                    background: 'linear-gradient(135deg, #1976D2, #1565C0)',
+                    background: 'linear-gradient(135deg, var(--info), var(--info-text))',
                     color: 'white',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(25, 118, 210, 0.25)'
@@ -138,13 +138,13 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                 layout="vertical"
                                 margin={{ top: 5, right: 24, left: 60, bottom: 5 }}
                             >
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--surface-hover)" />
                                 <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={55} />
                                 <Tooltip content={<ChartTooltip unit=" dní" />} />
                                 <Bar dataKey="Dní absence" radius={[0, 4, 4, 0]}>
                                     {chartData.map((entry, i) => (
-                                        <Cell key={i} fill={entry.active ? '#D32F2F' : '#F57C00'} />
+                                        <Cell key={i} fill={entry.active ? 'var(--danger)' : 'var(--warning)'} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -156,8 +156,8 @@ export default function AbsencesTab({ absencesData, currentDate }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
                 {/* ACTIVE ABSENCES */}
                 <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>⚠️ Aktivní absence</h3>
+                    <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>⚠️ Aktivní absence</h3>
                     </div>
                     {activeAbsencesCount > 0 ? (
                         <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -165,16 +165,16 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                 <div key={user.uid} style={{
                                     padding: '1rem',
                                     borderRadius: '8px',
-                                    background: '#FFF3E0',
-                                    borderLeft: '4px solid #FF9800'
+                                    background: 'var(--warning-bg)',
+                                    borderLeft: '4px solid var(--warning-bright)'
                                 }}>
-                                    <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.5rem', color: '#333' }}>
+                                    <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.5rem', color: 'var(--text-charcoal)' }}>
                                         {user.name}
                                     </div>
-                                    <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '0.25rem' }}>
                                         <strong>{user.activeAbsence.reason}</strong>
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#777' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                                         {new Date(user.activeAbsence.startDate).toLocaleDateString('cs-CZ')}
                                         {' – '}
                                         {new Date(user.activeAbsence.endDate).toLocaleDateString('cs-CZ')}
@@ -183,7 +183,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                             ))}
                         </div>
                     ) : (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-gray)' }}>
                             <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>✅</div>
                             <div>Žádné aktivní absence</div>
                         </div>
@@ -193,9 +193,9 @@ export default function AbsencesTab({ absencesData, currentDate }) {
 
             {/* DETAILED MEMBER CARDS */}
             <div className="card" style={{ padding: '0', overflow: 'hidden', marginBottom: '2rem' }}>
-                <div style={{ padding: '1.25rem', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#444' }}>👥 Detailní přehled absencí</h3>
-                    <span style={{ fontSize: '0.85rem', color: '#777' }}>{users.length} lidí</span>
+                <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-sunken)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>👥 Detailní přehled absencí</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>{users.length} lidí</span>
                 </div>
                 <div style={{
                     padding: '1rem',
@@ -207,8 +207,8 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                         <div key={user.uid} style={{
                             padding: '1.25rem',
                             borderRadius: '10px',
-                            border: '2px solid' + (user.activeAbsence ? ' #FF9800' : ' #e0e0e0'),
-                            background: user.activeAbsence ? '#FFF8E1' : 'white',
+                            border: '2px solid' + (user.activeAbsence ? ' var(--warning-bright)' : ' var(--border)'),
+                            background: user.activeAbsence ? 'var(--warning-bg-soft)' : 'white',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
                             transition: 'transform 0.2s, box-shadow 0.2s'
                         }}
@@ -221,7 +221,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                 e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.06)';
                             }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#333' }}>
+                                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-charcoal)' }}>
                                     {user.name}
                                 </div>
                                 {user.activeAbsence && (
@@ -229,7 +229,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                         fontSize: '0.7rem',
                                         padding: '4px 8px',
                                         borderRadius: '12px',
-                                        background: '#FF9800',
+                                        background: 'var(--warning-bright)',
                                         color: 'white',
                                         fontWeight: 600
                                     }}>
@@ -243,23 +243,23 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                     flex: 1,
                                     padding: '0.75rem',
                                     borderRadius: '8px',
-                                    background: '#F5F5F5',
+                                    background: 'var(--surface-alt)',
                                     textAlign: 'center'
                                 }}>
                                     <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>🚫</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#757575', marginBottom: '0.125rem' }}>{user.absenceCount}</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666' }}>Absencí</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '0.125rem' }}>{user.absenceCount}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Absencí</div>
                                 </div>
                                 <div style={{
                                     flex: 1,
                                     padding: '0.75rem',
                                     borderRadius: '8px',
-                                    background: '#FFE0B2',
+                                    background: 'var(--warning-border-warm)',
                                     textAlign: 'center'
                                 }}>
                                     <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>📅</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#F57C00', marginBottom: '0.125rem' }}>{user.daysAbsent}</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666' }}>Dní</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)', marginBottom: '0.125rem' }}>{user.daysAbsent}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Dní</div>
                                 </div>
                             </div>
 
@@ -267,16 +267,16 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                 <div style={{
                                     padding: '0.75rem',
                                     borderRadius: '6px',
-                                    background: user.activeAbsence === user.latestAbsence ? '#FFE0B2' : '#f9f9f9',
-                                    borderLeft: '3px solid ' + (user.activeAbsence === user.latestAbsence ? '#FF9800' : '#757575')
+                                    background: user.activeAbsence === user.latestAbsence ? 'var(--warning-border-warm)' : 'var(--surface-sunken)',
+                                    borderLeft: '3px solid ' + (user.activeAbsence === user.latestAbsence ? 'var(--warning-bright)' : 'var(--text-dim)')
                                 }}>
-                                    <div style={{ fontSize: '0.7rem', color: '#777', marginBottom: '0.25rem' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginBottom: '0.25rem' }}>
                                         {user.activeAbsence === user.latestAbsence ? 'Probíhající absence' : 'Poslední absence'}
                                     </div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#333', marginBottom: '0.25rem' }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-charcoal)', marginBottom: '0.25rem' }}>
                                         {user.latestAbsence.reason}
                                     </div>
-                                    <div style={{ fontSize: '0.7rem', color: '#666' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
                                         {new Date(user.latestAbsence.startDate).toLocaleDateString('cs-CZ')}
                                         {' – '}
                                         {new Date(user.latestAbsence.endDate).toLocaleDateString('cs-CZ')}

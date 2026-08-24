@@ -80,7 +80,7 @@ export default function AddressInput({ value, onChange, required }) {
           left: 0,
           right: 0,
           backgroundColor: 'white',
-          border: '1px solid #ddd',
+          border: '1px solid var(--border)',
           borderTop: 'none',
           borderRadius: '0 0 8px 8px',
           listStyle: 'none',
@@ -96,10 +96,10 @@ export default function AddressInput({ value, onChange, required }) {
               style={{
                 padding: '0.75rem',
                 cursor: 'pointer',
-                borderBottom: '1px solid #eee',
+                borderBottom: '1px solid var(--border)',
                 fontSize: '0.9rem'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-alt)'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
             >
               {item.display_name}

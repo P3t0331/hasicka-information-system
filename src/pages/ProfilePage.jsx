@@ -6,6 +6,7 @@ import useProfile from '../hooks/useProfile';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import EquipmentSection from '../components/profile/EquipmentSection';
 import QuizHistory from '../components/profile/QuizHistory';
+import SettingsSection from '../components/profile/SettingsSection';
 import EquipmentModal from '../components/profile/EquipmentModal';
 import ConfirmModal from '../components/profile/ConfirmModal';
 import { generateICS, downloadICS, activityToICSEvent, shiftSlotToICSEvent } from '../utils/icsExport';
@@ -116,7 +117,7 @@ export default function ProfilePage() {
         <>
             <style>{`
                 .profile-hero {
-                    background: linear-gradient(160deg, #181818 0%, #2a0e0e 55%, #1a1a1a 100%);
+                    background: linear-gradient(160deg, var(--profile-hero-grad-1) 0%, var(--profile-hero-grad-2) 55%, var(--profile-hero-grad-3) 100%);
                     border-bottom: 3px solid var(--primary-red);
                     padding: 2.75rem 2rem;
                     color: white;
@@ -210,12 +211,12 @@ export default function ProfilePage() {
                 .profile-cert-heading {
                     font-size: 0.78rem;
                     font-weight: 700;
-                    color: #999;
+                    color: var(--text-muted);
                     text-transform: uppercase;
                     letter-spacing: 0.8px;
                     margin-bottom: 0.85rem;
                     padding-bottom: 0.75rem;
-                    border-bottom: 1px solid #efefef;
+                    border-bottom: 1px solid var(--border);
                 }
                 .profile-actions {
                     display: flex;
@@ -280,7 +281,7 @@ export default function ProfilePage() {
                             {userData.registrationNumber && (
                                 <span className="profile-badge" style={{
                                     background: 'rgba(255,193,7,0.13)',
-                                    color: '#FFD54F',
+                                    color: 'var(--gold-text-on-dark)',
                                     border: '1px solid rgba(255,193,7,0.32)'
                                 }}>
                                     Ev. č.&nbsp;{userData.registrationNumber}
@@ -298,7 +299,7 @@ export default function ProfilePage() {
                             {userData.approved && (
                                 <span className="profile-badge" style={{
                                     background: 'rgba(76,175,80,0.18)',
-                                    color: '#81C784',
+                                    color: 'var(--success-text-on-dark)',
                                     border: '1px solid rgba(76,175,80,0.32)'
                                 }}>
                                     ✓ Aktivní
@@ -329,20 +330,20 @@ export default function ProfilePage() {
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                 {userData.certifications.map(cert => (
                                     <span key={cert} style={{
-                                        background: '#FFF3E0',
-                                        color: '#E65100',
+                                        background: 'var(--warning-bg)',
+                                        color: 'var(--warning-dark)',
                                         padding: '0.38rem 0.85rem',
                                         borderRadius: '8px',
                                         fontSize: '0.88rem',
                                         fontWeight: 600,
-                                        border: '1px solid #FFCC80'
+                                        border: '1px solid var(--warning-border)'
                                     }}>
                                         {cert}
                                     </span>
                                 ))}
                             </div>
                         ) : (
-                            <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: '0.88rem', margin: 0 }}>
+                            <p style={{ color: 'var(--text-faint)', fontStyle: 'italic', fontSize: '0.88rem', margin: 0 }}>
                                 Žádné kvalifikace.
                             </p>
                         )}
@@ -368,6 +369,7 @@ export default function ProfilePage() {
                         handleDeleteEquipment={handleDeleteEquipment}
                     />
                     <QuizHistory />
+                    <SettingsSection />
                 </div>
             </div>
 

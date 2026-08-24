@@ -17,27 +17,27 @@ function GroupLinkItem({ group }) {
     const count = (group.links || []).length;
 
     return (
-        <div style={{ borderRadius: '12px', border: '1px solid #eee', overflow: 'hidden' }}>
+        <div style={{ borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden' }}>
             <div
                 onClick={() => setExpanded(!expanded)}
-                style={{ display: 'flex', alignItems: 'center', padding: '1rem', background: '#f0f7ff', cursor: 'pointer', userSelect: 'none' }}
+                style={{ display: 'flex', alignItems: 'center', padding: '1rem', background: 'var(--info-bg)', cursor: 'pointer', userSelect: 'none' }}
             >
                 <span style={{ fontSize: '1.75rem', marginRight: '1rem', flexShrink: 0 }}>{group.emoji || '📁'}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{group.label}</div>
-                    {group.description && <div style={{ fontSize: '0.8rem', color: '#666' }}>{group.description}</div>}
+                    {group.description && <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{group.description}</div>}
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#888', marginRight: '0.5rem', flexShrink: 0 }}>{count} {count === 1 ? 'odkaz' : count < 5 ? 'odkazy' : 'odkazů'}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginRight: '0.5rem', flexShrink: 0 }}>{count} {count === 1 ? 'odkaz' : count < 5 ? 'odkazy' : 'odkazů'}</div>
                 <div style={{
-                    fontSize: '0.9rem', color: '#888', flexShrink: 0,
+                    fontSize: '0.9rem', color: 'var(--text-muted)', flexShrink: 0,
                     transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s ease'
                 }}>▼</div>
             </div>
             {expanded && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', background: '#f8f9fa' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', background: 'var(--surface-alt)' }}>
                     {count === 0 && (
-                        <div style={{ textAlign: 'center', color: '#aaa', padding: '0.75rem', fontSize: '0.85rem' }}>Žádné odkazy ve skupině</div>
+                        <div style={{ textAlign: 'center', color: 'var(--text-faint)', padding: '0.75rem', fontSize: '0.85rem' }}>Žádné odkazy ve skupině</div>
                     )}
                     {(group.links || []).map(link => (
                         <a
@@ -45,12 +45,12 @@ function GroupLinkItem({ group }) {
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1rem', textDecoration: 'none', color: '#333', background: 'white', borderRadius: '10px', border: '1px solid #eee' }}
+                            style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1rem', textDecoration: 'none', color: 'var(--text-primary)', background: 'var(--surface)', borderRadius: '10px', border: '1px solid var(--border)' }}
                         >
                             <span style={{ fontSize: '1.5rem', marginRight: '0.75rem', flexShrink: 0 }}>{link.emoji || '🔗'}</span>
                             <div>
                                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{link.label}</div>
-                                {link.description && <div style={{ fontSize: '0.78rem', color: '#666' }}>{link.description}</div>}
+                                {link.description && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{link.description}</div>}
                             </div>
                         </a>
                     ))}
@@ -85,7 +85,7 @@ export default function ImportantLinks() {
                     padding: 0,
                     border: 'none',
                     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
-                    background: 'white'
+                    background: 'var(--surface)'
                 }}
             >
                 <div
@@ -95,7 +95,7 @@ export default function ImportantLinks() {
                         alignItems: 'center',
                         gap: '1rem',
                         padding: '1.25rem',
-                        background: 'linear-gradient(135deg, #FFB74D, #FFA726)',
+                        background: 'linear-gradient(135deg, var(--accent-amber-grad-1), var(--accent-amber-grad-2))',
                         color: 'white',
                         cursor: 'pointer',
                         userSelect: 'none'
@@ -118,7 +118,7 @@ export default function ImportantLinks() {
                 </div>
 
                 {isLinksOpen && (
-                    <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#fdfdfd' }}>
+                    <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--surface)' }}>
                         {links.map((item) => item.type === 'group' ? (
                             <GroupLinkItem key={item.id} group={item} />
                         ) : (
@@ -127,13 +127,13 @@ export default function ImportantLinks() {
                                 href={item.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                style={{ display: 'flex', alignItems: 'center', padding: '1rem', textDecoration: 'none', color: '#333', background: '#f8f9fa', borderRadius: '12px', border: '1px solid #eee' }}
+                                style={{ display: 'flex', alignItems: 'center', padding: '1rem', textDecoration: 'none', color: 'var(--text-primary)', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}
                             >
                                 <span style={{ fontSize: '1.75rem', marginRight: '1rem' }}>{item.emoji || '🔗'}</span>
                                 <div>
                                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{item.label}</div>
                                     {item.description && (
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>{item.description}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.description}</div>
                                     )}
                                 </div>
                             </a>

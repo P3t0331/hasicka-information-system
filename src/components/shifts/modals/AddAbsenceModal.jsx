@@ -74,16 +74,16 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
         <div style={{
           width: '40px',
           height: '4px',
-          background: '#ddd',
+          background: 'var(--border)',
           borderRadius: '2px',
           margin: '0 auto 1rem'
         }} />
 
-        <h3 style={{ marginTop: 0, marginBottom: targetUser ? '0.5rem' : '1.25rem', color: '#7B1FA2', textAlign: 'center' }}>
+        <h3 style={{ marginTop: 0, marginBottom: targetUser ? '0.5rem' : '1.25rem', color: 'var(--accent-purple)', textAlign: 'center' }}>
           🚫 Přidat absenci
         </h3>
         {targetUser && (
-          <div style={{ textAlign: 'center', marginBottom: '1rem', padding: '0.4rem 0.75rem', background: '#FFF8E1', borderRadius: '8px', border: '1px solid #FFB300', fontSize: '0.85rem', color: '#E65100', fontWeight: 600 }}>
+          <div style={{ textAlign: 'center', marginBottom: '1rem', padding: '0.4rem 0.75rem', background: 'var(--warning-bg-soft)', borderRadius: '8px', border: '1px solid var(--warning-strong)', fontSize: '0.85rem', color: 'var(--warning-dark)', fontWeight: 600 }}>
             ⏱ Za člena: {targetUser.fullName || targetUser.compactName}
           </div>
         )}
@@ -91,7 +91,7 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
         <form onSubmit={handleSubmit}>
           <div className="form-row" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: 'var(--accent-purple)', fontSize: '0.85rem' }}>
                 Od
               </label>
               <input
@@ -108,9 +108,9 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                   width: '100%',
                   padding: '0.75rem 0.5rem',
                   borderRadius: '8px',
-                  border: '2px solid #E1BEE7',
+                  border: '2px solid var(--accent-purple-border)',
                   fontSize: '1rem',
-                  background: '#FAFAFA',
+                  background: 'var(--surface-sunken)',
                   boxSizing: 'border-box'
                 }}
                 required
@@ -121,14 +121,14 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
               display: 'flex',
               alignItems: 'flex-end',
               paddingBottom: '0.75rem',
-              color: '#999',
+              color: 'var(--text-gray)',
               fontWeight: 500
             }}>
               →
             </div>
 
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: 'var(--accent-purple)', fontSize: '0.85rem' }}>
                 Do
               </label>
               <input
@@ -140,9 +140,9 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                   width: '100%',
                   padding: '0.75rem 0.5rem',
                   borderRadius: '8px',
-                  border: '2px solid #E1BEE7',
+                  border: '2px solid var(--accent-purple-border)',
                   fontSize: '1rem',
-                  background: '#FAFAFA',
+                  background: 'var(--surface-sunken)',
                   boxSizing: 'border-box'
                 }}
                 required
@@ -151,7 +151,7 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#7B1FA2', fontSize: '0.85rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: 'var(--accent-purple)', fontSize: '0.85rem' }}>
               Důvod
             </label>
             <input
@@ -163,10 +163,10 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                 width: '100%',
                 padding: '0.75rem',
                 borderRadius: '8px',
-                border: '2px solid #E1BEE7',
+                border: '2px solid var(--accent-purple-border)',
                 fontSize: '1rem',
                 boxSizing: 'border-box',
-                background: '#FAFAFA'
+                background: 'var(--surface-sunken)'
               }}
               required
             />
@@ -175,10 +175,10 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
           {error && (
             <div style={{
               padding: '0.75rem',
-              background: '#FFEBEE',
-              border: '1px solid #FFCDD2',
+              background: 'var(--danger-bg)',
+              border: '1px solid var(--danger-border)',
               borderRadius: '8px',
-              color: '#C62828',
+              color: 'var(--danger-text)',
               fontSize: '0.85rem',
               marginBottom: '1rem'
             }}>
@@ -194,9 +194,9 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                 flex: 1,
                 padding: '0.85rem',
                 borderRadius: '10px',
-                border: '2px solid #E1BEE7',
+                border: '2px solid var(--accent-purple-border)',
                 background: 'white',
-                color: '#7B1FA2',
+                color: 'var(--accent-purple)',
                 fontSize: '1rem',
                 fontWeight: 600,
                 cursor: 'pointer'
@@ -211,7 +211,7 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                 padding: '0.85rem',
                 borderRadius: '10px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)',
+                background: 'linear-gradient(135deg, var(--accent-purple-bright), var(--accent-purple))',
                 color: 'white',
                 fontSize: '1rem',
                 fontWeight: 600,

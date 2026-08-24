@@ -40,10 +40,10 @@ const SEVERITY_LABELS = {
 };
 
 const SEVERITY_COLORS = {
-    'Extreme': '#C62828',
-    'Severe': '#E65100',
-    'Moderate': '#F9A825',
-    'Minor': '#F9A825',
+    'Extreme': 'var(--danger-text)',
+    'Severe': 'var(--warning-dark)',
+    'Moderate': 'var(--warning-moderate)',
+    'Minor': 'var(--warning-moderate)',
 };
 
 const SEVERITY_ORDER = { 'Extreme': 0, 'Severe': 1, 'Moderate': 2, 'Minor': 3 };
@@ -124,11 +124,11 @@ export default function WeatherWarnings() {
 
     const SectionHeader = ({ icon, title }) => (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#333', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span>{icon}</span>{title}
             </h2>
             {timerText && (
-                <span style={{ fontSize: '0.7rem', color: '#999', background: '#f0f0f0', padding: '0.2rem 0.5rem', borderRadius: '10px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'var(--surface-hover)', padding: '0.2rem 0.5rem', borderRadius: '10px' }}>
                     {timerText}
                 </span>
             )}
@@ -138,7 +138,7 @@ export default function WeatherWarnings() {
     if (loading) return null;
 
     if (error) return (
-        <div style={{ padding: '0.6rem 1rem', color: '#c62828', fontSize: '0.82rem', background: '#ffebee', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #ffcdd2' }}>
+        <div style={{ padding: '0.6rem 1rem', color: 'var(--danger-text)', fontSize: '0.82rem', background: 'var(--danger-bg)', borderRadius: '8px', marginBottom: '1rem', border: '1px solid var(--danger-border)' }}>
             ⚠️ {error}
         </div>
     );
@@ -149,13 +149,13 @@ export default function WeatherWarnings() {
             <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.875rem',
                 padding: '0.875rem 1rem', borderRadius: '12px',
-                background: 'linear-gradient(135deg, #E8F5E9, #F1F8E9)',
-                border: '1px solid #C8E6C9'
+                background: 'linear-gradient(135deg, var(--success-bg), var(--success-bg-soft))',
+                border: '1px solid var(--success-border)'
             }}>
                 <div style={{ fontSize: '1.75rem', lineHeight: 1 }}>✅</div>
                 <div>
-                    <div style={{ fontWeight: 700, color: '#2E7D32', fontSize: '0.95rem' }}>Bez výstrah</div>
-                    <div style={{ fontSize: '0.8rem', color: '#558B2F', marginTop: '0.1rem' }}>Oblast Brno — žádné výstrahy ČHMÚ</div>
+                    <div style={{ fontWeight: 700, color: 'var(--success-text)', fontSize: '0.95rem' }}>Bez výstrah</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--success-text-soft)', marginTop: '0.1rem' }}>Oblast Brno — žádné výstrahy ČHMÚ</div>
                 </div>
             </div>
         </section>
@@ -166,7 +166,7 @@ export default function WeatherWarnings() {
             <SectionHeader icon="⚠️" title="Meteorologické výstrahy" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 {warnings.map((w, i) => {
-                    const color = SEVERITY_COLORS[w.severity] || '#F9A825';
+                    const color = SEVERITY_COLORS[w.severity] || 'var(--warning-moderate)';
                     const name = w.eventCz || EVENT_NAMES[w.event] || w.event;
                     const icon = EVENT_ICONS[w.event] || '⚠️';
                     const sevLabel = SEVERITY_LABELS[w.severity] || w.severity;
@@ -179,7 +179,7 @@ export default function WeatherWarnings() {
                             borderRadius: '12px',
                             overflow: 'hidden',
                             boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-                            border: `1px solid ${color}30`
+                            border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`
                         }}>
                             {/* Color bar + header */}
                             <div style={{
@@ -203,14 +203,14 @@ export default function WeatherWarnings() {
                             <div style={{ background: 'white', padding: '0.6rem 1rem' }}>
                                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                     {onset && (
-                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
-                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Od</span>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            <span style={{ color: 'var(--text-muted)', marginRight: '0.25rem' }}>Od</span>
                                             <strong>{onset}</strong>
                                         </div>
                                     )}
                                     {expires && (
-                                        <div style={{ fontSize: '0.8rem', color: '#555' }}>
-                                            <span style={{ color: '#999', marginRight: '0.25rem' }}>Do</span>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            <span style={{ color: 'var(--text-muted)', marginRight: '0.25rem' }}>Do</span>
                                             <strong>{expires}</strong>
                                         </div>
                                     )}
@@ -220,7 +220,7 @@ export default function WeatherWarnings() {
                                             style={{
                                                 marginLeft: 'auto',
                                                 background: 'none',
-                                                border: `1px solid ${color}60`,
+                                                border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
                                                 color: color,
                                                 borderRadius: '6px',
                                                 padding: '0.2rem 0.6rem',
@@ -235,18 +235,18 @@ export default function WeatherWarnings() {
                                 </div>
                                 {/* Collapsible: description + instruction */}
                                 {expandedKeys.has(i) && (
-                                    <div style={{ marginTop: '0.6rem', paddingTop: '0.6rem', borderTop: '1px solid #f0f0f0' }}>
+                                    <div style={{ marginTop: '0.6rem', paddingTop: '0.6rem', borderTop: '1px solid var(--surface-hover)' }}>
                                         {w.description && (
-                                            <div style={{ fontSize: '0.88rem', color: '#333', marginBottom: '0.5rem', fontWeight: 500 }}>
+                                            <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: '0.5rem', fontWeight: 500 }}>
                                                 {w.description}
                                             </div>
                                         )}
                                         {w.instruction && (
-                                            <div style={{ fontSize: '0.8rem', color: '#555', lineHeight: 1.5, borderLeft: `3px solid ${color}50`, paddingLeft: '0.6rem' }}>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, borderLeft: `3px solid color-mix(in srgb, ${color} 31%, transparent)`, paddingLeft: '0.6rem' }}>
                                                 {w.instruction}
                                             </div>
                                         )}
-                                        <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: '#bbb', textAlign: 'right' }}>
+                                        <div style={{ marginTop: '0.4rem', fontSize: '0.72rem', color: 'var(--text-faint)', textAlign: 'right' }}>
                                             ČHMÚ / Meteoalarm
                                         </div>
                                     </div>

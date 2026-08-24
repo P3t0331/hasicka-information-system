@@ -3,6 +3,7 @@ import { db } from '../../firebase';
 import { collection, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { logAction } from '../../utils/logger';
 import { useToast } from '../../contexts/ToastContext';
+import { sendPushNotification } from '../../utils/pushNotification';
 
 export default function CreateTrainingModal({ onClose, currentUser, userData, initialData, members = [], onSaveAsTemplate }) {
     const { addToast: showToast } = useToast();
@@ -133,20 +134,17 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                     participants: instructorParticipants
                 });
                 if (sendNotification) {
-                fetch('/api/send-notification', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: '📋 Nové školení',
-                        body: [
-                            title.trim(),
-                            date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
-                            time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
-                            location.trim() || null,
-                        ].filter(Boolean).join(' · '),
-                        url: '/skoleni',
-                        tag: 'skoleni',
-                    }),
+                sendPushNotification({
+                    title: '📋 Nové školení',
+                    body: [
+                        title.trim(),
+                        date ? new Date(date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) : null,
+                        time ? `${time}${timeEnd ? '–' + timeEnd : ''}` : null,
+                        location.trim() || null,
+                    ].filter(Boolean).join(' · '),
+                    url: '/skoleni',
+                    tag: 'skoleni',
+                    category: 'skoleni',
                 });
                 }
                 logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
@@ -216,7 +214,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                                         width: '24px',
                                         height: '24px',
                                         border: 'none',
-                                        color: '#333',
+                                        color: 'var(--text-charcoal)',
                                         fontSize: '1rem',
                                         fontWeight: 'bold',
                                         cursor: 'pointer',
@@ -263,7 +261,7 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                                             width: '24px',
                                             height: '24px',
                                             border: 'none',
-                                            color: '#333',
+                                            color: 'var(--text-charcoal)',
                                             fontSize: '1rem',
                                             fontWeight: 'bold',
                                             cursor: 'pointer',
@@ -297,13 +295,13 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                                     return (
                                         <span key={uid} style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                                            background: '#E3F2FD', color: '#1565C0',
+                                            background: 'var(--info-bg)', color: 'var(--info-text)',
                                             padding: '0.2rem 0.55rem', borderRadius: '999px',
-                                            fontSize: '0.8rem', fontWeight: 600, border: '1px solid #90CAF9'
+                                            fontSize: '0.8rem', fontWeight: 600, border: '1px solid var(--info-border)'
                                         }}>
                                             {m.firstName} {m.lastName}
                                             <button type="button" onClick={() => toggleInstructor(uid)}
-                                                style={{ background: 'transparent', border: 'none', color: '#1565C0', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: 0 }}>×</button>
+                                                style={{ background: 'transparent', border: 'none', color: 'var(--info-text)', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: 0 }}>×</button>
                                         </span>
                                     );
                                 })}
@@ -317,9 +315,9 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                             onChange={e => setInstructorSearch(e.target.value)}
                             style={{ marginBottom: '0.4rem' }}
                         />
-                        <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
+                        <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--surface-sunken)' }}>
                             {filteredInstructorMembers.length === 0 ? (
-                                <div style={{ padding: '0.75rem', color: '#888', fontSize: '0.85rem', textAlign: 'center' }}>Nikdo neodpovídá hledání.</div>
+                                <div style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>Nikdo neodpovídá hledání.</div>
                             ) : filteredInstructorMembers.map(m => {
                                 const uid = m.uid || m.id;
                                 const isSelected = instructorUids.includes(uid);
@@ -327,8 +325,8 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                                     <label key={uid} style={{
                                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                                         padding: '0.4rem 0.6rem', cursor: 'pointer',
-                                        background: isSelected ? '#E3F2FD' : 'transparent',
-                                        borderBottom: '1px solid #f0f0f0', fontSize: '0.85rem'
+                                        background: isSelected ? 'var(--info-bg)' : 'transparent',
+                                        borderBottom: '1px solid var(--surface-hover)', fontSize: '0.85rem'
                                     }}>
                                         <input type="checkbox" checked={isSelected} onChange={() => toggleInstructor(uid)} style={{ margin: 0 }} />
                                         <span style={{ fontWeight: isSelected ? 600 : 400 }}>{m.firstName} {m.lastName}</span>
@@ -357,10 +355,10 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                                     <label key={v} style={{
                                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                                         padding: '0.4rem 0.75rem', borderRadius: '8px',
-                                        background: isSelected ? '#E8EAF6' : '#f5f5f5',
-                                        border: `1px solid ${isSelected ? '#7986CB' : '#e0e0e0'}`,
+                                        background: isSelected ? 'var(--indigo-bg)' : 'var(--surface-alt)',
+                                        border: `1px solid ${isSelected ? 'var(--indigo)' : 'var(--border)'}`,
                                         cursor: 'pointer', fontSize: '0.85rem', fontWeight: isSelected ? 600 : 500,
-                                        color: isSelected ? '#283593' : '#555',
+                                        color: isSelected ? 'var(--indigo-darkest)' : 'var(--text-secondary)',
                                         transition: 'all 0.15s'
                                     }}>
                                         <input 
@@ -376,19 +374,19 @@ export default function CreateTrainingModal({ onClose, currentUser, userData, in
                         </div>
                     </div>
 
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                         <input type="checkbox" checked={isImportant} onChange={e => setIsImportant(e.target.checked)} />
                         ⚠️ Důležité školení (zvýraznit oranžově)
                     </label>
 
                     {!isEdit && (
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                             <input type="checkbox" checked={sendNotification} onChange={e => setSendNotification(e.target.checked)} />
                             🔔 Odeslat push notifikaci členům
                         </label>
                     )}
                     {!isEdit && onSaveAsTemplate && (
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: '#555' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                             <input type="checkbox" checked={saveTemplate} onChange={e => setSaveTemplate(e.target.checked)} />
                             💾 Uložit jako šablonu pro příště
                         </label>

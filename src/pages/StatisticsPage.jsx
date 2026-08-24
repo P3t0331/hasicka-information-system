@@ -133,7 +133,7 @@ export default function StatisticsPage() {
 
       {/* 1. Navigation Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #37474F, #263238)',
+        background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
         borderRadius: '10px',
         padding: '0.75rem 1rem',
         color: 'white',
@@ -193,7 +193,7 @@ export default function StatisticsPage() {
         display: 'flex',
         gap: '0.5rem',
         marginBottom: '1.5rem',
-        borderBottom: '2px solid #e0e0e0',
+        borderBottom: '2px solid var(--border)',
         overflowX: 'auto',
         paddingBottom: '0.5rem'
       }}>
@@ -202,8 +202,8 @@ export default function StatisticsPage() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            background: activeTab === 'shifts' ? '#FF9800' : 'transparent',
-            color: activeTab === 'shifts' ? 'white' : '#666',
+            background: activeTab === 'shifts' ? 'var(--warning-bright)' : 'transparent',
+            color: activeTab === 'shifts' ? 'white' : 'var(--text-dim)',
             fontWeight: activeTab === 'shifts' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -219,8 +219,8 @@ export default function StatisticsPage() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            background: activeTab === 'activities' ? '#E53935' : 'transparent',
-            color: activeTab === 'activities' ? 'white' : '#666',
+            background: activeTab === 'activities' ? 'var(--danger-hover)' : 'transparent',
+            color: activeTab === 'activities' ? 'white' : 'var(--text-dim)',
             fontWeight: activeTab === 'activities' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -236,8 +236,8 @@ export default function StatisticsPage() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            background: activeTab === 'absences' ? '#757575' : 'transparent',
-            color: activeTab === 'absences' ? 'white' : '#666',
+            background: activeTab === 'absences' ? 'var(--text-dim)' : 'transparent',
+            color: activeTab === 'absences' ? 'white' : 'var(--text-dim)',
             fontWeight: activeTab === 'absences' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -253,8 +253,8 @@ export default function StatisticsPage() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            background: activeTab === 'maintenance' ? '#FF6F00' : 'transparent',
-            color: activeTab === 'maintenance' ? 'white' : '#666',
+            background: activeTab === 'maintenance' ? 'var(--warning-amber)' : 'transparent',
+            color: activeTab === 'maintenance' ? 'white' : 'var(--text-dim)',
             fontWeight: activeTab === 'maintenance' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -270,8 +270,8 @@ export default function StatisticsPage() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            background: activeTab === 'cleaning' ? '#00838F' : 'transparent',
-            color: activeTab === 'cleaning' ? 'white' : '#666',
+            background: activeTab === 'cleaning' ? 'var(--teal-bright)' : 'transparent',
+            color: activeTab === 'cleaning' ? 'white' : 'var(--text-dim)',
             fontWeight: activeTab === 'cleaning' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -287,8 +287,8 @@ export default function StatisticsPage() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            background: activeTab === 'year' ? '#37474F' : 'transparent',
-            color: activeTab === 'year' ? 'white' : '#666',
+            background: activeTab === 'year' ? 'var(--table-header-dark)' : 'transparent',
+            color: activeTab === 'year' ? 'white' : 'var(--text-dim)',
             fontWeight: activeTab === 'year' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -332,7 +332,7 @@ export default function StatisticsPage() {
         <LogStatsTab
           entries={maintenanceMonth}
           currentDate={currentDate}
-          accent={{ from: '#FF6F00', to: '#E65100' }}
+          accent={{ from: 'var(--warning-amber)', to: 'var(--warning-dark)' }}
           emoji="🔧"
           label="údržby"
         />
@@ -343,7 +343,7 @@ export default function StatisticsPage() {
         <LogStatsTab
           entries={cleaningMonth}
           currentDate={currentDate}
-          accent={{ from: '#00838F', to: '#006064' }}
+          accent={{ from: 'var(--teal-bright)', to: 'var(--teal)' }}
           emoji="🧹"
           label="úklidu"
         />

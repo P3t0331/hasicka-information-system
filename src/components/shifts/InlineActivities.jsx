@@ -117,7 +117,7 @@ export default function InlineActivities({ trainings, events, currentUser, userD
                       <button
                         className="inline-activity-card__btn"
                         disabled
-                        style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}
+                        style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--border)', color: 'var(--text-dim)', borderColor: 'var(--border-medium)' }}
                       >
                         Plno
                       </button>
@@ -133,7 +133,7 @@ export default function InlineActivities({ trainings, events, currentUser, userD
                       <button
                         className="inline-activity-card__btn"
                         onClick={() => onRetroAddParticipant && onRetroAddParticipant(activity)}
-                        style={{ background: '#FFF8E1', color: '#E65100', borderColor: '#FFB300', marginLeft: '0.25rem' }}
+                        style={{ background: 'var(--warning-bg-soft)', color: 'var(--warning-dark)', borderColor: 'var(--warning-strong)', marginLeft: '0.25rem' }}
                         title="Přidat jiného člena (Admin)"
                       >
                         ⏱ +

@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 // Stejná paleta jako `QuizCard` (STATUS_CONFIG) — verdikt na výsledkové
 // stránce a štítek na kartě kvízu musí vypadat jako jedna barevná soustava.
 const VERDICT_CONFIG = {
-  passed: { label: 'Splnil', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-  failed: { label: 'Nesplnil', color: '#C62828', bg: '#FFEBEE', border: '#FFCDD2' },
-  pending_review: { label: 'Čeká na vyhodnocení', color: '#1565C0', bg: '#E3F2FD', border: '#90CAF9' },
+  passed: { label: 'Splnil', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+  failed: { label: 'Nesplnil', color: 'var(--danger-text)', bg: 'var(--danger-bg)', border: 'var(--danger-border)' },
+  pending_review: { label: 'Čeká na vyhodnocení', color: 'var(--info-text)', bg: 'var(--info-bg)', border: 'var(--info-border)' },
 };
 
 function formatAnswerValue(question, value) {
@@ -89,8 +89,8 @@ export default function QuizResultView({
           {isLate && (
             <span style={{
               fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem',
-              borderRadius: '999px', color: '#E65100', background: '#FFF3E0',
-              border: '1px solid #FFCC80', whiteSpace: 'nowrap',
+              borderRadius: '999px', color: 'var(--warning-dark)', background: 'var(--warning-bg)',
+              border: '1px solid var(--warning-border)', whiteSpace: 'nowrap',
             }}
             >
               Odevzdáno po termínu
@@ -129,11 +129,11 @@ export default function QuizResultView({
             const explanation = review.explanations?.[questionId];
             const keyEntry = review.correctAnswers?.[questionId];
 
-            let borderColor = '#9E9E9E';
+            let borderColor = 'var(--text-gray)';
             let stateLabel = 'Hodnotí velitel';
             let stateColor = 'var(--text-secondary)';
-            if (isCorrect === true) { borderColor = '#2E7D32'; stateLabel = 'Správně'; stateColor = '#2E7D32'; }
-            else if (isCorrect === false) { borderColor = '#C62828'; stateLabel = 'Špatně'; stateColor = '#C62828'; }
+            if (isCorrect === true) { borderColor = 'var(--success-text)'; stateLabel = 'Správně'; stateColor = 'var(--success-text)'; }
+            else if (isCorrect === false) { borderColor = 'var(--danger-text)'; stateLabel = 'Špatně'; stateColor = 'var(--danger-text)'; }
 
             return (
               <div key={questionId} className="card" style={{ padding: '1rem 1.25rem', borderLeft: `4px solid ${borderColor}` }}>

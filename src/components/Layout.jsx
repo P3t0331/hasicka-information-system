@@ -134,17 +134,17 @@ export default function Layout() {
         textAlign: 'center',
         padding: '1.25rem 1rem',
         fontSize: '0.75rem',
-        color: '#aaa',
-        borderTop: '1px solid #f0f0f0',
+        color: 'var(--text-subtle)',
+        borderTop: '1px solid var(--surface-hover)',
         marginTop: '2rem'
       }}>
         <div>Hasičský informační systém &copy; {new Date().getFullYear()}</div>
-        <div style={{ marginTop: '0.2rem', color: '#ccc' }}>Vytvořil Peter Greguš &middot; Všechna práva vyhrazena</div>
+        <div style={{ marginTop: '0.2rem', color: 'var(--border-medium)' }}>Vytvořil Peter Greguš &middot; Všechna práva vyhrazena</div>
         <div style={{ marginTop: '0.6rem' }}>
           <Link
             to="/navrhy"
             style={{
-              color: '#bbb',
+              color: 'var(--border-strong)',
               textDecoration: 'none',
               fontSize: '0.78rem',
               display: 'inline-flex',
@@ -152,11 +152,11 @@ export default function Layout() {
               gap: '0.35rem',
               padding: '0.3rem 0.8rem',
               borderRadius: '50px',
-              border: '1px solid #e8e8e8',
+              border: '1px solid var(--border)',
               transition: 'all 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#ccc'; e.currentTarget.style.color = '#888'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e8e8e8'; e.currentTarget.style.color = '#bbb'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-medium)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--border-strong)'; }}
           >
             💡 Máte návrh nebo zpětnou vazbu?
           </Link>

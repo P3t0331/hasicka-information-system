@@ -8,9 +8,9 @@ import QuestionEditor, { emptyQuestion, newId } from '../components/admin/quizze
 import ConfirmModal from '../components/profile/ConfirmModal';
 
 const STATUS_CONFIG = {
-  draft: { label: 'Koncept', color: '#546E7A', bg: '#ECEFF1', border: '#B0BEC5' },
-  published: { label: 'Aktivní', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
-  closed: { label: 'Uzavřený', color: '#616161', bg: '#F5F5F5', border: '#BDBDBD' },
+  draft: { label: 'Koncept', color: 'var(--neutral)', bg: 'var(--neutral-bg)', border: 'var(--neutral-border)' },
+  published: { label: 'Aktivní', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)' },
+  closed: { label: 'Uzavřený', color: 'var(--text-secondary)', bg: 'var(--surface-alt)', border: 'var(--border-strong)' },
 };
 
 // Fields owned by this page's quiz patch. `questions` genuinely belongs to
@@ -125,8 +125,8 @@ export default function AdminQuizEditorPage() {
   if (!canManage) {
     return (
       <div className="page-layout flex-center" style={{ textAlign: 'center', height: '80vh' }}>
-        <div className="card" style={{ maxWidth: '400px', borderLeft: '4px solid #d32f2f' }}>
-          <h2 style={{ color: '#d32f2f', marginBottom: '1rem' }}>⛔ Přístup zamítnut</h2>
+        <div className="card" style={{ maxWidth: '400px', borderLeft: '4px solid var(--danger)' }}>
+          <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>⛔ Přístup zamítnut</h2>
           <p className="text-secondary">Nemáte dostatečná oprávnění pro přístup do administrace.</p>
           <Link to="/" className="btn btn-secondary mt-3">Zpět na profil</Link>
         </div>
@@ -406,7 +406,7 @@ export default function AdminQuizEditorPage() {
               </button>
               <button
                 className="btn btn-secondary"
-                style={{ color: '#c62828', borderColor: '#ffcdd2' }}
+                style={{ color: 'var(--danger-text)', borderColor: 'var(--danger-border)' }}
                 onClick={handleDeleteClick}
                 disabled={actionBusy}
               >
@@ -424,7 +424,7 @@ export default function AdminQuizEditorPage() {
               </button>
               <button
                 className="btn btn-secondary"
-                style={{ color: '#E65100', borderColor: '#FFCC80' }}
+                style={{ color: 'var(--warning-dark)', borderColor: 'var(--warning-border)' }}
                 onClick={handleCloseClick}
                 disabled={actionBusy}
               >
@@ -442,7 +442,7 @@ export default function AdminQuizEditorPage() {
 
       {workingQuiz.status === 'draft' && validationErrors.length > 0 && (
         <div className="card mb-4" style={{
-          padding: '1rem 1.25rem', background: '#FFEBEE', border: '1px solid #EF9A9A', color: '#B71C1C',
+          padding: '1rem 1.25rem', background: 'var(--danger-bg)', border: '1px solid var(--danger-border-strong)', color: 'var(--danger-dark)',
         }}>
           <strong style={{ display: 'block', marginBottom: '0.4rem' }}>Kvíz nelze zveřejnit:</strong>
           <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
@@ -455,8 +455,8 @@ export default function AdminQuizEditorPage() {
         <h2 style={{ fontSize: '1.1rem', marginTop: 0, marginBottom: '1rem' }}>Nastavení</h2>
         {readOnly && (
           <p style={{
-            fontSize: '0.85rem', color: '#616161', background: '#F5F5F5',
-            border: '1px solid #BDBDBD', borderRadius: '6px', padding: '0.5rem 0.75rem',
+            fontSize: '0.85rem', color: 'var(--text-secondary)', background: 'var(--surface-alt)',
+            border: '1px solid var(--border-strong)', borderRadius: '6px', padding: '0.5rem 0.75rem',
           }}>
             Kvíz je uzavřený — nastavení je jen ke čtení.
           </p>
@@ -476,8 +476,8 @@ export default function AdminQuizEditorPage() {
         <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>Otázky</h2>
         {locked && (
           <p style={{
-            fontSize: '0.85rem', color: '#E65100', background: '#FFF3E0',
-            border: '1px solid #FFCC80', borderRadius: '6px', padding: '0.5rem 0.75rem',
+            fontSize: '0.85rem', color: 'var(--warning-dark)', background: 'var(--warning-bg)',
+            border: '1px solid var(--warning-border)', borderRadius: '6px', padding: '0.5rem 0.75rem',
           }}>
             {readOnly ? 'Kvíz je uzavřený — otázky už nelze měnit.' : 'Kvíz je zveřejněný — otázky už nelze měnit.'}
           </p>

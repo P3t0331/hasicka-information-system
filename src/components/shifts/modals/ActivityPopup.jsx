@@ -82,7 +82,7 @@ export default function ActivityPopup({ day, trainingsData, eventsData, currentU
 
         <div className="activity-popup__content">
           {activities.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#888' }}>
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
               Žádné aktivity
             </div>
           ) : (
@@ -126,7 +126,7 @@ export default function ActivityPopup({ day, trainingsData, eventsData, currentU
                       <button
                         className="activity-item__btn"
                         disabled
-                        style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}
+                        style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--border)', color: 'var(--text-dim)', borderColor: 'var(--border-medium)' }}
                       >
                         Plno
                       </button>

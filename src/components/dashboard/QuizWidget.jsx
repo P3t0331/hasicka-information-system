@@ -7,9 +7,9 @@ import { pluralize } from '../../utils/pluralize';
 // Stejná paleta jako priority na nástěnce (viz BulletinWidget) — 'past' odpovídá
 // urgentní, 'soon' důležité, 'normal' běžné.
 const URGENCY_CONFIG = {
-    normal: { color: '#546E7A', bg: '#fff', border: '#B0BEC5' },
-    soon: { color: '#E65100', bg: '#FFFDE7', border: '#FFCC80' },
-    past: { color: '#C62828', bg: '#FFF5F5', border: '#EF9A9A' },
+    normal: { color: 'var(--neutral)', bg: 'var(--surface)', border: 'var(--neutral-border)' },
+    soon: { color: 'var(--warning-dark)', bg: 'var(--warning-bg-soft)', border: 'var(--warning-border)' },
+    past: { color: 'var(--danger-text)', bg: 'var(--danger-bg-soft)', border: 'var(--danger-border-strong)' },
 };
 
 const ACTIONABLE_STATUSES = [MEMBER_STATUS.NOT_STARTED, MEMBER_STATUS.IN_PROGRESS, MEMBER_STATUS.FAILED];
@@ -53,7 +53,7 @@ export default function QuizWidget() {
                 marginBottom: '0.6rem'
             }}>
                 <span style={{ fontSize: '1rem' }}>📝</span>
-                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Nesplněné kvízy
                 </h2>
             </div>
@@ -80,7 +80,7 @@ export default function QuizWidget() {
                             }}
                         >
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#222' }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
                                     {quiz.title}
                                 </div>
                                 {countdown && (

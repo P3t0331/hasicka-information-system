@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { WEAR_OPTIONS } from '../../utils/constants';
 
 const WEAR_COLORS = {
-    1: { bg: '#E8F5E9', color: '#2E7D32', border: '#A5D6A7' },
-    2: { bg: '#E3F2FD', color: '#1565C0', border: '#90CAF9' },
-    3: { bg: '#FFF8E1', color: '#E65100', border: '#FFE082' },
-    4: { bg: '#FFF3E0', color: '#BF360C', border: '#FFCC80' },
-    5: { bg: '#FFEBEE', color: '#B71C1C', border: '#EF9A9A' },
+    1: { bg: 'var(--success-bg)', color: 'var(--success-text)', border: 'var(--success-border-strong)' },
+    2: { bg: 'var(--info-bg)', color: 'var(--info-text)', border: 'var(--info-border)' },
+    3: { bg: 'var(--warning-bg-soft)', color: 'var(--warning-dark)', border: 'var(--warning-border-soft)' },
+    4: { bg: 'var(--warning-bg)', color: 'var(--warning-text-strong)', border: 'var(--warning-border)' },
+    5: { bg: 'var(--danger-bg)', color: 'var(--danger-dark)', border: 'var(--danger-border-strong)' },
 };
 
 function pluralPolozek(n) {
@@ -17,7 +17,7 @@ function pluralPolozek(n) {
 
 function EmptyState({ message }) {
     return (
-        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: '#bbb' }}>
+        <div style={{ textAlign: 'center', padding: '3.5rem 2rem', color: 'var(--text-faint)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', opacity: 0.4 }}>🧰</div>
             <p style={{ fontStyle: 'italic', margin: 0, fontSize: '0.9rem' }}>{message}</p>
         </div>
@@ -71,22 +71,22 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     font-family: 'Oswald', sans-serif;
                     font-size: 1.05rem;
                     font-weight: 600;
-                    color: #222;
+                    color: var(--text-primary);
                     text-transform: uppercase;
                     letter-spacing: 0.7px;
                     margin: 0 0 0.15rem;
                 }
                 .eq-header-sub {
                     font-size: 0.8rem;
-                    color: #bbb;
+                    color: var(--text-faint);
                     margin: 0;
                 }
                 .eq-sort {
                     padding: 0.5rem 0.7rem;
-                    border: 1px solid #e0e0e0;
+                    border: 1px solid var(--border);
                     border-radius: 8px;
-                    background: white;
-                    color: #555;
+                    background: var(--surface);
+                    color: var(--text-secondary);
                     font-family: 'Inter', sans-serif;
                     font-size: 0.82rem;
                     font-weight: 600;
@@ -102,7 +102,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     align-items: center;
                     gap: 1.1rem;
                     padding: 1.05rem 1.75rem;
-                    border-bottom: 1px solid #f2f2f2;
+                    border-bottom: 1px solid var(--border);
                     transition: background 0.12s;
                     position: relative;
                 }
@@ -118,7 +118,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     transition: background 0.12s;
                     border-radius: 0 2px 2px 0;
                 }
-                .eq-item:hover { background: #fef7f7; }
+                .eq-item:hover { background: var(--danger-bg-soft); }
                 .eq-item:hover::before { background: var(--primary-red); }
                 .eq-info {
                     flex: 0 0 auto;
@@ -128,7 +128,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                 .eq-name {
                     font-size: 1.05rem;
                     font-weight: 700;
-                    color: #1a1a1a;
+                    color: var(--text-primary);
                     line-height: 1.3;
                     margin-bottom: 0.35rem;
                 }
@@ -151,7 +151,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                 .eq-divider {
                     width: 1px;
                     height: 36px;
-                    background: #ebebeb;
+                    background: var(--border);
                     flex-shrink: 0;
                 }
                 .eq-details {
@@ -172,13 +172,13 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    color: #c8c8c8;
+                    color: var(--text-faint);
                     white-space: nowrap;
                 }
                 .eq-detail-value {
                     font-size: 0.9rem;
                     font-weight: 600;
-                    color: #444;
+                    color: var(--text-secondary);
                     white-space: nowrap;
                 }
                 .eq-actions {
@@ -203,10 +203,10 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     transition: background 0.12s, border-color 0.12s;
                     white-space: nowrap;
                 }
-                .eq-act-btn.edit { color: #1565C0; }
-                .eq-act-btn.edit:hover { background: #E3F2FD; border-color: #90CAF9; }
-                .eq-act-btn.del { color: #B71C1C; }
-                .eq-act-btn.del:hover { background: #FFEBEE; border-color: #EF9A9A; }
+                .eq-act-btn.edit { color: var(--info-text); }
+                .eq-act-btn.edit:hover { background: var(--info-bg); border-color: var(--info-border); }
+                .eq-act-btn.del { color: var(--danger-dark); }
+                .eq-act-btn.del:hover { background: var(--danger-bg); border-color: var(--danger-border-strong); }
 
                 @media (max-width: 900px) {
                     .eq-divider { display: none; }
@@ -300,9 +300,9 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                                         <div className="eq-name">{eqType.name}</div>
                                         <div className="eq-badges">
                                             <span className="eq-badge" style={{
-                                                background: isJSDH ? '#FFEBEE' : '#E8F4FD',
-                                                color: isJSDH ? '#C62828' : '#1565C0',
-                                                borderColor: isJSDH ? '#EF9A9A' : '#90CAF9',
+                                                background: isJSDH ? 'var(--danger-bg)' : 'var(--info-bg)',
+                                                color: isJSDH ? 'var(--danger-text)' : 'var(--info-text)',
+                                                borderColor: isJSDH ? 'var(--danger-border-strong)' : 'var(--info-border)',
                                             }}>
                                                 {isJSDH ? 'JSDH' : 'Vlastní'}
                                             </span>

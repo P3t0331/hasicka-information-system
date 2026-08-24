@@ -1,7 +1,7 @@
 import React from 'react';
 
-const WEEKEND_BG = '#FFEBEE';
-const TODAY_BG = '#FFF8E1';
+const WEEKEND_BG = 'var(--danger-bg)';
+const TODAY_BG = 'var(--warning-bg-soft)';
 
 export default function LogDayRow({
     day,
@@ -21,20 +21,20 @@ export default function LogDayRow({
 
     const baseStyle = {
         background: isToday ? TODAY_BG : (isWeekend ? WEEKEND_BG : 'white'),
-        borderBottom: '1px solid #f0f0f0'
+        borderBottom: '1px solid var(--surface-hover)'
     };
 
     return (
         <tr style={baseStyle}>
-            <td data-label="Datum" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: '#333', whiteSpace: 'nowrap', width: '60px' }}>
+            <td data-label="Datum" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: 'var(--text-charcoal)', whiteSpace: 'nowrap', width: '60px' }}>
                 {day}.
             </td>
-            <td data-label="Den" style={{ padding: '0.6rem 0.75rem', color: '#666', whiteSpace: 'nowrap', width: '90px' }}>
+            <td data-label="Den" style={{ padding: '0.6rem 0.75rem', color: 'var(--text-steel)', whiteSpace: 'nowrap', width: '90px' }}>
                 {dayName}
             </td>
             <td data-label="Co bylo provedeno" style={{ padding: '0.6rem 0.75rem' }}>
                 {entries.length === 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#bbb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-faint)' }}>
                         <span>—</span>
                         {canCreate && (
                             <button
@@ -42,8 +42,8 @@ export default function LogDayRow({
                                 onClick={() => onAddForDay(dateISO)}
                                 style={{
                                     background: 'transparent',
-                                    border: '1px dashed #bbb',
-                                    color: '#666',
+                                    border: '1px dashed var(--border-strong)',
+                                    color: 'var(--text-steel)',
                                     cursor: 'pointer',
                                     fontSize: '0.75rem',
                                     padding: '0.15rem 0.5rem',
@@ -64,7 +64,7 @@ export default function LogDayRow({
                                     gap: '0.5rem', justifyContent: 'space-between'
                                 }}>
                                     <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-                                        <div style={{ fontWeight: 500, color: '#222', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                        <div style={{ fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                                             {entry.description}
                                         </div>
                                         {(entry.participants?.length > 0 || entry.externalParticipants?.length > 0) && (
@@ -72,11 +72,11 @@ export default function LogDayRow({
                                                 {(entry.participants || []).map(p => (
                                                     <span key={p.uid} style={{
                                                         fontSize: '0.7rem',
-                                                        background: '#E3F2FD',
-                                                        color: '#1565C0',
+                                                        background: 'var(--info-bg)',
+                                                        color: 'var(--info-text)',
                                                         padding: '0.1rem 0.45rem',
                                                         borderRadius: '999px',
-                                                        border: '1px solid #BBDEFB'
+                                                        border: '1px solid var(--info-border)'
                                                     }}>
                                                         {p.name}
                                                     </span>
@@ -84,11 +84,11 @@ export default function LogDayRow({
                                                 {(entry.externalParticipants || []).map((name, i) => (
                                                     <span key={`ext-${i}`} style={{
                                                         fontSize: '0.7rem',
-                                                        background: '#F3E5F5',
-                                                        color: '#7B1FA2',
+                                                        background: 'var(--accent-purple-bg)',
+                                                        color: 'var(--accent-purple)',
                                                         padding: '0.1rem 0.45rem',
                                                         borderRadius: '999px',
-                                                        border: '1px solid #E1BEE7'
+                                                        border: '1px solid var(--accent-purple-border)'
                                                     }}>
                                                         {name}
                                                     </span>
@@ -101,12 +101,12 @@ export default function LogDayRow({
                                             <button
                                                 onClick={() => onEditEntry(entry)}
                                                 title="Upravit"
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#1976D2', padding: '0.1rem 0.3rem' }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--info)', padding: '0.1rem 0.3rem' }}
                                             >✏️</button>
                                             <button
                                                 onClick={() => onDeleteEntry(entry)}
                                                 title="Smazat"
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#d32f2f', padding: '0.1rem 0.3rem' }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--danger)', padding: '0.1rem 0.3rem' }}
                                             >×</button>
                                         </div>
                                     )}
@@ -120,8 +120,8 @@ export default function LogDayRow({
                                 style={{
                                     alignSelf: 'flex-start',
                                     background: 'transparent',
-                                    border: '1px dashed #bbb',
-                                    color: '#666',
+                                    border: '1px dashed var(--border-strong)',
+                                    color: 'var(--text-steel)',
                                     cursor: 'pointer',
                                     fontSize: '0.7rem',
                                     padding: '0.1rem 0.45rem',

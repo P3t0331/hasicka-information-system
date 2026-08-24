@@ -88,7 +88,7 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                     {training.vehicles && (
                         <>
                             <span className="event-card__meta-sep">•</span>
-                            <span className="event-card__meta-item" title="Technika" style={{ color: '#E65100', fontWeight: 600 }}>
+                            <span className="event-card__meta-item" title="Technika" style={{ color: 'var(--warning-dark)', fontWeight: 600 }}>
                                 🚒 {training.vehicles}
                             </span>
                         </>
@@ -103,7 +103,7 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                         return (
                             <>
                                 <span className="event-card__meta-sep">•</span>
-                                <span className="event-card__meta-item" title="Školitel" style={{ color: '#1565C0', fontWeight: 600 }}>
+                                <span className="event-card__meta-item" title="Školitel" style={{ color: 'var(--info-text)', fontWeight: 600 }}>
                                     🎓 {instructors.map(i => i.name).join(', ')}
                                 </span>
                             </>
@@ -138,7 +138,7 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                                 Odhlásit
                             </button>
                         ) : (training.maxParticipants && count >= parseInt(training.maxParticipants)) ? (
-                            <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: '#e0e0e0', color: '#757575', borderColor: '#d0d0d0' }}>
+                            <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--border)', color: 'var(--text-dim)', borderColor: 'var(--border-medium)' }}>
                                 Plno
                             </button>
                         ) : (
