@@ -109,7 +109,7 @@ export default function MonthlyLogTable({
                 background: `linear-gradient(135deg, ${accentColor.from}, ${accentColor.to})`,
                 borderRadius: '14px',
                 padding: '1.25rem 1.5rem',
-                color: 'white',
+                color: 'var(--text-on-dark)',
                 marginBottom: '1.25rem',
                 boxShadow: `0 6px 20px ${accentColor.from}33`,
                 display: 'flex',
@@ -131,7 +131,7 @@ export default function MonthlyLogTable({
                         className="btn"
                         style={{
                             background: 'rgba(255,255,255,0.22)',
-                            color: 'white',
+                            color: 'var(--text-on-dark)',
                             border: '1px solid rgba(255,255,255,0.4)',
                             padding: '0.55rem 1.1rem',
                             fontSize: '0.9rem',
@@ -157,7 +157,7 @@ export default function MonthlyLogTable({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.4rem',
-                    background: 'white',
+                    background: 'var(--surface)',
                     borderRadius: '999px',
                     padding: '0.25rem',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
@@ -188,7 +188,7 @@ export default function MonthlyLogTable({
                 <label style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                     fontSize: '0.85rem', color: 'var(--text-slate)', cursor: 'pointer',
-                    userSelect: 'none', background: 'white', borderRadius: '999px',
+                    userSelect: 'none', background: 'var(--surface)', borderRadius: '999px',
                     padding: '0.45rem 0.9rem', border: '1px solid var(--border)',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                 }}>
@@ -255,7 +255,7 @@ export default function MonthlyLogTable({
                                     border: c.isToday ? `2px solid ${accentColor.from}` : '1px solid var(--border)',
                                     background: hasEntries
                                         ? `linear-gradient(135deg, ${accentColor.from}22, ${accentColor.to}22)`
-                                        : (c.isWeekend ? 'var(--danger-bg)' : 'white'),
+                                        : (c.isWeekend ? 'var(--danger-bg)' : 'var(--surface)'),
                                     borderRadius: '8px',
                                     cursor: clickable ? 'pointer' : 'default',
                                     padding: '0.3rem',
@@ -279,7 +279,7 @@ export default function MonthlyLogTable({
                                         position: 'absolute',
                                         bottom: '3px',
                                         background: accentColor.from,
-                                        color: 'white',
+                                        color: 'var(--text-on-dark)',
                                         fontSize: '0.55rem',
                                         fontWeight: 700,
                                         padding: '0.05rem 0.3rem',
@@ -323,7 +323,7 @@ export default function MonthlyLogTable({
                                 style={{
                                     marginTop: '1rem',
                                     background: accentColor.from,
-                                    color: 'white',
+                                    color: 'var(--text-on-dark)',
                                     border: 'none',
                                     padding: '0.5rem 1.1rem',
                                     fontSize: '0.85rem',
@@ -358,7 +358,7 @@ export default function MonthlyLogTable({
 function StatPill({ icon, value, label, color }) {
     return (
         <div style={{
-            background: 'white',
+            background: 'var(--surface)',
             borderRadius: '12px',
             padding: '0.75rem 0.9rem',
             display: 'flex',
@@ -426,7 +426,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                             {day.isToday && (
                                 <span style={{
                                     marginLeft: '0.5rem', fontSize: '0.65rem',
-                                    background: accentColor.from, color: 'white',
+                                    background: accentColor.from, color: 'var(--text-on-dark)',
                                     padding: '0.1rem 0.45rem', borderRadius: '999px',
                                     textTransform: 'uppercase', letterSpacing: '0.5px',
                                     fontWeight: 700, verticalAlign: 'middle'

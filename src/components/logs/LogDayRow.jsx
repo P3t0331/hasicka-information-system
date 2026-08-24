@@ -20,7 +20,7 @@ export default function LogDayRow({
     const totalPeople = entries.reduce((sum, e) => sum + (Number(e.peopleCount) || 0), 0);
 
     const baseStyle = {
-        background: isToday ? TODAY_BG : (isWeekend ? WEEKEND_BG : 'white'),
+        background: isToday ? TODAY_BG : (isWeekend ? WEEKEND_BG : 'var(--surface)'),
         borderBottom: '1px solid var(--surface-hover)'
     };
 
