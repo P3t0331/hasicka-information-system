@@ -95,7 +95,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--danger-hover), var(--danger-text))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(229, 57, 53, 0.25)'
                 }}>
@@ -109,7 +109,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--accent-purple-bright), var(--accent-purple))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(156, 39, 176, 0.25)'
                 }}>
@@ -123,7 +123,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--info), var(--info-text))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(25, 118, 210, 0.25)'
                 }}>
@@ -135,7 +135,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--success), var(--success-text))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(56, 142, 60, 0.25)'
                 }}>
@@ -210,7 +210,7 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
                             padding: '1.25rem',
                             borderRadius: '10px',
                             border: '1px solid var(--border)',
-                            background: 'white',
+                            background: 'var(--surface)',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
                             transition: 'transform 0.2s, box-shadow 0.2s'
                         }}

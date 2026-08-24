@@ -148,7 +148,7 @@ export default function DetailedInventoryTab({
               const wearOption = WEAR_OPTIONS.find(o => o.value === item.wear);
 
               return (
-                <tr key={item.id} style={{ background: i % 2 === 0 ? 'white' : 'var(--surface-sunken)', borderBottom: '1px solid var(--surface-hover)', ...(wearRowStyle || {}) }}>
+                <tr key={item.id} style={{ background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-sunken)', borderBottom: '1px solid var(--surface-hover)', ...(wearRowStyle || {}) }}>
                   <td data-label="Uživatel" style={{ padding: '0.75rem', fontWeight: 600 }}>{item._userName}</td>
                   <td data-label="Typ vybavení" style={{ padding: '0.75rem', color: 'var(--info-text)', fontWeight: 600 }}>{eqType.name}</td>
                   <td data-label="Vlastnictví" style={{ padding: '0.75rem' }}>

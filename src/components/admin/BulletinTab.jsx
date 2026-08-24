@@ -122,11 +122,11 @@ export default function BulletinTab({ allUsers = [] }) {
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
                                                 {post.isPinned && (
-                                                    <span style={{ fontSize: '0.7rem', background: 'var(--warning)', color: 'white', padding: '0.1rem 0.45rem', borderRadius: '999px', fontWeight: 700 }}>
+                                                    <span style={{ fontSize: '0.7rem', background: 'var(--warning)', color: 'var(--text-on-dark)', padding: '0.1rem 0.45rem', borderRadius: '999px', fontWeight: 700 }}>
                                                         📌 Připnuto
                                                     </span>
                                                 )}
-                                                <span style={{ fontSize: '0.7rem', background: pc.color, color: 'white', padding: '0.1rem 0.45rem', borderRadius: '999px', fontWeight: 700 }}>
+                                                <span style={{ fontSize: '0.7rem', background: pc.color, color: 'var(--text-on-dark)', padding: '0.1rem 0.45rem', borderRadius: '999px', fontWeight: 700 }}>
                                                     {pc.label}
                                                 </span>
                                             </div>

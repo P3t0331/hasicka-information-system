@@ -49,7 +49,7 @@ export default function MembersPage() {
 
             {/* Search and Filter Bar */}
             <div style={{
-                background: 'white',
+                background: 'var(--surface)',
                 padding: '1.5rem',
                 borderRadius: '12px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',

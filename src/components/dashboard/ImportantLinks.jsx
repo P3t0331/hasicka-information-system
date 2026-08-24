@@ -96,7 +96,7 @@ export default function ImportantLinks() {
                         gap: '1rem',
                         padding: '1.25rem',
                         background: 'linear-gradient(135deg, var(--accent-amber-grad-1), var(--accent-amber-grad-2))',
-                        color: 'white',
+                        color: 'var(--text-on-dark)',
                         cursor: 'pointer',
                         userSelect: 'none'
                     }}

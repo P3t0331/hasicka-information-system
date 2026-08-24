@@ -57,7 +57,7 @@ export default function ForcePasswordChange() {
             zIndex: 9999, padding: '1rem'
         }}>
             <div style={{
-                background: 'white',
+                background: 'var(--surface)',
                 borderRadius: '20px',
                 padding: '2rem',
                 width: '100%',
@@ -159,7 +159,7 @@ export default function ForcePasswordChange() {
                             width: '100%', padding: '0.9rem',
                             borderRadius: '12px', border: 'none',
                             background: loading ? 'var(--border-medium)' : 'linear-gradient(135deg, var(--info-text), var(--info-dark))',
-                            color: 'white', fontSize: '1rem', fontWeight: 700,
+                            color: 'var(--text-on-dark)', fontSize: '1rem', fontWeight: 700,
                             cursor: loading ? 'not-allowed' : 'pointer',
                             marginBottom: '0.75rem'
                         }}

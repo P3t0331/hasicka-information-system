@@ -84,8 +84,8 @@ export default function SuggestionsAdminTab() {
                                 borderRadius: '50px',
                                 border: '1.5px solid',
                                 borderColor: statusFilter === f.id ? 'var(--primary-red)' : 'var(--border)',
-                                background: statusFilter === f.id ? 'var(--primary-red)' : 'white',
-                                color: statusFilter === f.id ? 'white' : 'var(--text-secondary)',
+                                background: statusFilter === f.id ? 'var(--primary-red)' : 'var(--surface)',
+                                color: statusFilter === f.id ? 'var(--text-on-dark)' : 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 fontSize: '0.82rem',
                                 fontWeight: statusFilter === f.id ? 700 : 400,
@@ -109,7 +109,7 @@ export default function SuggestionsAdminTab() {
 
                         return (
                             <div key={suggestion.id} style={{
-                                background: 'white',
+                                background: 'var(--surface)',
                                 borderRadius: '10px',
                                 padding: '1.25rem 1.4rem',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.07)',

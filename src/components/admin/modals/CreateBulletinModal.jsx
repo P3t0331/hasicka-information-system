@@ -93,7 +93,7 @@ export default function CreateBulletinModal({ initialPost, onClose, onSave }) {
                                 cursor: 'pointer', userSelect: 'none',
                                 padding: '0.55rem 0.75rem',
                                 border: '1px solid var(--border)', borderRadius: '8px',
-                                background: isPinned ? 'var(--warning-bg-soft)' : 'white',
+                                background: isPinned ? 'var(--warning-bg-soft)' : 'var(--surface)',
                                 fontSize: '0.9rem'
                             }}>
                                 <input

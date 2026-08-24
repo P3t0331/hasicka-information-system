@@ -34,7 +34,7 @@ function EmojiPicker({ value, onChange }) {
                 style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.35rem 0.75rem', border: '1px solid var(--border)',
-                    borderRadius: '8px', background: 'white', cursor: 'pointer',
+                    borderRadius: '8px', background: 'var(--surface)', cursor: 'pointer',
                     fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600,
                 }}
             >
@@ -50,7 +50,7 @@ function EmojiPicker({ value, onChange }) {
                         style={{
                             fontSize: '0.72rem', padding: '0.3rem 0.5rem',
                             border: value === '' ? '2px solid var(--danger-hover)' : '2px solid var(--border)',
-                            borderRadius: '8px', background: value === '' ? 'var(--danger-bg)' : 'white',
+                            borderRadius: '8px', background: value === '' ? 'var(--danger-bg)' : 'var(--surface)',
                             cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 600,
                         }}
                     >
@@ -64,7 +64,7 @@ function EmojiPicker({ value, onChange }) {
                             style={{
                                 fontSize: '1.35rem', padding: '0.3rem 0.4rem',
                                 border: value === e ? '2px solid var(--danger-hover)' : '2px solid var(--border)',
-                                borderRadius: '8px', background: value === e ? 'var(--danger-bg)' : 'white',
+                                borderRadius: '8px', background: value === e ? 'var(--danger-bg)' : 'var(--surface)',
                                 cursor: 'pointer', lineHeight: 1,
                             }}
                         >
@@ -421,7 +421,7 @@ export default function LinksTab() {
 
                         <div style={{ padding: '0.5rem', background: 'var(--surface-alt)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             {(item.links || []).map(sl => (
-                                <div key={sl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', background: 'white', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                <div key={sl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                     <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{sl.emoji || '🔗'}</span>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{sl.label}</div>
@@ -436,7 +436,7 @@ export default function LinksTab() {
                             ))}
 
                             {addingSubTo === item.id ? (
-                                <div style={{ padding: '0.75rem', background: 'white', borderRadius: '8px', border: '1px solid var(--info-border-soft)' }}>
+                                <div style={{ padding: '0.75rem', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--info-border-soft)' }}>
                                     <LinkFormFields value={subForm} onChange={setSubForm} />
                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
                                         <button className="btn btn-secondary" style={{ fontSize: '0.8rem' }} onClick={() => { setAddingSubTo(null); setSubForm(EMPTY_FORM); }}>Zrušit</button>

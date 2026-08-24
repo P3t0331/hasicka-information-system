@@ -422,7 +422,7 @@ export default function ShiftsTab({
                                     <div key={user.uid} style={{
                                         padding: '0.9rem', borderRadius: '10px',
                                         border: isMe ? '2px solid var(--success-text-on-dark)' : '1px solid var(--border)',
-                                        background: isMe ? 'var(--success-bg-soft)' : 'white',
+                                        background: isMe ? 'var(--success-bg-soft)' : 'var(--surface)',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
                                     }}>
                                         {/* Name + grand total */}
@@ -502,7 +502,7 @@ export default function ShiftsTab({
                                     <tr
                                         key={day.date}
                                         style={{
-                                            background: day.isWeekend ? 'var(--surface-sunken)' : 'white',
+                                            background: day.isWeekend ? 'var(--surface-sunken)' : 'var(--surface)',
                                             borderBottom: '1px solid var(--border)'
                                         }}
                                     >
@@ -541,7 +541,7 @@ export default function ShiftsTab({
                                                     <button
                                                         onClick={() => setEditingCell(day.date)}
                                                         style={{
-                                                            background: 'white', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px', fontSize: '0.9rem'
+                                                            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px', fontSize: '0.9rem'
                                                         }}
                                                         title="Upravit hodiny"
                                                     >
@@ -555,7 +555,7 @@ export default function ShiftsTab({
                             })}
                         </tbody>
                         <tfoot>
-                            <tr style={{ background: 'var(--table-header-dark)', color: 'white' }}>
+                            <tr style={{ background: 'var(--table-header-dark)', color: 'var(--text-on-dark)' }}>
                                 <td style={{ padding: '1rem', fontWeight: 700 }} colSpan={2}>
                                     MĚSÍČNÍ SOUČET
                                 </td>
@@ -660,7 +660,7 @@ const EditHoursModal = ({
             background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }} onClick={onClose}>
             <div style={{
-                background: 'white', padding: '1.5rem', borderRadius: '8px', width: '90%', maxWidth: '600px'
+                background: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', width: '90%', maxWidth: '600px'
             }} onClick={e => e.stopPropagation()}>
                 <h3 style={{ margin: '0 0 1rem 0' }}>Upravit hodiny - {day}. {MONTHS_CZ[currentDate.getMonth()]}</h3>
 

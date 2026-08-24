@@ -34,7 +34,7 @@ function MemberCard({ member, roleLabels }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1rem',
-                color: 'white'
+                color: 'var(--text-on-dark)'
             }}>
                 <div style={{
                     width: '60px',

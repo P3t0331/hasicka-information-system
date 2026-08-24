@@ -38,7 +38,7 @@ export default function BulletinWidget() {
                     </h2>
                     {unseenPosts.length > 0 && (
                         <span style={{
-                            background: 'var(--danger)', color: 'white',
+                            background: 'var(--danger)', color: 'var(--text-on-dark)',
                             fontSize: '0.65rem', fontWeight: 700,
                             padding: '0.1rem 0.45rem', borderRadius: '999px', lineHeight: 1.4
                         }}>
@@ -62,7 +62,7 @@ export default function BulletinWidget() {
             {/* Posts */}
             {displayPosts.length === 0 && !showArchive && (
                 <div style={{
-                    padding: '0.85rem 1rem', background: 'white', borderRadius: '10px',
+                    padding: '0.85rem 1rem', background: 'var(--surface)', borderRadius: '10px',
                     border: '1px solid var(--border)', color: 'var(--text-faint)', fontSize: '0.85rem', textAlign: 'center'
                 }}>
                     Žádné nové příspěvky.
@@ -95,7 +95,7 @@ export default function BulletinWidget() {
                                         )}
                                         {post.priority !== 'normal' && (
                                             <span style={{
-                                                fontSize: '0.65rem', background: pc.color, color: 'white',
+                                                fontSize: '0.65rem', background: pc.color, color: 'var(--text-on-dark)',
                                                 padding: '0.05rem 0.4rem', borderRadius: '999px', fontWeight: 700
                                             }}>
                                                 {pc.label}

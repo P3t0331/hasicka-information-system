@@ -79,7 +79,7 @@ export default function AddressInput({ value, onChange, required }) {
           top: '100%',
           left: 0,
           right: 0,
-          backgroundColor: 'white',
+          backgroundColor: 'var(--surface)',
           border: '1px solid var(--border)',
           borderTop: 'none',
           borderRadius: '0 0 8px 8px',
@@ -100,7 +100,7 @@ export default function AddressInput({ value, onChange, required }) {
                 fontSize: '0.9rem'
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-alt)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface)'}
             >
               {item.display_name}
             </li>

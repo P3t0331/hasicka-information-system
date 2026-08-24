@@ -22,7 +22,7 @@ export default function UpdatePrompt() {
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'var(--bg-dark-paper)',
-            color: 'white',
+            color: 'var(--text-on-dark)',
             padding: '0.75rem 1rem',
             borderRadius: '10px',
             display: 'flex',
@@ -38,7 +38,7 @@ export default function UpdatePrompt() {
                 onClick={() => updateServiceWorker(true)}
                 style={{
                     background: 'var(--primary-red-dark)',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     border: 'none',
                     borderRadius: '6px',
                     padding: '0.35rem 0.75rem',

@@ -60,7 +60,7 @@ export default function UsersTab({
                   display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600
                 }}>
                   <span>{role}</span>
-                  <span style={{ background: 'white', padding: '0 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{stats.roles[role] || 0}</span>
+                  <span style={{ background: 'var(--surface)', padding: '0 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{stats.roles[role] || 0}</span>
                 </div>
               ))}
             </div>
@@ -76,7 +76,7 @@ export default function UsersTab({
                   display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600
                 }}>
                   <span>{cert}</span>
-                  <span style={{ background: 'white', padding: '0 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{stats.certs[cert] || 0}</span>
+                  <span style={{ background: 'var(--surface)', padding: '0 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{stats.certs[cert] || 0}</span>
                 </div>
               ))}
             </div>
@@ -94,7 +94,7 @@ export default function UsersTab({
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.6rem 1.2rem', borderRadius: '10px', border: 'none',
               background: 'linear-gradient(135deg, var(--info-text), var(--info-dark))',
-              color: 'white', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+              color: 'var(--text-on-dark)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(21, 101, 192, 0.3)'
             }}
           >
@@ -160,7 +160,7 @@ export default function UsersTab({
                 <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
                   <button
                     style={{
-                      flex: 1, padding: '1rem', border: 'none', background: 'white',
+                      flex: 1, padding: '1rem', border: 'none', background: 'var(--surface)',
                       color: 'var(--danger)', fontWeight: 600, cursor: 'pointer',
                       transition: 'background 0.2s',
                       borderRight: '1px solid var(--border)'
@@ -172,7 +172,7 @@ export default function UsersTab({
                   </button>
                   <button
                     style={{
-                      flex: 1, padding: '1rem', border: 'none', background: 'white',
+                      flex: 1, padding: '1rem', border: 'none', background: 'var(--surface)',
                       color: 'var(--success-text)', fontWeight: 600, cursor: 'pointer',
                       transition: 'background 0.2s'
                     }}
@@ -216,7 +216,7 @@ export default function UsersTab({
 
                 return (
                   <tr key={user.uid} className="hover-row" style={{
-                    background: isDisabled ? 'var(--surface-sunken)' : 'white',
+                    background: isDisabled ? 'var(--surface-sunken)' : 'var(--surface)',
                     opacity: isDisabled ? 0.8 : 1
                   }}>
                     {/* COL 1: User Info */}
@@ -226,7 +226,7 @@ export default function UsersTab({
                           <div style={{
                             width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
                             background: isAdmin ? 'var(--primary-red)' : (isDisabled ? 'var(--border-medium)' : 'var(--info-bright)'),
-                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem'
+                            color: 'var(--text-on-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem'
                           }}>
                             {user.firstName ? user.firstName[0] : ''}{user.lastName ? user.lastName[0] : ''}
                           </div>

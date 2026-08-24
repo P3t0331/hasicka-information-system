@@ -12,7 +12,7 @@ export default function NewActivitiesBanner({ newActivities, onDismiss }) {
     return (
         <div style={{
             background: 'linear-gradient(135deg, var(--info-bright), var(--info-text))',
-            color: 'white',
+            color: 'var(--text-on-dark)',
             padding: '1.25rem',
             borderRadius: '12px',
             marginBottom: '1.5rem',
@@ -41,7 +41,7 @@ export default function NewActivitiesBanner({ newActivities, onDismiss }) {
                 <button
                     onClick={onDismiss}
                     style={{
-                        background: 'white',
+                        background: 'var(--surface)',
                         color: 'var(--info-text)',
                         border: 'none',
                         padding: '0.5rem 1rem',

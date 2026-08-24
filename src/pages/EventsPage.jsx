@@ -121,7 +121,7 @@ export default function EventsPage() {
                             ) : templates.map(t => (
                                 <div key={t.id} style={{
                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                    padding: '0.65rem 0.85rem', background: 'white',
+                                    padding: '0.65rem 0.85rem', background: 'var(--surface)',
                                     border: '1px solid var(--border)', borderRadius: '8px', gap: '0.75rem'
                                 }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -177,7 +177,7 @@ export default function EventsPage() {
                             style={{
                                 background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
                                 borderRadius: '5px', padding: '0.15rem 0.5rem',
-                                cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, color: 'white',
+                                cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, color: 'var(--text-on-dark)',
                                 display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 500
                             }}
                         >
@@ -204,7 +204,7 @@ export default function EventsPage() {
                                     borderRadius: '20px',
                                     border: '1px solid',
                                     borderColor: upcomingFilter === 'all' ? 'var(--info-text)' : 'var(--border-medium)',
-                                    background: upcomingFilter === 'all' ? 'var(--info-bg)' : 'white',
+                                    background: upcomingFilter === 'all' ? 'var(--info-bg)' : 'var(--surface)',
                                     color: upcomingFilter === 'all' ? 'var(--info-text)' : 'var(--text-secondary)',
                                     fontSize: '0.8rem',
                                     fontWeight: 600,
@@ -221,7 +221,7 @@ export default function EventsPage() {
                                     borderRadius: '20px',
                                     border: '1px solid',
                                     borderColor: upcomingFilter === 'thisMonth' ? 'var(--info-text)' : 'var(--border-medium)',
-                                    background: upcomingFilter === 'thisMonth' ? 'var(--info-bg)' : 'white',
+                                    background: upcomingFilter === 'thisMonth' ? 'var(--info-bg)' : 'var(--surface)',
                                     color: upcomingFilter === 'thisMonth' ? 'var(--info-text)' : 'var(--text-secondary)',
                                     fontSize: '0.8rem',
                                     fontWeight: 600,
@@ -296,7 +296,7 @@ export default function EventsPage() {
                                         padding: '0.35rem 0.75rem',
                                         borderRadius: '6px',
                                         border: '1px solid var(--border-medium)',
-                                        background: 'white',
+                                        background: 'var(--surface)',
                                         fontSize: '0.9rem',
                                         outline: 'none',
                                         cursor: 'pointer'
@@ -315,7 +315,7 @@ export default function EventsPage() {
                                         padding: '0.35rem 0.75rem',
                                         borderRadius: '6px',
                                         border: '1px solid var(--border-medium)',
-                                        background: 'white',
+                                        background: 'var(--surface)',
                                         fontSize: '0.9rem',
                                         outline: 'none',
                                         cursor: 'pointer'

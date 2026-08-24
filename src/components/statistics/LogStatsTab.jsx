@@ -178,7 +178,7 @@ function KpiCard({ icon, value, suffix, label, gradient, smallValue }) {
         <div className="card" style={{
             padding: '1.25rem',
             background: gradient,
-            color: 'white',
+            color: 'var(--text-on-dark)',
             borderRadius: '12px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
         }}>

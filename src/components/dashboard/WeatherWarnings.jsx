@@ -189,18 +189,18 @@ export default function WeatherWarnings() {
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ fontSize: '1.25rem' }}>{icon}</span>
-                                    <span style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
+                                    <span style={{ color: 'var(--text-on-dark)', fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
                                 </div>
                                 <span style={{
                                     background: 'rgba(255,255,255,0.25)',
-                                    color: 'white', fontSize: '0.75rem', fontWeight: 600,
+                                    color: 'var(--text-on-dark)', fontSize: '0.75rem', fontWeight: 600,
                                     padding: '0.2rem 0.6rem', borderRadius: '20px'
                                 }}>
                                     {sevLabel}
                                 </span>
                             </div>
                             {/* Always-visible: times row */}
-                            <div style={{ background: 'white', padding: '0.6rem 1rem' }}>
+                            <div style={{ background: 'var(--surface)', padding: '0.6rem 1rem' }}>
                                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                     {onset && (
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>

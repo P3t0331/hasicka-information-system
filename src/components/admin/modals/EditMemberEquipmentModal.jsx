@@ -207,7 +207,7 @@ export default function EditMemberEquipmentModal({
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button className="btn btn-success" style={{ background: 'var(--success-text)', color: 'white', flex: 1 }} type="submit">Uložit položku</button>
+            <button className="btn btn-success" style={{ background: 'var(--success-text)', color: 'var(--text-on-dark)', flex: 1 }} type="submit">Uložit položku</button>
             <button className="btn btn-secondary" style={{ flex: 1 }} type="button" onClick={onClose}>Zrušit</button>
           </div>
         </form>

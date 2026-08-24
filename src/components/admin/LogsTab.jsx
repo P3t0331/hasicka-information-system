@@ -14,7 +14,7 @@ const LogEntry = React.memo(function LogEntry({ id, category, action, userName, 
     <div
       style={{
         display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
-        background: 'white', borderRadius: '10px',
+        background: 'var(--surface)', borderRadius: '10px',
         padding: '0.75rem 1rem',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
         borderLeft: `4px solid ${cat.border}`,
@@ -190,7 +190,7 @@ export default function LogsTab({
     <div>
       {/* Filter Bar */}
       <div className="mobile-stack" style={{
-        background: 'white', borderRadius: '12px', padding: '1rem',
+        background: 'var(--surface)', borderRadius: '12px', padding: '1rem',
         marginBottom: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between'
       }}>
@@ -233,7 +233,7 @@ export default function LogsTab({
                     padding: '0.35rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem',
                     fontWeight: logFilterCategory === cat.id ? 700 : 500,
                     border: `1px solid ${logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.border || 'var(--text-subtle)') : 'var(--border)'}`,
-                    background: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.bg || 'var(--border)') : 'white',
+                    background: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.bg || 'var(--border)') : 'var(--surface)',
                     color: logFilterCategory === cat.id ? (CATEGORY_CONFIG[cat.id]?.color || 'var(--text-charcoal)') : 'var(--text-dim)',
                     cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
                     flexShrink: 0
@@ -254,13 +254,13 @@ export default function LogsTab({
             }}
             disabled={logsLoading}
             style={{
-              background: 'white', border: '1px solid var(--border)', borderRadius: '8px',
+              background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px',
               padding: '0.4rem 0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem',
               fontSize: '0.8rem', color: 'var(--text-secondary)', transition: 'all 0.2s',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
             onMouseOver={e => { e.currentTarget.style.background = 'var(--surface-sunken)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; }}
-            onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
           >
             <span style={{
               display: 'inline-block',
@@ -311,7 +311,7 @@ export default function LogsTab({
       ) : activityLogs.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '3rem', color: 'var(--text-faint)',
-          background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          background: 'var(--surface)', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
         }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📭</div>
           <div style={{ fontWeight: 600, color: 'var(--text-gray)', marginBottom: '0.3rem' }}>Žádné záznamy</div>
@@ -338,7 +338,7 @@ export default function LogsTab({
               style={{
                 marginTop: '0.5rem',
                 padding: '0.65rem 1.25rem',
-                background: 'white',
+                background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: '10px',
                 cursor: loadingMore ? 'default' : 'pointer',

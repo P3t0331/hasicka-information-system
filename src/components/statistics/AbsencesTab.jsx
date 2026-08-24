@@ -83,7 +83,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--text-dim), var(--text-secondary))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(117, 117, 117, 0.25)'
                 }}>
@@ -95,7 +95,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--warning), var(--warning-deep))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(245, 124, 0, 0.25)'
                 }}>
@@ -107,7 +107,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--danger), var(--danger-text))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(211, 47, 47, 0.25)'
                 }}>
@@ -119,7 +119,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                 <div className="card" style={{
                     padding: '1.5rem',
                     background: 'linear-gradient(135deg, var(--info), var(--info-text))',
-                    color: 'white',
+                    color: 'var(--text-on-dark)',
                     borderRadius: '12px',
                     boxShadow: '0 4px 12px rgba(25, 118, 210, 0.25)'
                 }}>
@@ -208,7 +208,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                             padding: '1.25rem',
                             borderRadius: '10px',
                             border: '2px solid' + (user.activeAbsence ? ' var(--warning-bright)' : ' var(--border)'),
-                            background: user.activeAbsence ? 'var(--warning-bg-soft)' : 'white',
+                            background: user.activeAbsence ? 'var(--warning-bg-soft)' : 'var(--surface)',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
                             transition: 'transform 0.2s, box-shadow 0.2s'
                         }}
@@ -230,7 +230,7 @@ export default function AbsencesTab({ absencesData, currentDate }) {
                                         padding: '4px 8px',
                                         borderRadius: '12px',
                                         background: 'var(--warning-bright)',
-                                        color: 'white',
+                                        color: 'var(--text-on-dark)',
                                         fontWeight: 600
                                     }}>
                                         AKTIVNÍ

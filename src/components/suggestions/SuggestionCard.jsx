@@ -23,7 +23,7 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
 
     return (
         <div style={{
-            background: 'white',
+            background: 'var(--surface)',
             borderRadius: '10px',
             padding: '1.25rem 1.4rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
@@ -86,7 +86,7 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                             padding: '0.3rem 0.7rem',
                             borderRadius: '50px',
                             border: hasVotedYes ? '1.5px solid var(--info-text)' : '1.5px solid var(--border)',
-                            background: hasVotedYes ? 'var(--info-bg)' : 'white',
+                            background: hasVotedYes ? 'var(--info-bg)' : 'var(--surface)',
                             color: hasVotedYes ? 'var(--info-text)' : 'var(--text-secondary)',
                             cursor: isOwn ? 'default' : 'pointer',
                             fontSize: '0.85rem',
@@ -106,7 +106,7 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                             padding: '0.3rem 0.7rem',
                             borderRadius: '50px',
                             border: hasVotedNo ? '1.5px solid var(--danger-text)' : '1.5px solid var(--border)',
-                            background: hasVotedNo ? 'var(--danger-bg)' : 'white',
+                            background: hasVotedNo ? 'var(--danger-bg)' : 'var(--surface)',
                             color: hasVotedNo ? 'var(--danger-text)' : 'var(--text-secondary)',
                             cursor: isOwn ? 'default' : 'pointer',
                             fontSize: '0.85rem',
@@ -124,7 +124,7 @@ export default function SuggestionCard({ suggestion, currentUser, isAdmin, onVot
                                 padding: '0.3rem 0.6rem',
                                 borderRadius: '50px',
                                 border: '1.5px solid var(--border)',
-                                background: 'white',
+                                background: 'var(--surface)',
                                 color: 'var(--text-subtle)',
                                 cursor: 'pointer',
                                 fontSize: '0.8rem',

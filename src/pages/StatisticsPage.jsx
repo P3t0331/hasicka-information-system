@@ -136,7 +136,7 @@ export default function StatisticsPage() {
         background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
         borderRadius: '10px',
         padding: '0.75rem 1rem',
-        color: 'white',
+        color: 'var(--text-on-dark)',
         marginBottom: '1.5rem',
         display: 'flex',
         alignItems: 'center',
@@ -149,18 +149,18 @@ export default function StatisticsPage() {
             <button
               className="btn"
               onClick={() => setActiveYear(y => y - 1)}
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-on-dark)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
             >
               ←
             </button>
-            <h2 style={{ margin: 0, color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+            <h2 style={{ margin: 0, color: 'var(--text-on-dark)', fontSize: '1.1rem', letterSpacing: '1px' }}>
               {activeYear}
             </h2>
             <button
               className="btn"
               onClick={() => setActiveYear(y => y + 1)}
               disabled={activeYear >= new Date().getFullYear()}
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem', opacity: activeYear >= new Date().getFullYear() ? 0.4 : 1 }}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-on-dark)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem', opacity: activeYear >= new Date().getFullYear() ? 0.4 : 1 }}
             >
               →
             </button>
@@ -170,17 +170,17 @@ export default function StatisticsPage() {
             <button
               className="btn"
               onClick={() => handleMonthChange(-1)}
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-on-dark)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
             >
               ←
             </button>
-            <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px' }}>
+            <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'var(--text-on-dark)', fontSize: '1.1rem', letterSpacing: '1px' }}>
               {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
             <button
               className="btn"
               onClick={() => handleMonthChange(1)}
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-on-dark)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
             >
               →
             </button>
@@ -203,7 +203,7 @@ export default function StatisticsPage() {
             padding: '0.75rem 1.5rem',
             border: 'none',
             background: activeTab === 'shifts' ? 'var(--warning-bright)' : 'transparent',
-            color: activeTab === 'shifts' ? 'white' : 'var(--text-dim)',
+            color: activeTab === 'shifts' ? 'var(--text-on-dark)' : 'var(--text-dim)',
             fontWeight: activeTab === 'shifts' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -220,7 +220,7 @@ export default function StatisticsPage() {
             padding: '0.75rem 1.5rem',
             border: 'none',
             background: activeTab === 'activities' ? 'var(--danger-hover)' : 'transparent',
-            color: activeTab === 'activities' ? 'white' : 'var(--text-dim)',
+            color: activeTab === 'activities' ? 'var(--text-on-dark)' : 'var(--text-dim)',
             fontWeight: activeTab === 'activities' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -237,7 +237,7 @@ export default function StatisticsPage() {
             padding: '0.75rem 1.5rem',
             border: 'none',
             background: activeTab === 'absences' ? 'var(--text-dim)' : 'transparent',
-            color: activeTab === 'absences' ? 'white' : 'var(--text-dim)',
+            color: activeTab === 'absences' ? 'var(--text-on-dark)' : 'var(--text-dim)',
             fontWeight: activeTab === 'absences' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -254,7 +254,7 @@ export default function StatisticsPage() {
             padding: '0.75rem 1.5rem',
             border: 'none',
             background: activeTab === 'maintenance' ? 'var(--warning-amber)' : 'transparent',
-            color: activeTab === 'maintenance' ? 'white' : 'var(--text-dim)',
+            color: activeTab === 'maintenance' ? 'var(--text-on-dark)' : 'var(--text-dim)',
             fontWeight: activeTab === 'maintenance' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -271,7 +271,7 @@ export default function StatisticsPage() {
             padding: '0.75rem 1.5rem',
             border: 'none',
             background: activeTab === 'cleaning' ? 'var(--teal-bright)' : 'transparent',
-            color: activeTab === 'cleaning' ? 'white' : 'var(--text-dim)',
+            color: activeTab === 'cleaning' ? 'var(--text-on-dark)' : 'var(--text-dim)',
             fontWeight: activeTab === 'cleaning' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',
@@ -288,7 +288,7 @@ export default function StatisticsPage() {
             padding: '0.75rem 1.5rem',
             border: 'none',
             background: activeTab === 'year' ? 'var(--table-header-dark)' : 'transparent',
-            color: activeTab === 'year' ? 'white' : 'var(--text-dim)',
+            color: activeTab === 'year' ? 'var(--text-on-dark)' : 'var(--text-dim)',
             fontWeight: activeTab === 'year' ? 700 : 500,
             borderRadius: '8px 8px 0 0',
             cursor: 'pointer',

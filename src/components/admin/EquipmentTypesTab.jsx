@@ -65,7 +65,7 @@ export default function EquipmentTypesTab({
                 if (eq.hasPolep) tracked.push('Polep');
 
                 return (
-                  <tr key={eq.id} style={{ borderBottom: '1px solid var(--surface-hover)', background: i % 2 === 0 ? 'white' : 'var(--surface-sunken)' }}>
+                  <tr key={eq.id} style={{ borderBottom: '1px solid var(--surface-hover)', background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-sunken)' }}>
                     <td data-label="Název" style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: 'var(--text-charcoal)' }}>{eq.name}</td>
                     <td data-label="Sledované údaje" style={{ padding: '0.6rem' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>

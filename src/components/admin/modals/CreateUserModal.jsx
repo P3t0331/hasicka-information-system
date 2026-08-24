@@ -133,7 +133,7 @@ export default function CreateUserModal({ onSubmit, onClose, loading }) {
                                             fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                                             transition: 'all 0.15s',
                                             background: roles.includes(role) ? 'var(--info-text)' : 'var(--surface-alt)',
-                                            color: roles.includes(role) ? 'white' : 'var(--text-secondary)',
+                                            color: roles.includes(role) ? 'var(--text-on-dark)' : 'var(--text-secondary)',
                                             border: roles.includes(role) ? '1px solid var(--info-text)' : '1px solid var(--border)'
                                         }}
                                     >
@@ -155,7 +155,7 @@ export default function CreateUserModal({ onSubmit, onClose, loading }) {
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <button type="button" onClick={onClose} style={{
                                 flex: 1, padding: '0.75rem', borderRadius: '8px',
-                                border: '1px solid var(--border)', background: 'white',
+                                border: '1px solid var(--border)', background: 'var(--surface)',
                                 color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer'
                             }}>
                                 Zrušit
@@ -163,7 +163,7 @@ export default function CreateUserModal({ onSubmit, onClose, loading }) {
                             <button type="submit" disabled={loading} style={{
                                 flex: 2, padding: '0.75rem', borderRadius: '8px', border: 'none',
                                 background: loading ? 'var(--border-medium)' : 'linear-gradient(135deg, var(--info-text), var(--info-dark))',
-                                color: 'white', fontWeight: 700,
+                                color: 'var(--text-on-dark)', fontWeight: 700,
                                 cursor: loading ? 'not-allowed' : 'pointer'
                             }}>
                                 {loading ? 'Vytváření...' : 'Vytvořit účet'}

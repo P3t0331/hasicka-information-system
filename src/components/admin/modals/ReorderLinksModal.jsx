@@ -46,7 +46,7 @@ export default function ReorderLinksModal({ links, onClose, onSave }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.6rem',
                   padding: '0.7rem 0.75rem',
-                  background: 'white',
+                  background: 'var(--surface)',
                   borderBottom: i === items.length - 1 ? 'none' : '1px solid var(--border)'
                 }}
               >
@@ -69,7 +69,7 @@ export default function ReorderLinksModal({ links, onClose, onSave }) {
                   style={{
                     width: '2.5rem', height: '2.5rem',
                     background: isFirst ? 'var(--surface-alt)' : 'var(--info)',
-                    color: isFirst ? 'var(--text-faint)' : 'white',
+                    color: isFirst ? 'var(--text-faint)' : 'var(--text-on-dark)',
                     border: 'none', borderRadius: '8px',
                     cursor: isFirst ? 'not-allowed' : 'pointer',
                     fontSize: '1.1rem', fontWeight: 700,
@@ -85,7 +85,7 @@ export default function ReorderLinksModal({ links, onClose, onSave }) {
                   style={{
                     width: '2.5rem', height: '2.5rem',
                     background: isLast ? 'var(--surface-alt)' : 'var(--info)',
-                    color: isLast ? 'var(--text-faint)' : 'white',
+                    color: isLast ? 'var(--text-faint)' : 'var(--text-on-dark)',
                     border: 'none', borderRadius: '8px',
                     cursor: isLast ? 'not-allowed' : 'pointer',
                     fontSize: '1.1rem', fontWeight: 700,

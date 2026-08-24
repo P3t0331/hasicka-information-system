@@ -17,7 +17,7 @@ export function ChartTooltip({ active, payload, label, unit = 'h' }) {
     if (!active || !payload?.length) return null;
     return (
         <div style={{
-            background: 'white', border: '1px solid var(--border)', borderRadius: 8,
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
             padding: '0.5rem 0.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             fontSize: '0.8rem', maxWidth: 200
         }}>
@@ -49,7 +49,7 @@ export function PieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     return (
-        <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={700}>
+        <text x={x} y={y} fill="var(--text-on-dark)" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={700}>
             {`${(percent * 100).toFixed(0)}%`}
         </text>
     );

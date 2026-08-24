@@ -344,7 +344,7 @@ function KpiCard({ icon, value, suffix, label, color1, color2 }) {
         <div className="card" style={{
             padding: '1.25rem',
             background: `linear-gradient(135deg, ${color1}, ${color2})`,
-            color: 'white',
+            color: 'var(--text-on-dark)',
             borderRadius: '12px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
         }}>
