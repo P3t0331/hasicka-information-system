@@ -5,7 +5,7 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
   const isUnqualified = assignee && assignee.qualified === false;
   const isOccupied = !!assignee;
 
-  let bg = 'white';
+  let bg = 'var(--surface)';
   let border = '1px dashed var(--border)';
   let color = 'var(--text-gray)';
   let shadow = 'none';
@@ -63,7 +63,7 @@ export default function SlotChip({ slotKey, assignee, isSelf, onClick, retroMode
       <div style={{
         width: '26px', height: '26px',
         borderRadius: '50%',
-        background: isOccupied ? 'white' : 'var(--surface-alt)',
+        background: isOccupied ? 'var(--surface)' : 'var(--surface-alt)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: '0.9rem',
         boxShadow: isOccupied ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',

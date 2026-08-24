@@ -61,7 +61,7 @@ function ShiftRow({
     <div style={{
       display: 'flex',
       alignItems: 'stretch',
-      background: 'white',
+      background: 'var(--surface)',
       margin: '0.35rem 0.25rem',
       borderRadius: '8px',
       border: day.isToday ? '2px solid var(--gold-text-on-dark)' : '1px solid var(--border)',
@@ -83,7 +83,7 @@ function ShiftRow({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        background: day.isToday ? 'linear-gradient(135deg, var(--warning-bg-soft), var(--warning-glow))' : (day.isWeekend ? 'var(--surface-sunken)' : 'white'),
+        background: day.isToday ? 'linear-gradient(135deg, var(--warning-bg-soft), var(--warning-glow))' : (day.isWeekend ? 'var(--surface-sunken)' : 'var(--surface)'),
         color: day.isToday ? 'var(--warning-amber)' : (day.isWeekend ? 'var(--text-dim)' : 'var(--text-charcoal)'),
         position: 'relative'
       }}>
@@ -119,7 +119,7 @@ function ShiftRow({
               padding: '0 0 1px 0',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-hover)'; e.currentTarget.style.color = 'white'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-hover)'; e.currentTarget.style.color = 'var(--text-on-dark)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 83, 80, 0.1)'; e.currentTarget.style.color = 'var(--danger-hover)'; }}
           >
             ×

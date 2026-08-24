@@ -94,7 +94,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                         position: 'absolute', top: '2px',
                                         left: fromHome ? '18px' : '2px',
                                         width: '16px', height: '16px', borderRadius: '50%',
-                                        background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                        background: 'var(--surface)', boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
                                         transition: 'left 0.2s',
                                     }} />
                                 </div>
@@ -124,7 +124,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                             position: 'absolute', top: '2px',
                                             left: customTime ? '18px' : '2px',
                                             width: '16px', height: '16px', borderRadius: '50%',
-                                            background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                            background: 'var(--surface)', boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
                                             transition: 'left 0.2s',
                                         }} />
                                     </div>
@@ -146,7 +146,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                                     width: '100%', padding: '0.4rem 0.4rem',
                                                     borderRadius: '6px', border: '1.5px solid var(--info-border)',
                                                     fontSize: '0.95rem', fontWeight: 600, textAlign: 'center',
-                                                    background: 'white', boxSizing: 'border-box',
+                                                    background: 'var(--surface)', boxSizing: 'border-box',
                                                 }}
                                             />
                                         </div>
@@ -160,7 +160,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                                     width: '100%', padding: '0.4rem 0.4rem',
                                                     borderRadius: '6px', border: '1.5px solid var(--info-border)',
                                                     fontSize: '0.95rem', fontWeight: 600, textAlign: 'center',
-                                                    background: 'white', boxSizing: 'border-box',
+                                                    background: 'var(--surface)', boxSizing: 'border-box',
                                                 }}
                                             />
                                         </div>
@@ -197,7 +197,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                     onClick={() => handleUserClick(user)}
                                     style={{
                                         padding: '0.65rem 0.75rem',
-                                        background: 'white',
+                                        background: 'var(--surface)',
                                         border: '1px solid var(--border)',
                                         borderRadius: '8px',
                                         textAlign: 'left',
@@ -208,7 +208,7 @@ export default function RetroAssignModal({ modal, onAssign, onClose, title }) {
                                         transition: 'all 0.15s',
                                     }}
                                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--warning-strong)'; e.currentTarget.style.background = 'var(--warning-bg-soft)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'white'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface)'; }}
                                 >
                                     <div>
                                         <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{user.fullName}</div>

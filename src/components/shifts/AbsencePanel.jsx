@@ -34,7 +34,7 @@ export default function AbsencePanel({
       <div
         style={{
           background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-purple-deep))',
-          color: 'white',
+          color: 'var(--text-on-dark)',
           padding: '0.75rem 1rem',
           borderRadius: absencePanelOpen ? '12px 12px 0 0' : '12px',
           display: 'flex',
@@ -45,7 +45,7 @@ export default function AbsencePanel({
         }}
         onClick={() => setAbsencePanelOpen(!absencePanelOpen)}
       >
-        <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white' }}>
+        <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-on-dark)' }}>
           🚫 Absence
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -71,7 +71,7 @@ export default function AbsencePanel({
           borderTop: 'none',
           borderRadius: '0 0 12px 12px',
           overflow: 'hidden',
-          background: 'white'
+          background: 'var(--surface)'
         }}>
           {displayAbsences.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--accent-purple-light)' }}>
@@ -125,7 +125,7 @@ export default function AbsencePanel({
                   >
                     <div style={{
                       background: badgeBg,
-                      color: 'white',
+                      color: 'var(--text-on-dark)',
                       padding: '0.35rem 0.6rem',
                       borderRadius: '6px',
                       fontSize: '0.75rem',

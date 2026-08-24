@@ -35,7 +35,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
             <div style={{
-                background: 'white',
+                background: 'var(--surface)',
                 borderRadius: '16px',
                 padding: '1.25rem 1.25rem 1.5rem',
                 width: '100%',
@@ -82,7 +82,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
                             left: fromHome ? '21px' : '3px',
                             width: '16px', height: '16px',
                             borderRadius: '50%',
-                            background: 'white',
+                            background: 'var(--surface)',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
                             transition: 'left 0.2s',
                         }} />
@@ -122,7 +122,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
                             left: customTime ? '21px' : '3px',
                             width: '16px', height: '16px',
                             borderRadius: '50%',
-                            background: 'white',
+                            background: 'var(--surface)',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
                             transition: 'left 0.2s',
                         }} />
@@ -150,7 +150,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
                                     width: '100%', padding: '0.55rem 0.5rem',
                                     borderRadius: '8px', border: '1.5px solid var(--info-border)',
                                     fontSize: '1rem', fontWeight: 600, textAlign: 'center',
-                                    background: 'white', boxSizing: 'border-box',
+                                    background: 'var(--surface)', boxSizing: 'border-box',
                                 }}
                             />
                         </div>
@@ -165,7 +165,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
                                     width: '100%', padding: '0.55rem 0.5rem',
                                     borderRadius: '8px', border: '1.5px solid var(--info-border)',
                                     fontSize: '1rem', fontWeight: 600, textAlign: 'center',
-                                    background: 'white', boxSizing: 'border-box',
+                                    background: 'var(--surface)', boxSizing: 'border-box',
                                 }}
                             />
                         </div>
@@ -179,7 +179,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
                         style={{
                             flex: 1, padding: '0.85rem',
                             borderRadius: '10px', border: '1.5px solid var(--border)',
-                            background: 'white', color: 'var(--text-secondary)',
+                            background: 'var(--surface)', color: 'var(--text-secondary)',
                             fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer',
                         }}
                     >
@@ -191,7 +191,7 @@ export default function JoinShiftModal({ section, onConfirm, onClose }) {
                             flex: 2, padding: '0.85rem',
                             borderRadius: '10px', border: 'none',
                             background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
-                            color: 'white',
+                            color: 'var(--text-on-dark)',
                             fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer',
                             boxShadow: '0 2px 8px rgba(55,71,79,0.3)',
                         }}

@@ -32,7 +32,7 @@ export default function AddZalohaModal({ date, mode = 'add', initialConfig, sect
 
   return (
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%', padding: '1.5rem', borderRadius: '12px', background: 'white' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%', padding: '1.5rem', borderRadius: '12px', background: 'var(--surface)' }}>
         <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--info-text)', textAlign: 'center' }}>
           🛡️ {isEdit ? 'Upravit Zálohu / Stáž' : 'Záloha / Stáž'} ({date}.)
         </h3>
@@ -51,7 +51,7 @@ export default function AddZalohaModal({ date, mode = 'add', initialConfig, sect
                     padding: '0.7rem',
                     borderRadius: '8px',
                     border: kind === k.value ? '2px solid var(--info)' : '2px solid var(--border)',
-                    background: kind === k.value ? 'var(--info-bg)' : 'white',
+                    background: kind === k.value ? 'var(--info-bg)' : 'var(--surface)',
                     color: kind === k.value ? 'var(--info-dark)' : 'var(--text-steel)',
                     fontSize: '0.95rem',
                     fontWeight: 600,
@@ -109,8 +109,8 @@ export default function AddZalohaModal({ date, mode = 'add', initialConfig, sect
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.85rem', borderRadius: '10px', border: '2px solid var(--info-border-soft)', background: 'white', color: 'var(--info-text)', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Zrušit</button>
-            <button type="submit" style={{ flex: 1, padding: '0.85rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, var(--info), var(--info-text))', color: 'white', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)' }}>{isEdit ? 'Uložit' : 'Vytvořit'}</button>
+            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.85rem', borderRadius: '10px', border: '2px solid var(--info-border-soft)', background: 'var(--surface)', color: 'var(--info-text)', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Zrušit</button>
+            <button type="submit" style={{ flex: 1, padding: '0.85rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, var(--info), var(--info-text))', color: 'var(--text-on-dark)', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)' }}>{isEdit ? 'Uložit' : 'Vytvořit'}</button>
           </div>
         </form>
       </div>

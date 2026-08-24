@@ -62,7 +62,7 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: 'white',
+        background: 'var(--surface)',
         borderRadius: '16px',
         padding: '1.25rem',
         width: '100%',
@@ -195,7 +195,7 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                 padding: '0.85rem',
                 borderRadius: '10px',
                 border: '2px solid var(--accent-purple-border)',
-                background: 'white',
+                background: 'var(--surface)',
                 color: 'var(--accent-purple)',
                 fontSize: '1rem',
                 fontWeight: 600,
@@ -212,7 +212,7 @@ export default function AddAbsenceModal({ existingAbsences = [], onSubmit, onClo
                 borderRadius: '10px',
                 border: 'none',
                 background: 'linear-gradient(135deg, var(--accent-purple-bright), var(--accent-purple))',
-                color: 'white',
+                color: 'var(--text-on-dark)',
                 fontSize: '1rem',
                 fontWeight: 600,
                 cursor: 'pointer',

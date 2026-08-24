@@ -34,7 +34,7 @@ export default function ZalohaAssignModal({ shiftsData, zalohaAssignModal, onAss
                   onClick={() => onAssign(user)}
                   style={{
                     padding: '0.75rem',
-                    background: 'white',
+                    background: 'var(--surface)',
                     border: '1px solid var(--border)',
                     borderRadius: '8px',
                     textAlign: 'left',
@@ -45,7 +45,7 @@ export default function ZalohaAssignModal({ shiftsData, zalohaAssignModal, onAss
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--info)'; e.currentTarget.style.background = 'var(--info-bg-soft)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'white'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface)'; }}
                 >
                   <span style={{ fontWeight: 600, color: 'var(--text-charcoal)' }}>{user.name}</span>
                   <span style={{ fontSize: '1.2rem' }}>+</span>

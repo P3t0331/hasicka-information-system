@@ -191,7 +191,7 @@ export default function ShiftCalendarPage() {
           zIndex: 1001
         }}>
           <div style={{
-            background: 'white',
+            background: 'var(--surface)',
             borderRadius: '12px',
             padding: '1.5rem',
             maxWidth: '400px',
@@ -213,7 +213,7 @@ export default function ShiftCalendarPage() {
         background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
         borderRadius: '10px',
         padding: '0.75rem 1rem',
-        color: 'white',
+        color: 'var(--text-on-dark)',
         marginBottom: '1.5rem',
         display: 'flex',
         alignItems: 'center',
@@ -225,7 +225,7 @@ export default function ShiftCalendarPage() {
           onClick={() => handleMonthChange(-1)}
           style={{
             background: 'rgba(255,255,255,0.1)',
-            color: 'white',
+            color: 'var(--text-on-dark)',
             border: '1px solid rgba(255,255,255,0.2)',
             padding: '0.4rem 0.75rem',
             fontSize: '0.85rem'
@@ -233,7 +233,7 @@ export default function ShiftCalendarPage() {
         >
           ←
         </button>
-        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'white', fontSize: '1.1rem', letterSpacing: '1px', flex: 1, textAlign: 'center' }}>
+        <h2 style={{ margin: 0, textTransform: 'uppercase', color: 'var(--text-on-dark)', fontSize: '1.1rem', letterSpacing: '1px', flex: 1, textAlign: 'center' }}>
           {MONTHS_CZ[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
@@ -242,7 +242,7 @@ export default function ShiftCalendarPage() {
             onClick={() => handleMonthChange(1)}
             style={{
               background: 'rgba(255,255,255,0.1)',
-              color: 'white',
+              color: 'var(--text-on-dark)',
               border: '1px solid rgba(255,255,255,0.2)',
               padding: '0.4rem 0.75rem',
               fontSize: '0.85rem'
@@ -259,7 +259,7 @@ export default function ShiftCalendarPage() {
           onClick={handleExportShifts}
           title="Exportovat mé služby do kalendáře (.ics)"
           style={{
-            background: 'white', border: '1px solid var(--border)', borderRadius: '8px',
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px',
             padding: '0.4rem 0.85rem', cursor: 'pointer', fontSize: '0.82rem',
             color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem',
             transition: 'all 0.2s'
@@ -274,7 +274,7 @@ export default function ShiftCalendarPage() {
               padding: '0.4rem 0.85rem',
               borderRadius: '8px',
               border: retroMode ? '1px solid var(--warning-strong)' : '1px solid var(--border)',
-              background: retroMode ? 'var(--warning-bg-soft)' : 'white',
+              background: retroMode ? 'var(--warning-bg-soft)' : 'var(--surface)',
               color: retroMode ? 'var(--warning-dark)' : 'var(--text-steel)',
               fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer',
               transition: 'all 0.2s'
@@ -338,7 +338,7 @@ export default function ShiftCalendarPage() {
           onClick={() => setZalohaSectionOpen(!zalohaSectionOpen)}
           style={{
             background: 'linear-gradient(135deg, var(--info), var(--info-dark))',
-            color: 'white',
+            color: 'var(--text-on-dark)',
             padding: '0.75rem 1rem',
             borderRadius: zalohaSectionOpen ? '8px 8px 0 0' : '8px',
             display: 'flex',
@@ -348,12 +348,12 @@ export default function ShiftCalendarPage() {
             userSelect: 'none'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🛡️ ZÁLOHA / STÁŽ</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-on-dark)' }}>🛡️ ZÁLOHA / STÁŽ</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {pastZalohaCount > 0 && (
               <button
                 onClick={e => { e.stopPropagation(); setShowPastZaloha(v => !v); }}
-                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'var(--text-on-dark)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
               >
                 {showPastZaloha ? 'Skrýt proběhlé' : `${pastZalohaCount} proběhlé`}
               </button>
@@ -433,7 +433,7 @@ export default function ShiftCalendarPage() {
                               onClick={() => setZalohaModal({ date: day.date, mode: 'edit', config: config || {} })}
                               title="Upravit čas a počet pozic"
                               style={{
-                                background: 'white', border: '1px solid var(--info-border)', color: 'var(--info-text)',
+                                background: 'var(--surface)', border: '1px solid var(--info-border)', color: 'var(--info-text)',
                                 padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem',
                                 fontWeight: 600, cursor: 'pointer'
                               }}
@@ -506,7 +506,7 @@ export default function ShiftCalendarPage() {
           onClick={() => setDaySectionOpen(!daySectionOpen)}
           style={{
             background: 'linear-gradient(135deg, var(--warning-bright), var(--warning))',
-            color: 'white',
+            color: 'var(--text-on-dark)',
             padding: '0.75rem 1rem',
             borderRadius: daySectionOpen ? '8px 8px 0 0' : '8px',
             display: 'flex',
@@ -516,7 +516,7 @@ export default function ShiftCalendarPage() {
             userSelect: 'none'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>☀️ DENNÍ SLUŽBY</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-on-dark)' }}>☀️ DENNÍ SLUŽBY</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
               {enabledDayShifts.length} služeb
@@ -633,7 +633,7 @@ export default function ShiftCalendarPage() {
           onClick={() => setNightSectionOpen(!nightSectionOpen)}
           style={{
             background: 'linear-gradient(135deg, var(--table-header-dark), var(--shift-night))',
-            color: 'white',
+            color: 'var(--text-on-dark)',
             padding: '0.75rem 1rem',
             borderRadius: nightSectionOpen ? '8px 8px 0 0' : '8px',
             display: 'flex',
@@ -643,7 +643,7 @@ export default function ShiftCalendarPage() {
             userSelect: 'none'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>🌙 NOČNÍ SLUŽBY</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-on-dark)' }}>🌙 NOČNÍ SLUŽBY</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{days.length} dnů</span>
             <span style={{ fontSize: '0.8rem', transition: 'transform 0.2s' }}>
