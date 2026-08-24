@@ -173,7 +173,7 @@ export default function BulletinTab({ allUsers = [] }) {
                                     padding: '0.5rem 1rem',
                                     borderTop: '1px solid rgba(0,0,0,0.06)',
                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                    background: 'rgba(255,255,255,0.5)', flexWrap: 'wrap', gap: '0.5rem'
+                                    background: 'var(--surface-alt)', flexWrap: 'wrap', gap: '0.5rem'
                                 }}>
                                     <button
                                         onClick={() => setExpandedPost(isExpanded ? null : post.id)}
@@ -204,7 +204,7 @@ export default function BulletinTab({ allUsers = [] }) {
                                 </div>
 
                                 {isExpanded && (post.seenBy || []).length > 0 && (
-                                    <div style={{ padding: '0.5rem 1rem 0.75rem', background: 'rgba(255,255,255,0.7)', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                                    <div style={{ padding: '0.5rem 1rem 0.75rem', background: 'var(--surface-alt)', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '0.35rem', fontWeight: 600 }}>Kdo viděl:</div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                                             {(post.seenBy || []).map(uid => (
@@ -219,7 +219,7 @@ export default function BulletinTab({ allUsers = [] }) {
                                     </div>
                                 )}
                                 {isExpanded && (post.seenBy || []).length === 0 && (
-                                    <div style={{ padding: '0.5rem 1rem 0.75rem', background: 'rgba(255,255,255,0.7)', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: '0.78rem', color: 'var(--text-subtle)' }}>
+                                    <div style={{ padding: '0.5rem 1rem 0.75rem', background: 'var(--surface-alt)', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: '0.78rem', color: 'var(--text-subtle)' }}>
                                         Nikdo zatím neviděl.
                                     </div>
                                 )}

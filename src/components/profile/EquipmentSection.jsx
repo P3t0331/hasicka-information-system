@@ -64,7 +64,7 @@ export default function EquipmentSection({ equipmentTypes, allEquipment, setCurr
                     align-items: center;
                     gap: 1rem;
                     padding: 1.35rem 1.75rem;
-                    background: rgba(255,255,255,0.55);
+                    background: var(--surface-alt);
                     border-bottom: 1px solid rgba(0,0,0,0.07);
                 }
                 .eq-header-title {
