@@ -6,12 +6,10 @@ import StatCard from './StatCard';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChartBlock, ChartTooltip, PieLabel } from './ChartComponents';
 import { getZalohaKindLabel } from '../shifts/constants';
+import { getSplitHoursForUser as getSharedSplitHoursForUser } from '../../utils/shiftHours';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
-
-const DEFAULT_NIGHT_HOURS = 11;
-const DEFAULT_DAY_HOURS = 8;
 
 export default function ShiftsTab({
     shiftsData,
@@ -61,73 +59,7 @@ export default function ShiftsTab({
     const users = getAllUsers();
 
     // Get split hours for a user on a specific day
-    const getSplitHoursForUser = (day, uid) => {
-        try {
-            const dayData = shiftsData[day] || {};
-            const h = dayData.hours ? dayData.hours[uid] : null;
-            let explicitDay = undefined;
-            let explicitNight = undefined;
-
-            if (h) {
-                if (typeof h.day === 'number') explicitDay = h.day;
-                if (typeof h.night === 'number') explicitNight = h.night;
-            }
-
-            const nightShift = dayData.nightShift || {};
-            const hasNightShift = Object.values(nightShift).some(u => u && u.uid === uid);
-            const dayShift = dayData.dayShift || {};
-            const hasDayShift = Object.values(dayShift).some(u => u && u.uid === uid);
-            
-            const zalohaStaz = dayData.zalohaStaz || {};
-            const hasZaloha = Object.values(zalohaStaz).some(u => u && u.uid === uid);
-
-            const daySlot = hasDayShift ? Object.values(dayShift).find(u => u && u.uid === uid) : null;
-            const nightSlot = hasNightShift ? Object.values(nightShift).find(u => u && u.uid === uid) : null;
-
-            const calcCustomHours = (slot, defaultHours) => {
-                if (slot?.timeFrom && slot?.timeTo) {
-                    const [h1, m1] = slot.timeFrom.split(':').map(Number);
-                    const [h2, m2] = slot.timeTo.split(':').map(Number);
-                    let diff = (h2 + m2/60) - (h1 + m1/60);
-                    if (diff < 0) diff += 24;
-                    return Math.round(diff * 100) / 100;
-                }
-                return defaultHours;
-            };
-
-            const dayHours = explicitDay !== undefined ? explicitDay : (hasDayShift ? calcCustomHours(daySlot, DEFAULT_DAY_HOURS) : 0);
-            const nightHours = explicitNight !== undefined ? explicitNight : (hasNightShift ? calcCustomHours(nightSlot, DEFAULT_NIGHT_HOURS) : 0);
-            
-            let zalohaHours = 0;
-            if (hasZaloha) {
-                let zHours = 12;
-                if (zalohaStaz.config?.timeFrom && zalohaStaz.config?.timeTo) {
-                    const [h1, m1] = zalohaStaz.config.timeFrom.split(':').map(Number);
-                    const [h2, m2] = zalohaStaz.config.timeTo.split(':').map(Number);
-                    let diff = (h2 + m2/60) - (h1 + m1/60);
-                    if (diff < 0) diff += 24; // spans midnight
-                    zHours = diff;
-                }
-                zalohaHours = zHours;
-            }
-
-            const fromHomeHours = (daySlot?.fromHome ? dayHours : 0) + (nightSlot?.fromHome ? nightHours : 0);
-            const shiftTotal = dayHours + nightHours;
-
-            return {
-                day: dayHours,
-                night: nightHours,
-                zaloha: zalohaHours,
-                fromHome: fromHomeHours,
-                shiftTotal,
-                total: shiftTotal + zalohaHours,
-                isExplicit: !!h
-            };
-        } catch (err) {
-            console.error("Error calculating split hours:", err);
-            return { day: 0, night: 0, zaloha: 0, fromHome: 0, shiftTotal: 0, total: 0, isExplicit: false };
-        }
-    };
+    const getSplitHoursForUser = (day, uid) => getSharedSplitHoursForUser(shiftsData[day], uid);
 
     const getHoursForUser = (day, uid) => {
         return getSplitHoursForUser(day, uid).total;

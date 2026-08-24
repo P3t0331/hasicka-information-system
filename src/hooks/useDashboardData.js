@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { getZalohaKindLabel } from '../components/shifts/constants';
+import { getSplitHoursForUser } from '../utils/shiftHours';
 
 export default function useDashboardData() {
     const { currentUser, userData, sessionLastAppVisit, updateSessionVisitTime } = useAuth();
@@ -279,36 +280,12 @@ export default function useDashboardData() {
                         // Only count past/today
                         if (dayNum <= currentDay) {
                             const dayData = days[dayKey];
-                            const dayShift = dayData.dayShift || {};
-                            const nightShift = dayData.nightShift || {};
-                            const zalohaStaz = dayData.zalohaStaz || {};
+                            const split = getSplitHoursForUser(dayData, currentUser.uid);
 
-                            const inDay = Object.values(dayShift).some(u => u.uid === currentUser.uid);
-                            const inNight = Object.values(nightShift).some(u => u.uid === currentUser.uid);
-                            const inZaloha = Object.values(zalohaStaz).some(u => u && u.uid === currentUser.uid);
-
-                            if (inDay) {
-                                shiftsWorked++;
-                                const hours = dayData.hours?.[currentUser.uid]?.day || 8;
-                                hoursWorked += hours;
-                            }
-                            if (inNight) {
-                                shiftsWorked++;
-                                const hours = dayData.hours?.[currentUser.uid]?.night || 11;
-                                hoursWorked += hours;
-                            }
-                            if (inZaloha) {
-                                // Default to 12 hours if parse fails
-                                let zHours = 12;
-                                if (zalohaStaz.config?.timeFrom && zalohaStaz.config?.timeTo) {
-                                    const [h1, m1] = zalohaStaz.config.timeFrom.split(':').map(Number);
-                                    const [h2, m2] = zalohaStaz.config.timeTo.split(':').map(Number);
-                                    let diff = (h2 + m2/60) - (h1 + m1/60);
-                                    if (diff < 0) diff += 24; // spans midnight
-                                    zHours = diff;
-                                }
-                                zalohaHoursWorked += zHours;
-                            }
+                            if (split.hasDayShift) shiftsWorked++;
+                            if (split.hasNightShift) shiftsWorked++;
+                            hoursWorked += split.shiftTotal;
+                            zalohaHoursWorked += split.zaloha;
                         }
                     });
                 }
