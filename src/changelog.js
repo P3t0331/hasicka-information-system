@@ -5,9 +5,28 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.1.2';
+export const APP_VERSION = '1.2.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.2.0',
+    date: '24. 8. 2026',
+    sections: [
+      {
+        label: 'Nové funkce',
+        changes: [
+          'V profilu přibyla záložka Nastavení — světlé nebo tmavé téma (i podle systému), výchozí úvodní stránka po přihlášení, výběr a pořadí widgetů na dashboardu a zapínání jednotlivých typů push notifikací (kvízy, služby, školení, akce).',
+        ],
+      },
+      {
+        label: 'Opravy chyb',
+        changes: [
+          'Přesměrování na výchozí úvodní stránku se nyní uplatní jen jednou po přihlášení, ne při každé návštěvě dashboardu.',
+          'Ukládání nastavení nyní hlásí chybu, pokud se nepodaří — dřív se změna beze zprávy vrátila zpět.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.1.2',
     date: '21. 8. 2026',
