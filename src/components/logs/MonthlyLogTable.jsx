@@ -111,7 +111,7 @@ export default function MonthlyLogTable({
                 padding: '1.25rem 1.5rem',
                 color: 'var(--text-on-dark)',
                 marginBottom: '1.25rem',
-                boxShadow: `0 6px 20px ${accentColor.from}33`,
+                boxShadow: `0 6px 20px color-mix(in srgb, ${accentColor.from} 20%, transparent)`,
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: '0.75rem',
@@ -254,7 +254,7 @@ export default function MonthlyLogTable({
                                     minHeight: '40px',
                                     border: c.isToday ? `2px solid ${accentColor.from}` : '1px solid var(--border)',
                                     background: hasEntries
-                                        ? `linear-gradient(135deg, ${accentColor.from}22, ${accentColor.to}22)`
+                                        ? `linear-gradient(135deg, color-mix(in srgb, ${accentColor.from} 13%, transparent), color-mix(in srgb, ${accentColor.to} 13%, transparent))`
                                         : (c.isWeekend ? 'var(--danger-bg)' : 'var(--surface)'),
                                     borderRadius: '8px',
                                     cursor: clickable ? 'pointer' : 'default',
@@ -396,7 +396,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                 gap: '0.5rem',
                 padding: '0.75rem 1rem',
                 background: day.isToday
-                    ? `linear-gradient(90deg, ${accentColor.from}15, transparent)`
+                    ? `linear-gradient(90deg, color-mix(in srgb, ${accentColor.from} 8%, transparent), transparent)`
                     : (day.isWeekend ? 'var(--danger-bg-soft)' : 'var(--surface-sunken)'),
                 borderBottom: '1px solid var(--surface-hover)'
             }}>
@@ -444,7 +444,7 @@ function DaySection({ day, accentColor, canCreate, canModifyEntry, onAddForDay, 
                         onClick={() => onAddForDay(day.dateISO)}
                         style={{
                             background: 'transparent',
-                            border: `1px dashed ${accentColor.from}66`,
+                            border: `1px dashed color-mix(in srgb, ${accentColor.from} 40%, transparent)`,
                             color: accentColor.to,
                             cursor: 'pointer',
                             fontSize: '0.75rem',
