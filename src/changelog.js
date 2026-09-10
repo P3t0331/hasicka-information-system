@@ -5,9 +5,30 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.2.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.2.1',
+    date: '10. 9. 2026',
+    sections: [
+      {
+        label: 'Vylepšení',
+        changes: [
+          'Ve výběru ikon u důležitých odkazů přibylo devět nových ikon — 🚨 ⚠️ 🆘 ☢️ 🦠 🩺 🩸 🛟 🛠️ — a dá se z nich vybrat u odkazů i u skupin.',
+        ],
+      },
+      {
+        label: 'Opravy chyb',
+        changes: [
+          'Widget „Hodin (Běžné)“ na dashboardu nyní ukazuje stejný počet hodin jako stránka Statistiky za týž měsíc.',
+          'V Údržbě a Úklidu mají vyplněné dny v kalendáři zpět své barevné podbarvení.',
+          'Text v panelu „Kdo viděl“ na Nástěnce a záhlaví karet v historii kvízů a u výstroje jsou znovu čitelné v tmavém tématu.',
+          'Výchozí pořadí widgetů na dashboardu je zpět v původním uspořádání, jaké platilo před přidaným výběrem widgetů.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.2.0',
     date: '24. 8. 2026',
