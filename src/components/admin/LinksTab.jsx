@@ -22,6 +22,7 @@ const EMPTY_GROUP = { emoji: '', label: '', description: '' };
 const EMOJI_OPTIONS = [
     '📖','🎓','🌐','🚒','📁','🚗','🛌','📋','🔗','📌','⭐','🔥',
     '🧯','🏋️','📞','🗂️','🔧','🏥','🗺️','📸','📊','🧰','💡','🌍','✂️',
+    '🚨','⚠️','🆘','☢️','🦠','🩺','🩸','🛟','🛠️',
 ];
 
 function EmojiPicker({ value, onChange }) {
