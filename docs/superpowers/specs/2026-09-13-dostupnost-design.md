@@ -1,4 +1,4 @@
-# Dostupnost – posádka k dopravním nehodám — návrh funkcionality
+# Dostupnost k výjezdu — návrh funkcionality
 
 **Datum:** 13. 9. 2026
 **Stav:** návrh odsouhlasen, čeká na implementační plán
@@ -8,6 +8,8 @@
 ## 1. Účel
 
 Jednotka získává kvalifikaci VDN-40 (vyprošťování u dopravních nehod). K výjezdu na DN je potřeba mít v kterýkoliv den k dispozici posádku **2× Hasič, 1× Strojník, 1× Velitel (VD / Zástupce VJ / VJ)**. Dnes není kde zjistit, které dny posádka chybí a koho konkrétně shánět.
+
+Primárním podnětem jsou dopravní nehody, ale přehled slouží obecně pro jakýkoliv zásah — v UI se proto nezmiňuje DN, jen „výjezd".
 
 Členové si v aplikaci co nejjednodušeji označí, kdy jsou k dispozici (a za jak dlouho dorazí na stanici). Aplikace z toho spočítá, zda je pro daný den posádka kompletní, a ukáže to všem hned po otevření dashboardu. Statistiky pak ukazují, které pozice chybí nejčastěji.
 
@@ -38,7 +40,7 @@ Jednotka získává kvalifikaci VDN-40 (vyprošťování u dopravních nehod). K
 
 ---
 
-## 3. Dashboard — karta „Dostupnost – posádka k DN"
+## 3. Dashboard — karta „Dostupnost k výjezdu"
 
 ### 3.1 Umístění
 
@@ -46,7 +48,7 @@ Pevná karta hned pod hlavičkou s pozdravem, **nad** `WeatherWarnings` a banner
 
 ### 3.2 Hlavička
 
-- Nadpis: **Dostupnost – posádka k DN**
+- Nadpis: **Dostupnost k výjezdu**
 - Podtitul: `2× Hasič · 1× Strojník · 1× Velitel`
 
 ### 3.3 Pás dnů
