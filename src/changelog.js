@@ -5,9 +5,21 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.2.2';
+export const APP_VERSION = '1.2.3';
 
 export const CHANGELOG = [
+  {
+    version: '1.2.3',
+    date: '13. 9. 2026',
+    sections: [
+      {
+        label: 'Vylepšení',
+        changes: [
+          'Mezi kvalifikace (školení) členů přibylo VDN-40 — vyprošťování u dopravních nehod.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.2.2',
     date: '13. 9. 2026',

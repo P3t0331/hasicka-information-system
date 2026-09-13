@@ -5,6 +5,7 @@ export const CERTIFICATION_OPTIONS = [
   'ZZZ-16', // Zdravotník
   'OMP-64', // Obsluha motorových pil
   'Záchrana na vodě',
+  'VDN-40', // Vyprošťování u dopravních nehod
   'V-40',   // Velitelé družstev
   'S-40' // Strojníci
 ];
