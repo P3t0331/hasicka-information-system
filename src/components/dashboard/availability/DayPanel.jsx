@@ -9,18 +9,9 @@ export default function DayPanel({ coverage, readOnly = false, me = null, busy =
   const [askTravel, setAskTravel] = useState(false);
   const style = STATUS_STYLE[coverage.status];
 
-  const saveFullDay = (travelMin) => onSave([{ from: DAY_START, to: DAY_END, travelMin }]);
-
-  const handleQuickAdd = () => {
-    if (!me.rememberedTravel) {
-      setAskTravel(true);
-      return;
-    }
-    saveFullDay(me.rememberedTravel);
-  };
-
+  // Dojezd se vybírá pokaždé — záleží na tom, kde člověk v daný den bude.
   const handleTravelPicked = async (travelMin) => {
-    const ok = await saveFullDay(travelMin);
+    const ok = await onSave([{ from: DAY_START, to: DAY_END, travelMin }]);
     if (ok) setAskTravel(false);
   };
 
@@ -42,7 +33,6 @@ export default function DayPanel({ coverage, readOnly = false, me = null, busy =
       return (
         <SlotEditor
           initialSlots={me.doc?.slots}
-          defaultTravel={me.rememberedTravel}
           busy={busy}
           onSave={handleEditorSave}
           onCancel={() => setEditing(false)}
@@ -75,7 +65,7 @@ export default function DayPanel({ coverage, readOnly = false, me = null, busy =
           </div>
         ) : !me.onDayShift && (
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
-            <button type="button" className="btn btn-primary" disabled={busy} onClick={handleQuickAdd}
+            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setAskTravel(true)}
               style={{ padding: '0.7rem 1.1rem', fontSize: '1rem', fontWeight: 700 }}>
               Jsem k dispozici ({DAY_START}–{DAY_END})
             </button>

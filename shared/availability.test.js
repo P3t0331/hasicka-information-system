@@ -91,7 +91,11 @@ describe('validateSlots', () => {
     expect(validateSlots([{ ...ok, travelMin: 0 }])).toBe(msg);
     expect(validateSlots([{ ...ok, travelMin: 181 }])).toBe(msg);
     expect(validateSlots([{ ...ok, travelMin: 2.5 }])).toBe(msg);
-    expect(validateSlots([{ ...ok, travelMin: NaN }])).toBe(msg);
+  });
+
+  it('nevybraný dojezd', () => {
+    expect(validateSlots([{ ...ok, travelMin: NaN }])).toBe('Vyberte dojezd na stanici.');
+    expect(validateSlots([{ ...ok, travelMin: undefined }])).toBe('Vyberte dojezd na stanici.');
   });
 
   it('překryv s různým dojezdem je chyba', () => {

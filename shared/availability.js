@@ -69,6 +69,7 @@ export function validateSlots(slots) {
     if (!TIME_RE.test(s.from || '') || !TIME_RE.test(s.to || '')) return 'Vyplňte čas od a do.';
     if (s.from < DAY_START || s.to > DAY_END) return 'Čas musí být mezi 05:00 a 18:00.';
     if (s.from >= s.to) return 'Čas „do“ musí být po čase „od“.';
+    if (s.travelMin === undefined || Number.isNaN(s.travelMin)) return 'Vyberte dojezd na stanici.';
     if (!Number.isInteger(s.travelMin) || s.travelMin < MIN_TRAVEL || s.travelMin > MAX_TRAVEL) {
       return 'Dojezd musí být 1–180 minut.';
     }

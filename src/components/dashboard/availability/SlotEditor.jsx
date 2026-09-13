@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { DAY_START, DAY_END, MAX_SLOTS, MIN_TRAVEL, MAX_TRAVEL, TRAVEL_PRESETS, validateSlots } from '../../../../shared/availability.js';
 
-const toRow = (slot) => ({ ...slot, custom: !TRAVEL_PRESETS.includes(slot.travelMin) });
+// Nový úsek nemá předvyplněný dojezd — člověk ho musí vybrat sám.
+const toRow = (slot) => ({
+  ...slot,
+  custom: !Number.isNaN(slot.travelMin) && !TRAVEL_PRESETS.includes(slot.travelMin),
+});
 
-export default function SlotEditor({ initialSlots, defaultTravel, busy, onSave, onCancel, onRemove }) {
-  const fallbackTravel = defaultTravel || 5;
+export default function SlotEditor({ initialSlots, busy, onSave, onCancel, onRemove }) {
   const [rows, setRows] = useState(() =>
-    (initialSlots?.length ? initialSlots : [{ from: DAY_START, to: DAY_END, travelMin: fallbackTravel }]).map(toRow),
+    (initialSlots?.length ? initialSlots : [{ from: DAY_START, to: DAY_END, travelMin: NaN }]).map(toRow),
   );
 
   const slots = rows.map(({ from, to, travelMin }) => ({ from, to, travelMin }));
@@ -23,7 +26,7 @@ export default function SlotEditor({ initialSlots, defaultTravel, busy, onSave, 
     setRows(prev => prev.filter((_, i) => i !== index));
   };
 
-  const addRow = () => setRows(prev => [...prev, toRow({ from: '13:00', to: DAY_END, travelMin: fallbackTravel })]);
+  const addRow = () => setRows(prev => [...prev, toRow({ from: '13:00', to: DAY_END, travelMin: NaN })]);
 
   return (
     <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'var(--surface-alt)', marginBottom: '0.75rem' }}>
@@ -34,11 +37,13 @@ export default function SlotEditor({ initialSlots, defaultTravel, busy, onSave, 
           <span style={{ color: 'var(--text-secondary)' }}>–</span>
           <input className="input-field" type="time" min={DAY_START} max={DAY_END} step="60" aria-label="Do"
             value={row.to} onChange={e => update(i, { to: e.target.value })} style={{ width: '6.5rem' }} />
-          <select className="input-field" aria-label="Dojezd" value={row.custom ? 'custom' : String(row.travelMin)}
+          <select className="input-field" aria-label="Dojezd"
+            value={row.custom ? 'custom' : Number.isNaN(row.travelMin) ? '' : String(row.travelMin)}
             onChange={e => (e.target.value === 'custom'
-              ? update(i, { custom: true })
+              ? update(i, { custom: true, travelMin: NaN })
               : update(i, { custom: false, travelMin: Number(e.target.value) }))}
             style={{ width: '7rem' }}>
+            <option value="" disabled>Dojezd…</option>
             {TRAVEL_PRESETS.map(min => <option key={min} value={String(min)}>🕒 {min} min</option>)}
             <option value="custom">Jiný…</option>
           </select>

@@ -23,7 +23,7 @@ export default function AvailabilityHelp({ onClose }) {
       </p>
       <ul style={{ margin: '0 0 0.5rem', paddingLeft: '1.1rem' }}>
         <li>Klepni na den a dej <strong>Jsem k dispozici</strong> — označíš se na {DAY_START}–{DAY_END}. Přes <strong>Jiný čas</strong> nastavíš vlastní časy (až {MAX_SLOTS} úseky za den).</li>
-        <li><strong>Dojezd</strong> = za jak dlouho jsi na stanici. Aplikace si pamatuje poslední hodnotu.</li>
+        <li><strong>Dojezd</strong> = za jak dlouho jsi na stanici. Vybíráš ho pokaždé, protože záleží na tom, kde ten den budeš.</li>
         <li>🟢 kompletní posádka celý den · 🟡 jen část dne · 🔴 někdo chybí. Číslo <strong>3/4</strong> říká, kolik pozic je obsazeno.</li>
         <li>Každý obsadí jen jednu pozici; velitel nebo strojník může zaskočit i za hasiče.</li>
         <li>Kdo je na denní službě, počítá se automaticky. Absence dostupnost ruší.</li>

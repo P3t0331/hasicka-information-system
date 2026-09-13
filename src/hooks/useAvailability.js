@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  collection, doc, onSnapshot, query, where, setDoc, deleteDoc, updateDoc, writeBatch, serverTimestamp,
+  collection, doc, onSnapshot, query, where, setDoc, deleteDoc, writeBatch, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -86,16 +86,6 @@ export function useAvailabilityActions() {
 
   const uid = currentUser?.uid;
   const userName = `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim();
-  const rememberedTravel = userData?.preferences?.availabilityTravelMin ?? null;
-
-  const rememberTravel = useCallback(async (travelMin) => {
-    if (rememberedTravel === travelMin) return;
-    try {
-      await updateDoc(doc(db, 'users', uid), { 'preferences.availabilityTravelMin': travelMin });
-    } catch (err) {
-      console.warn('Failed to remember travel time:', err);
-    }
-  }, [uid, rememberedTravel]);
 
   const saveDay = useCallback(async (date, slots, previousSlots) => {
     const normalized = normalizeSlots(slots);
@@ -124,9 +114,8 @@ export function useAvailabilityActions() {
       logAction(db, uid, userName, 'AVAILABILITY_ADDED', 'availability',
         buildLogDetail('added', { date, slots: normalized }));
     }
-    rememberTravel(normalized[normalized.length - 1].travelMin);
     return true;
-  }, [uid, userName, addToast, rememberTravel]);
+  }, [uid, userName, addToast]);
 
   const removeDay = useCallback(async (date, previousSlots) => {
     setBusy(true);
@@ -172,5 +161,5 @@ export function useAvailabilityActions() {
       buildLogDetail('copied', { dates: plan.map(p => p.date) }));
   }, [uid, userName, addToast]);
 
-  return { busy, saveDay, removeDay, copyWeek, rememberedTravel };
+  return { busy, saveDay, removeDay, copyWeek };
 }

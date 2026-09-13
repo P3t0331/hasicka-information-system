@@ -91,11 +91,11 @@ Minulé dny se nedají vybrat k úpravě (pás začíná dneškem).
   - úseky, které se překrývají a mají **různý** dojezd → „Časy se překrývají".
 - Před uložením se úseky seřadí a úseky, které se překrývají nebo dotýkají a mají **stejný** dojezd, se sloučí (5–10 + 9–12, obojí 5 min → 5–12). Dotýkající se úseky s různým dojezdem (5–10 za 15 min, 10–18 za 2 min) zůstanou oddělené.
 
-### 3.6 Zapamatovaný dojezd
+### 3.6 Výběr dojezdu
 
-- Uložen v `users/{uid}.preferences.availabilityTravelMin`.
-- Při každém uložení dostupnosti se nastaví na dojezd posledního ukládaného úseku, pokud se liší.
-- **První použití** (hodnota neexistuje): klepnutí na „Jsem k dispozici" otevře malý dotaz „Za jak dlouho jsi na stanici?" s volbami 1/2/5/10/15/20/30 min + Jiný. Po výběru se záznam uloží a hodnota zapamatuje.
+- Dojezd se **nezapamatovává a nepředvyplňuje** (změna po vydání 2.0.0 na přání uživatele) — záleží na tom, kde člověk v daný den bude.
+- Klepnutí na „Jsem k dispozici" pokaždé otevře dotaz „Za jak dlouho jsi na stanici?" s volbami 1/2/5/10/15/20/30 min + Jiný. Po výběru se záznam uloží.
+- V editoru času má nový úsek dojezd nevybraný („Dojezd…"); dokud ho člověk nevybere, je Uložit neaktivní s nápovědou „Vyberte dojezd na stanici.".
 
 ### 3.7 „Opakovat na další týden"
 

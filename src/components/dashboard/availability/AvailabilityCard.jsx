@@ -11,7 +11,7 @@ export default function AvailabilityCard() {
   const todayISO = toISODate(new Date());
   const endISO = addDays(todayISO, WINDOW_DAYS - 1);
   const { loading, availabilityDocs, absences, members, dayShiftsByDate } = useAvailabilityData(todayISO, endISO);
-  const { busy, saveDay, removeDay, copyWeek, rememberedTravel } = useAvailabilityActions();
+  const { busy, saveDay, removeDay, copyWeek } = useAvailabilityActions();
   const [selectedDate, setSelectedDate] = useState(todayISO);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -35,7 +35,6 @@ export default function AvailabilityCard() {
     doc: myDoc,
     absent: myAbsentDates.has(activeDate),
     onDayShift: Object.values(dayShiftsByDate[activeDate] || {}).some(s => s?.uid === uid),
-    rememberedTravel,
   };
 
   return (
