@@ -16,6 +16,7 @@ export const CATEGORY_CONFIG = {
   activities:  { label: 'Aktivity',    color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border-strong)', icon: '🎓' },
   maintenance: { label: 'Údržba',      color: 'var(--warning-dark)', bg: 'var(--warning-border-warm)', border: 'var(--accent-amber-grad-1)', icon: '🔧' },
   cleaning:    { label: 'Úklid',       color: 'var(--teal)', bg: 'var(--teal-bg)', border: 'var(--teal-border)', icon: '🧹' },
+  availability: { label: 'Dostupnost', color: 'var(--indigo-deep)', bg: 'var(--indigo-bg)', border: 'var(--indigo)', icon: '🚑' },
   profile:     { label: 'Profil',      color: 'var(--accent-purple)', bg: 'var(--accent-purple-bg)', border: 'var(--accent-purple-border-soft)', icon: '👤' },
   admin:       { label: 'Administrace', color: 'var(--danger-dark)', bg: 'var(--danger-bg)', border: 'var(--danger-border-strong)', icon: '🛡️' },
 };
@@ -75,6 +76,10 @@ export const ACTION_LABELS = {
   CLEANING_ADDED:            'Přidán záznam úklidu',
   CLEANING_UPDATED:          'Upraven záznam úklidu',
   CLEANING_DELETED:          'Smazán záznam úklidu',
+  AVAILABILITY_ADDED:        'Přidána dostupnost',
+  AVAILABILITY_UPDATED:      'Upravena dostupnost',
+  AVAILABILITY_REMOVED:      'Zrušena dostupnost',
+  AVAILABILITY_COPIED_WEEK:  'Dostupnost zkopírována na další týden',
   BULLETIN_CREATED:          'Přidán příspěvek na nástěnku',
   BULLETIN_UPDATED:          'Upraven příspěvek na nástěnce',
   BULLETIN_DELETED:          'Smazán příspěvek z nástěnky',

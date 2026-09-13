@@ -8,6 +8,7 @@ import AbsencesTab from '../components/statistics/AbsencesTab';
 import ShiftsTab from '../components/statistics/ShiftsTab';
 import LogStatsTab from '../components/statistics/LogStatsTab';
 import YearTab from '../components/statistics/YearTab';
+import AvailabilityTab from '../components/statistics/AvailabilityTab';
 
 const DAYS_CZ = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
 const MONTHS_CZ = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -23,7 +24,7 @@ export default function StatisticsPage() {
   const [loading, setLoading] = useState(true);
 
   // New state for tabs and additional data
-  const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences' | 'maintenance' | 'cleaning' | 'year'
+  const [activeTab, setActiveTab] = useState('shifts'); // 'shifts' | 'activities' | 'absences' | 'availability' | 'maintenance' | 'cleaning' | 'year'
   const [activeYear, setActiveYear] = useState(new Date().getFullYear());
   const [eventsData, setEventsData] = useState([]);
   const [trainingsData, setTrainingsData] = useState([]);
@@ -249,6 +250,23 @@ export default function StatisticsPage() {
           🚫 Nepřítomnost
         </button>
         <button
+          onClick={() => setActiveTab('availability')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            background: activeTab === 'availability' ? 'var(--indigo-dark)' : 'transparent',
+            color: activeTab === 'availability' ? 'var(--text-on-dark)' : 'var(--text-dim)',
+            fontWeight: activeTab === 'availability' ? 700 : 500,
+            borderRadius: '8px 8px 0 0',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s'
+          }}
+        >
+          🚑 Dostupnost
+        </button>
+        <button
           onClick={() => setActiveTab('maintenance')}
           style={{
             padding: '0.75rem 1.5rem',
@@ -325,6 +343,11 @@ export default function StatisticsPage() {
           absencesData={absencesData}
           currentDate={currentDate}
         />
+      )}
+
+      {/* Availability Tab */}
+      {activeTab === 'availability' && (
+        <AvailabilityTab currentDate={currentDate} />
       )}
 
       {/* Maintenance Tab */}
