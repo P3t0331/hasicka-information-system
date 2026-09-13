@@ -13,12 +13,13 @@ export default function AvailabilityHelp({ onClose }) {
     >
       <div style={{ fontWeight: 700, marginBottom: '0.35rem' }}>K čemu to je?</div>
       <p style={{ margin: '0 0 0.5rem' }}>
-        Přehled ukazuje, ve které dny máme dost lidí na výjezd (2× Hasič, 1× Strojník, 1× Velitel)
-        a koho shánět, když někdo chybí.
+        Slouží k plánování dopředu — abychom ještě před jakýmkoliv výjezdem věděli, ve které dny máme
+        dost lidí (2× Hasič, 1× Strojník, 1× Velitel) a koho shánět, když někdo chybí. Nejde o to
+        dívat se sem až při poplachu.
       </p>
       <p style={{ margin: '0 0 0.5rem', fontWeight: 600 }}>
-        Víš, že budeš v daný den doma nebo poblíž a mohl bys vyjet? Klikni na sebe — ostatní hned uvidí,
-        kdo je k dispozici, a nemusí nikoho obvolávat. Čím víc lidí se zapíše, tím je přehled přesnější.
+        Víš, že budeš v některý den doma nebo poblíž a mohl bys vyjet? Klikni na ten den a označ se
+        jako k dispozici. Čím víc lidí se zapíše, tím je přehled přesnější.
       </p>
       <ul style={{ margin: '0 0 0.5rem', paddingLeft: '1.1rem' }}>
         <li>Klepni na den a dej <strong>Jsem k dispozici</strong> — označíš se na {DAY_START}–{DAY_END}. Přes <strong>Jiný čas</strong> nastavíš vlastní časy (až {MAX_SLOTS} úseky za den).</li>
