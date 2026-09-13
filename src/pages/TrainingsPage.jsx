@@ -158,7 +158,13 @@ export default function TrainingsPage() {
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
                                         <button
-                                            onClick={() => { setActiveTemplate(t); setShowCreateModal(true); }}
+                                            onClick={() => {
+                                                // Drop the template's doc id so the modal opens in create mode, not edit mode.
+                                                // eslint-disable-next-line no-unused-vars
+                                                const { id, createdBy, createdAt, ...fields } = t;
+                                                setActiveTemplate(fields);
+                                                setShowCreateModal(true);
+                                            }}
                                             style={{
                                                 padding: '0.35rem 0.75rem', borderRadius: '6px',
                                                 border: '1px solid var(--info-border)', background: 'var(--info-bg)',
