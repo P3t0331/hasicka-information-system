@@ -12,14 +12,14 @@ Běží jako PWA — dá se nainstalovat do telefonu a funguje i offline pro čt
 
 | Modul | Popis |
 |-------|-------|
-| **Dashboard** | Nadcházející akce, příští služba, nástěnka, počasí a výstrahy pro Brno, upozornění na nesplněné kvízy |
+| **Dashboard** | Dostupnost k výjezdu na 14 dní, nadcházející akce, příští služba, nástěnka, počasí a výstrahy pro Brno, upozornění na nesplněné kvízy |
 | **Služby** | Plánování nočních a denních směn i záloh a stáží, docházková evidence, absence |
 | **Školení** | Evidence školení s přihlašováním členů, šablony pro opakované akce, sekce s přiřazenými kvízy |
 | **Kvízy** | Povinné testy ke školením — viz [samostatná sekce](#kvízy) |
 | **Akce** | Plánování výjezdů, srazů a dalších aktivit jednotky |
 | **Údržba** | Deník údržby techniky a vybavení |
 | **Úklid** | Evidence úklidů stanice |
-| **Statistiky** | Odpracované hodiny, docházka a aktivita členů v grafech |
+| **Statistiky** | Odpracované hodiny, docházka, aktivita členů a pokrytí posádky k výjezdu v grafech |
 | **Členové** | Seznam členů s kontakty a kvalifikacemi |
 | **Profil** | Osobní údaje, evidence výbavy, absence, historie absolvovaných kvízů |
 | **Návrhy** | Náměty od členů a jejich vyřizování |
@@ -161,7 +161,7 @@ Role `Admin`, `VJ` a `Zástupce VJ` získávají přístup do administrace autom
 
 ## Datové kolekce
 
-`users` · `shifts` · `absences` · `trainings` · `trainingTemplates` · `events` · `eventTemplates` · `quizzes` · `quizAnswerKeys` · `quizAttempts` · `maintenanceLogs` · `cleaningLogs` · `bulletinPosts` · `suggestions` · `settings` · `activityLogs` · `pushSubscriptions`
+`users` · `shifts` · `absences` · `availability` · `trainings` · `trainingTemplates` · `events` · `eventTemplates` · `quizzes` · `quizAnswerKeys` · `quizAttempts` · `maintenanceLogs` · `cleaningLogs` · `bulletinPosts` · `suggestions` · `settings` · `activityLogs` · `pushSubscriptions`
 
 ---
 
