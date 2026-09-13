@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getLandingPage, getDashboardWidgetOrder, DEFAULT_DASHBOARD_WIDGET_ORDER } from '../../shared/preferences.js';
 import useDashboardData from '../hooks/useDashboardData';
 import WeatherWarnings from '../components/dashboard/WeatherWarnings';
+import AvailabilityCard from '../components/dashboard/availability/AvailabilityCard';
 import NewActivitiesBanner from '../components/dashboard/NewActivitiesBanner';
 import ZalohaNotificationBanner from '../components/dashboard/ZalohaNotificationBanner';
 import ImportantLinks from '../components/dashboard/ImportantLinks';
@@ -89,6 +90,9 @@ export default function DashboardPage() {
                     <span style={{ color: 'var(--danger)' }}>{userData?.firstName || 'Hasiči'}</span>!
                 </h1>
             </header>
+
+            {/* Dostupnost k výjezdu — pevně nahoře, mimo přeuspořádatelné widgety */}
+            <AvailabilityCard />
 
             {/* Weather Warnings */}
             <WeatherWarnings />
