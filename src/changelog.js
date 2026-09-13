@@ -5,9 +5,23 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '1.2.3';
+export const APP_VERSION = '2.0.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.0.0',
+    date: '13. 9. 2026',
+    sections: [
+      {
+        label: 'Nové funkce',
+        changes: [
+          'Na dashboardu je nová karta „Dostupnost k výjezdu“ — jedním klepnutím na den se označíte jako k dispozici (05:00–18:00), případně nastavíte vlastní časy (až 3 úseky) a dojezd na stanici. Na 14 dní dopředu je vidět, kdy máme kompletní posádku (2× Hasič, 1× Strojník, 1× Velitel) a kdo chybí.',
+          'Tlačítko „Opakovat na další týden“ zkopíruje vaše dny na příští týden; členové na denní službě se počítají automaticky a absence dostupnost ruší.',
+          'Ve Statistikách přibyla záložka Dostupnost s přehledem pokrytí za měsíc, nejčastěji chybějícími pozicemi a hodinami dostupnosti členů.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.2.3',
     date: '13. 9. 2026',
