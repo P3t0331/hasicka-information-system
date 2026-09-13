@@ -16,12 +16,21 @@ service cloud.firestore {
         && userDoc().roles.hasAny(['Admin', 'VJ', 'Zástupce VJ', 'Zastupce VJ']);
     }
 
-    // Všechny stávající kolekce beze změny chování, kromě tří vyjmutých.
+    function validSlot(s) {
+      return s.from is string && s.to is string
+        && s.from.matches('^[0-2][0-9]:[0-5][0-9]$')
+        && s.to.matches('^[0-2][0-9]:[0-5][0-9]$')
+        && s.from >= '05:00' && s.from < s.to && s.to <= '18:00'
+        && s.travelMin is int && s.travelMin >= 1 && s.travelMin <= 180;
+    }
+
+    // Všechny stávající kolekce beze změny chování, kromě vyjmutých.
     match /{collection}/{document=**} {
       allow read, write: if isSignedIn()
         && collection != 'quizzes'
         && collection != 'quizAnswerKeys'
-        && collection != 'quizAttempts';
+        && collection != 'quizAttempts'
+        && collection != 'availability';
     }
 
     // Kvíz čte každý přihlášený, zakládat a měnit ho smí jen správce.
@@ -46,6 +55,21 @@ service cloud.firestore {
             && resource.data.status == 'in_progress'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'lastSavedAt']));
       allow delete: if isElevated();
+    }
+
+    // Dostupnost k výjezdu — číst smí každý přihlášený, zapisovat jen vlastní záznam.
+    match /availability/{docId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && docId == request.resource.data.date + '_' + request.auth.uid
+        && request.resource.data.slots is list
+        && request.resource.data.slots.size() >= 1
+        && request.resource.data.slots.size() <= 3
+        && validSlot(request.resource.data.slots[0])
+        && (request.resource.data.slots.size() < 2 || validSlot(request.resource.data.slots[1]))
+        && (request.resource.data.slots.size() < 3 || validSlot(request.resource.data.slots[2]));
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
     match /pushSubscriptions/{userId} {
