@@ -4,6 +4,7 @@ import { useAvailabilityData, useAvailabilityActions } from '../../../hooks/useA
 import { toISODate, addDays, WINDOW_DAYS, computeDayCoverage, isAbsentOn } from '../../../../shared/availability.js';
 import DayStrip from './DayStrip';
 import DayPanel from './DayPanel';
+import AvailabilityHelp from './AvailabilityHelp';
 
 export default function AvailabilityCard() {
   const { currentUser } = useAuth();
@@ -12,6 +13,7 @@ export default function AvailabilityCard() {
   const { loading, availabilityDocs, absences, members, dayShiftsByDate } = useAvailabilityData(todayISO, endISO);
   const { busy, saveDay, removeDay, copyWeek, rememberedTravel } = useAvailabilityActions();
   const [selectedDate, setSelectedDate] = useState(todayISO);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Po půlnoci může vybraný den zůstat v minulosti — minulé dny nelze upravovat.
   const activeDate = selectedDate < todayISO || selectedDate > endISO ? todayISO : selectedDate;
@@ -38,10 +40,29 @@ export default function AvailabilityCard() {
 
   return (
     <section className="dashboard-card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-      <div style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '1.1rem', margin: 0 }}>🚑 Dostupnost k výjezdu</h2>
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>2× Hasič · 1× Strojník · 1× Velitel</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <div>
+          <h2 style={{ fontSize: '1.1rem', margin: 0 }}>🚑 Dostupnost k výjezdu</h2>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>2× Hasič · 1× Strojník · 1× Velitel</div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowHelp(v => !v)}
+          aria-expanded={showHelp}
+          aria-controls="availability-help"
+          aria-label="Nápověda k dostupnosti"
+          title="K čemu to je?"
+          style={{
+            flex: '0 0 auto', width: '1.9rem', height: '1.9rem', borderRadius: '50%',
+            border: '1px solid var(--border)', background: showHelp ? 'var(--indigo-bg)' : 'var(--surface-alt)',
+            color: 'var(--text-secondary)', fontWeight: 800, cursor: 'pointer', lineHeight: 1,
+          }}
+        >
+          ?
+        </button>
       </div>
+
+      {showHelp && <AvailabilityHelp onClose={() => setShowHelp(false)} />}
 
       <DayStrip
         days={days}
