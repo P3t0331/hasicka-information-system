@@ -16,6 +16,9 @@ import {
   getPrimaryRole,
   isAbsentOn,
   CREW_SIZE,
+  summarizeMonth,
+  planWeekCopy,
+  buildLogDetail,
 } from './availability.js';
 
 describe('časy a data', () => {
@@ -331,5 +334,116 @@ describe('describePersonTimes', () => {
     expect(describePersonTimes({
       slots: [{ from: '05:00', to: '10:00', travelMin: 15 }, { from: '13:00', to: '18:00', travelMin: 2 }],
     })).toBe('05:00–10:00 (15 min), 13:00–18:00 (2 min)');
+  });
+});
+
+describe('summarizeMonth', () => {
+  const docs = [
+    // 1. 9. — všichni celý den → kompletní
+    ...crew.map(m => avail(m.uid, fullDay(), '2026-09-01')),
+    // 2. 9. — chybí h2 → chybí Hasič
+    ...crew.slice(0, 3).map(m => avail(m.uid, fullDay(), '2026-09-02')),
+    // 3. 9. — h2 jen ráno za 10 min → částečně
+    ...crew.slice(0, 3).map(m => avail(m.uid, fullDay(), '2026-09-03')),
+    avail('h2', [{ from: '05:00', to: '10:00', travelMin: 10 }], '2026-09-03'),
+    // 4. 9. — budoucnost, nesmí se započítat
+    ...crew.map(m => avail(m.uid, fullDay(), '2026-09-04')),
+  ];
+
+  const summary = summarizeMonth({
+    year: 2026,
+    month: 9,
+    todayISO: '2026-09-03',
+    members: crew,
+    availabilityDocs: docs,
+    absences: [],
+    dayShiftsByDate: {},
+  });
+
+  it('počty stavů jen do dneška', () => {
+    expect(summary.counts).toEqual({ complete: 1, partial: 1, missing: 1 });
+    expect(summary.perDay.map(d => d.date)).toEqual(['2026-09-01', '2026-09-02', '2026-09-03']);
+  });
+
+  it('chybějící pozice po dnech', () => {
+    expect(summary.missingByPosition).toEqual({ Velitel: 0, Strojník: 0, Hasič: 1 });
+  });
+
+  it('hodiny a vážený průměr dojezdu', () => {
+    const v = summary.memberHours.find(m => m.uid === 'v');
+    const h2 = summary.memberHours.find(m => m.uid === 'h2');
+    expect(v.hours).toBe(39);
+    expect(v.avgTravelMin).toBe(5);
+    expect(h2.hours).toBe(18);
+    // (13 h × 5 min + 5 h × 10 min) / 18 h = 6,39 → 6
+    expect(h2.avgTravelMin).toBe(6);
+    expect(summary.memberHours[3].uid).toBe('h2');
+  });
+
+  it('denní služba se do průměru dojezdu nepočítá', () => {
+    const s = summarizeMonth({
+      year: 2026,
+      month: 9,
+      todayISO: '2026-09-01',
+      members: crew,
+      availabilityDocs: [],
+      absences: [],
+      dayShiftsByDate: { '2026-09-01': { hasic1: { uid: 'h1', name: 'h1 Test' } } },
+    });
+    expect(s.memberHours).toEqual([{ uid: 'h1', name: 'h1 Test', hours: 13, avgTravelMin: null }]);
+  });
+
+  it('měsíc v budoucnosti je prázdný', () => {
+    const s = summarizeMonth({
+      year: 2026, month: 10, todayISO: '2026-09-03',
+      members: crew, availabilityDocs: docs, absences: [], dayShiftsByDate: {},
+    });
+    expect(s.perDay).toEqual([]);
+    expect(s.counts).toEqual({ complete: 0, partial: 0, missing: 0 });
+  });
+});
+
+describe('planWeekCopy', () => {
+  it('kopíruje moje dny 1–7 na 8–14 bez přepisu a mimo absence', () => {
+    const docs = [
+      avail('me', fullDay(), '2026-09-14'),
+      avail('me', [{ from: '13:00', to: '18:00', travelMin: 2 }, { from: '05:00', to: '10:00', travelMin: 15 }], '2026-09-16'),
+      avail('me', fullDay(), '2026-09-17'),
+      avail('me', fullDay(3), '2026-09-24'), // cíl pro 17. už existuje
+      avail('other', fullDay(), '2026-09-15'), // cizí záznam
+    ];
+    const absences = [{ uid: 'me', startDate: '2026-09-23', endDate: '2026-09-23' }]; // cíl pro 16.
+    const plan = planWeekCopy({ uid: 'me', todayISO: '2026-09-14', availabilityDocs: docs, absences });
+    expect(plan).toEqual([{ date: '2026-09-21', slots: fullDay() }]);
+  });
+
+  it('nic ke kopírování', () => {
+    expect(planWeekCopy({ uid: 'me', todayISO: '2026-09-14', availabilityDocs: [], absences: [] })).toEqual([]);
+  });
+});
+
+describe('buildLogDetail', () => {
+  const two = [{ from: '05:00', to: '10:00', travelMin: 15 }, { from: '13:00', to: '18:00', travelMin: 2 }];
+
+  it('přidání', () => {
+    expect(buildLogDetail('added', { date: '2026-09-15', slots: fullDay() }))
+      .toBe('Označil se jako dostupný na 15. 9. 2026 (05:00–18:00, dojezd 5 min)');
+  });
+
+  it('úprava', () => {
+    expect(buildLogDetail('updated', { date: '2026-09-15', slots: two, previousSlots: fullDay() }))
+      .toBe('Změnil dostupnost na 15. 9. 2026: 05:00–10:00 (dojezd 15 min), 13:00–18:00 (dojezd 2 min) (dříve 05:00–18:00, dojezd 5 min)');
+  });
+
+  it('zrušení', () => {
+    expect(buildLogDetail('removed', { date: '2026-09-15', previousSlots: two }))
+      .toBe('Zrušil dostupnost na 15. 9. 2026 (bylo 05:00–10:00, 13:00–18:00)');
+  });
+
+  it('kopírování týdne', () => {
+    expect(buildLogDetail('copied', { dates: ['2026-09-27', '2026-09-22', '2026-09-23'] }))
+      .toBe('Zkopíroval dostupnost na další týden: 22. 9., 23. 9., 27. 9. 2026 (3 dny)');
+    expect(buildLogDetail('copied', { dates: ['2026-09-22'] }))
+      .toBe('Zkopíroval dostupnost na další týden: 22. 9. 2026 (1 den)');
   });
 });

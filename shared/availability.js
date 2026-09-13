@@ -4,6 +4,8 @@
 // dashboard (karta Dostupnost k výjezdu) i Statistiky, takže se oba pohledy
 // nemohou rozejít. Bez Firebase, testováno v availability.test.js.
 
+import { pluralize } from '../src/utils/pluralize.js';
+
 export const DAY_START = '05:00';
 export const DAY_END = '18:00';
 export const MAX_SLOTS = 3;
@@ -313,4 +315,99 @@ export function describePersonTimes(person) {
     return `${s.from}–${s.to} · 🕒 ${s.travelMin} min`;
   }
   return slots.map(s => `${s.from}–${s.to} (${s.travelMin} min)`).join(', ');
+}
+
+// ---------- statistiky ----------
+
+export function summarizeMonth({ year, month, todayISO, members, availabilityDocs, absences, dayShiftsByDate }) {
+  const counts = { complete: 0, partial: 0, missing: 0 };
+  const missingByPosition = { Velitel: 0, Strojník: 0, Hasič: 0 };
+  const totals = new Map();
+  const perDay = [];
+  const lastDay = new Date(year, month, 0).getDate();
+
+  for (let d = 1; d <= lastDay; d++) {
+    const date = `${year}-${pad(month)}-${pad(d)}`;
+    if (date > todayISO) break;
+
+    const coverage = computeDayCoverage({
+      date,
+      members,
+      availabilityDocs,
+      absences,
+      dayShift: dayShiftsByDate?.[date],
+    });
+    counts[coverage.status]++;
+    new Set(coverage.missing).forEach(key => { missingByPosition[key]++; });
+
+    for (const p of coverage.people) {
+      if (!totals.has(p.uid)) totals.set(p.uid, { uid: p.uid, name: p.name, minutes: 0, travelWeighted: 0, travelMinutes: 0 });
+      const t = totals.get(p.uid);
+      t.minutes += p.availableMinutes;
+      for (const s of p.slots) {
+        const iv = clampInterval(toMinutes(s.from), toMinutes(s.to));
+        if (!iv) continue;
+        const len = iv[1] - iv[0];
+        t.travelWeighted += s.travelMin * len;
+        t.travelMinutes += len;
+      }
+    }
+    perDay.push(coverage);
+  }
+
+  const memberHours = [...totals.values()]
+    .filter(t => t.minutes > 0)
+    .map(t => ({
+      uid: t.uid,
+      name: t.name,
+      hours: Math.round((t.minutes / 60) * 10) / 10,
+      avgTravelMin: t.travelMinutes > 0 ? Math.round(t.travelWeighted / t.travelMinutes) : null,
+    }))
+    .sort((a, b) => b.hours - a.hours || a.name.localeCompare(b.name, 'cs'));
+
+  return { counts, missingByPosition, memberHours, perDay };
+}
+
+// ---------- kopírování týdne ----------
+
+export function planWeekCopy({ uid, todayISO, availabilityDocs, absences }) {
+  const mine = new Map((availabilityDocs || []).filter(d => d.uid === uid).map(d => [d.date, d]));
+  const plan = [];
+  for (let i = 0; i < 7; i++) {
+    const source = mine.get(addDays(todayISO, i));
+    const target = addDays(todayISO, i + 7);
+    if (!source || mine.has(target) || isAbsentOn(absences, uid, target)) continue;
+    plan.push({ date: target, slots: normalizeSlots(source.slots) });
+  }
+  return plan;
+}
+
+// ---------- logy ----------
+
+function formatRanges(slots) {
+  return slots.map(s => `${s.from}–${s.to}`).join(', ');
+}
+
+function describeSlotsForLog(slots) {
+  if (slots.length === 1) return `${slots[0].from}–${slots[0].to}, dojezd ${slots[0].travelMin} min`;
+  return slots.map(s => `${s.from}–${s.to} (dojezd ${s.travelMin} min)`).join(', ');
+}
+
+export function buildLogDetail(kind, { date, slots, previousSlots, dates } = {}) {
+  switch (kind) {
+    case 'added':
+      return `Označil se jako dostupný na ${formatDateCZ(date)} (${describeSlotsForLog(slots)})`;
+    case 'updated':
+      return `Změnil dostupnost na ${formatDateCZ(date)}: ${describeSlotsForLog(slots)} (dříve ${describeSlotsForLog(previousSlots)})`;
+    case 'removed':
+      return `Zrušil dostupnost na ${formatDateCZ(date)} (bylo ${formatRanges(previousSlots)})`;
+    case 'copied': {
+      const sorted = [...dates].sort();
+      const list = sorted.map((d, i) => formatDateCZ(d, i === sorted.length - 1)).join(', ');
+      const n = sorted.length;
+      return `Zkopíroval dostupnost na další týden: ${list} (${n} ${pluralize(n, 'den', 'dny', 'dní')})`;
+    }
+    default:
+      throw new Error(`Unknown availability log kind: ${kind}`);
+  }
 }
