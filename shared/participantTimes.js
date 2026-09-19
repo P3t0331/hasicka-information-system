@@ -25,8 +25,14 @@ export function getParticipantHours(activity, participant) {
   const s = toMin(start);
   const e = toMin(end);
   if (s === null || e === null) return 0;
-  let diff = e - s;
-  if (diff < 0) diff += 24 * 60; // přes půlnoc
+  const diff = e - s;
+  if (diff < 0) {
+    const actStart = toMin(activity?.time);
+    const actEnd = toMin(activity?.timeEnd);
+    const activitySpansMidnight = actStart !== null && actEnd !== null && actEnd < actStart;
+    if (activitySpansMidnight) return (diff + 24 * 60) / 60; // přes půlnoc
+    return 0;
+  }
   return diff / 60;
 }
 

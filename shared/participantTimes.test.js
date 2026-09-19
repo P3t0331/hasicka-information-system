@@ -47,6 +47,10 @@ describe('getParticipantHours', () => {
     expect(getParticipantHours({ time: '20:00', timeEnd: '02:00' })).toBe(6);
     expect(getParticipantHours({ time: '20:00', timeEnd: '02:00' }, { uid: 'u', until: '23:00' })).toBe(3);
   });
+  it('does not wrap past midnight when the activity itself does not span midnight', () => {
+    expect(getParticipantHours({ time: '13:00', timeEnd: '18:00' }, { uid: 'u', until: '12:00' })).toBe(0);
+    expect(getParticipantHours({ time: '09:00', timeEnd: '15:00' }, { uid: 'u', from: '16:00' })).toBe(0);
+  });
 });
 
 describe('formatParticipantTimes', () => {
