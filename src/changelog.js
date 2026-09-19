@@ -5,9 +5,35 @@
 // Each entry supports either a flat `changes` array (simple) or `sections` (categorized).
 // Section format: [{ label: 'Nové funkce', changes: [...] }, ...]
 // Available section labels: 'Nové funkce', 'Opravy chyb', 'Vylepšení', 'Změny'
-export const APP_VERSION = '2.0.0';
+export const APP_VERSION = '2.1.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.1.0',
+    date: '19. 9. 2026',
+    sections: [
+      {
+        label: 'Nové funkce',
+        changes: [
+          'U akcí a školení můžete zadat, že nebudete celou dobu — po přihlášení klepněte na „⏱ Celou dobu“ a vyplňte, kdy přijdete a/nebo odejdete (např. jen do 16:00). Funguje na stránkách Akce, Školení i ve Službách.',
+          'Ostatní uvidí váš čas v seznamu účastníků (např. „· do 16:00“) a Statistiky počítají hodiny jen za dobu, kdy jste skutečně byli.',
+        ],
+      },
+      {
+        label: 'Vylepšení',
+        changes: [
+          'Dostupnost k výjezdu se při přidání vždy zeptá, za jak dlouho jste na stanici, místo aby si pamatovala poslední hodnotu.',
+        ],
+      },
+      {
+        label: 'Opravy chyb',
+        changes: [
+          'V tmavém režimu jsou vstupní pole a rozbalovací seznamy znovu čitelné — po klepnutí do pole už není tmavý text na tmavém pozadí.',
+          'Odhlášení z akce/školení spolehlivě funguje i po změně času účasti.',
+        ],
+      },
+    ],
+  },
   {
     version: '2.0.0',
     date: '13. 9. 2026',
