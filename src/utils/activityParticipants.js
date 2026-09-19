@@ -30,3 +30,34 @@ export async function joinActivityTx(db, collectionName, activityId, participant
         transaction.update(ref, { participants: [...participants, participant] });
     });
 }
+
+// Sets or clears a participant's partial-attendance window (`from`/`until`,
+// 'HH:MM'). Empty values remove the key, so "celou dobu" entries look exactly
+// like legacy ones. Runs as a transaction on the committed list for the same
+// reason as joinActivityTx: the array holds objects, so a targeted update
+// isn't possible without rewriting the whole array.
+//
+// Throws an Error with a `code` of 'NOT_FOUND' | 'NOT_JOINED'.
+export async function updateParticipantTimesTx(db, collectionName, activityId, uid, { from, until } = {}) {
+    const ref = doc(db, collectionName, activityId);
+    await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(ref);
+        if (!snap.exists()) {
+            throw Object.assign(new Error('Aktivita neexistuje.'), { code: 'NOT_FOUND' });
+        }
+        const participants = Array.isArray(snap.data().participants) ? snap.data().participants : [];
+        if (!participants.some(p => p.uid === uid)) {
+            throw Object.assign(new Error('Uživatel není přihlášen.'), { code: 'NOT_JOINED' });
+        }
+        const updated = participants.map(p => {
+            if (p.uid !== uid) return p;
+            const { from: _f, until: _u, ...rest } = p;
+            return {
+                ...rest,
+                ...(from ? { from } : {}),
+                ...(until ? { until } : {}),
+            };
+        });
+        transaction.update(ref, { participants: updated });
+    });
+}
