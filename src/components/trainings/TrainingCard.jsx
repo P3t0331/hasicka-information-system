@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import LinkifiedText from '../LinkifiedText';
+import ParticipationTimeControl from '../activities/ParticipationTimeControl';
+import { formatParticipantTimes } from '../../../shared/participantTimes.js';
 
 export default function TrainingCard({ training, isPast, currentUser, onJoin, onLeave, onDelete, onEdit, canDelete }) {
     const [expanded, setExpanded] = useState(false);
@@ -134,9 +136,12 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
 
                     {!isPast && (
                         isJoined ? (
-                            <button className="event-action-btn event-action-btn--leave" onClick={() => onLeave(training)}>
-                                Odhlásit
-                            </button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                <ParticipationTimeControl activity={training} collectionName="trainings" />
+                                <button className="event-action-btn event-action-btn--leave" onClick={() => onLeave(training)}>
+                                    Odhlásit
+                                </button>
+                            </div>
                         ) : (training.maxParticipants && count >= parseInt(training.maxParticipants)) ? (
                             <button className="event-action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--border)', color: 'var(--text-dim)', borderColor: 'var(--border-medium)' }}>
                                 Plno
@@ -159,6 +164,9 @@ export default function TrainingCard({ training, isPast, currentUser, onJoin, on
                             >
                                 {p.uid === currentUser?.uid && <span>⭐</span>}
                                 <span>{p.name}</span>
+                                {formatParticipantTimes(p) && (
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85em' }}>· {formatParticipantTimes(p)}</span>
+                                )}
                             </div>
                         ))}
                     </div>
