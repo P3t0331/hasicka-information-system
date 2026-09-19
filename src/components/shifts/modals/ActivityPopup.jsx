@@ -4,6 +4,7 @@ import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { logAction } from '../../../utils/logger';
 import { joinActivityTx } from '../../../utils/activityParticipants';
+import ParticipationTimeControl from '../../activities/ParticipationTimeControl';
 
 export default function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, onClose, showToast }) {
   const navigate = useNavigate();
@@ -72,6 +73,9 @@ export default function ActivityPopup({ day, trainingsData, eventsData, currentU
     return `${day.date}. ${MONTHS[new Date().getMonth()]}`;
   };
 
+  const now = new Date();
+  const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
   return (
     <div className="activity-popup-overlay" onClick={onClose}>
       <div className="activity-popup" onClick={e => e.stopPropagation()}>
@@ -116,12 +120,19 @@ export default function ActivityPopup({ day, trainingsData, eventsData, currentU
 
                   <div className="activity-item__actions">
                     {isJoined ? (
-                      <button
-                        className="activity-item__btn activity-item__btn--leave"
-                        onClick={() => handleLeave(activity)}
-                      >
-                        Odhlásit
-                      </button>
+                      <>
+                        {activity.date >= todayISO && <ParticipationTimeControl
+                          activity={activity}
+                          collectionName={isTraining ? 'trainings' : 'events'}
+                          compact
+                        />}
+                        <button
+                          className="activity-item__btn activity-item__btn--leave"
+                          onClick={() => handleLeave(activity)}
+                        >
+                          Odhlásit
+                        </button>
+                      </>
                     ) : (activity.maxParticipants && count >= parseInt(activity.maxParticipants)) ? (
                       <button
                         className="activity-item__btn"

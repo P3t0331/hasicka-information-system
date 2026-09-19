@@ -3,6 +3,7 @@ import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { logAction } from '../../utils/logger';
 import { joinActivityTx } from '../../utils/activityParticipants';
+import ParticipationTimeControl from '../activities/ParticipationTimeControl';
 
 export default function InlineActivities({ trainings, events, currentUser, userData, showToast, retroMode, onRetroAddParticipant }) {
   const [expanded, setExpanded] = useState(false);
@@ -63,6 +64,9 @@ export default function InlineActivities({ trainings, events, currentUser, userD
   const trainingCount = trainings?.length || 0;
   const eventCount = events?.length || 0;
 
+  const now = new Date();
+  const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
   return (
     <div className="inline-activities">
       <div className="inline-activities__header" onClick={() => setExpanded(!expanded)}>
@@ -107,12 +111,20 @@ export default function InlineActivities({ trainings, events, currentUser, userD
 
                 <div className="inline-activity-card__actions">
                     {isJoined ? (
-                      <button
-                        className="inline-activity-card__btn inline-activity-card__btn--leave"
-                        onClick={() => handleLeave(activity)}
-                      >
-                        Odhlásit
-                      </button>
+                      <>
+                        {activity.date >= todayISO && <ParticipationTimeControl
+                          activity={activity}
+                          collectionName={isTraining ? 'trainings' : 'events'}
+                          compact
+                        />}
+                        <button
+                          className="inline-activity-card__btn inline-activity-card__btn--leave"
+                          onClick={() => handleLeave(activity)}
+                          style={{ marginLeft: '0.25rem' }}
+                        >
+                          Odhlásit
+                        </button>
+                      </>
                     ) : (activity.maxParticipants && (activity.participants?.length || 0) >= parseInt(activity.maxParticipants)) ? (
                       <button
                         className="inline-activity-card__btn"
