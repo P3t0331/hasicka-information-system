@@ -7,6 +7,9 @@
 }
 
 :root {
+  /* Native controls (dropdown lists, date/time pickers, scrollbars) follow the theme */
+  color-scheme: light;
+
   /* Brand (existing — unchanged) */
   --primary-red: #D32F2F;
   --primary-red-dark: #B71C1C;
@@ -187,6 +190,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --bg-light: #121212;
   --surface: #1E1E1E;
   --surface-alt: #262626;
@@ -325,6 +329,14 @@ body {
     radial-gradient(at 0% 0%, hsla(350, 40%, 10%, 1) 0px, transparent 50%);
 }
 
+/* Form controls don't inherit text color — without this they fall back to the
+   browser's black, which is unreadable on dark surfaces. */
+input,
+select,
+textarea {
+  color: var(--text-primary);
+}
+
 h1,
 h2,
 h3,
@@ -421,7 +433,8 @@ h4 {
   border-radius: var(--radius);
   font-size: 1rem;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
+  color: var(--text-primary);
   transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
 }
