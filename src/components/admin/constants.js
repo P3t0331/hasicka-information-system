@@ -31,6 +31,7 @@ export const ACTION_LABELS = {
   LEFT_TRAINING:             'Odhlášen ze školení',
   JOINED_EVENT:              'Přihlášen na akci',
   LEFT_EVENT:                'Odhlášen z akce',
+  UPDATED_ACTIVITY_TIMES:    'Úprava času účasti',
   UPDATED_PROFILE:           'Aktualizace profilu',
   UPDATED_EQUIPMENT:         'Aktualizace vybavení',
   ADMIN_UPDATED_EQUIPMENT:   'Úprava vybavení člena',
