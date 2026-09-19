@@ -61,3 +61,23 @@ export async function updateParticipantTimesTx(db, collectionName, activityId, u
         transaction.update(ref, { participants: updated });
     });
 }
+
+// Removes a participant by uid. arrayRemove needs a deep-equal object and the
+// entry can change after joining (from/until), so a stale local copy would
+// silently remove nothing — filter by uid on the committed list instead.
+//
+// Throws an Error with a `code` of 'NOT_FOUND' | 'NOT_JOINED'.
+export async function leaveActivityTx(db, collectionName, activityId, uid) {
+    const ref = doc(db, collectionName, activityId);
+    await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(ref);
+        if (!snap.exists()) {
+            throw Object.assign(new Error('Aktivita neexistuje.'), { code: 'NOT_FOUND' });
+        }
+        const participants = Array.isArray(snap.data().participants) ? snap.data().participants : [];
+        if (!participants.some(p => p.uid === uid)) {
+            throw Object.assign(new Error('Uživatel není přihlášen.'), { code: 'NOT_JOINED' });
+        }
+        transaction.update(ref, { participants: participants.filter(p => p.uid !== uid) });
+    });
+}

@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { logAction } from '../../../utils/logger';
-import { joinActivityTx } from '../../../utils/activityParticipants';
+import { joinActivityTx, leaveActivityTx } from '../../../utils/activityParticipants';
 import ParticipationTimeControl from '../../activities/ParticipationTimeControl';
 
 export default function ActivityPopup({ day, trainingsData, eventsData, currentUser, userData, onClose, showToast }) {
@@ -54,17 +53,19 @@ export default function ActivityPopup({ day, trainingsData, eventsData, currentU
     const collectionName = activity.type === 'training' ? 'trainings' : 'events';
 
     try {
-      await updateDoc(doc(db, collectionName, activity.id), {
-        participants: arrayRemove(myParticipation)
-      });
+      await leaveActivityTx(db, collectionName, activity.id, currentUser.uid);
       const typeLabel = activity.type === 'training' ? 'školení' : 'akce';
       logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
         activity.type === 'training' ? 'LEFT_TRAINING' : 'LEFT_EVENT', 'activities',
         `Odhlásil se ze ${typeLabel} „${activity.title}“ (${activity.date}) – ze stránky Směn`);
       showToast('success', 'Odhlášeno.');
     } catch (err) {
-      console.error('Error leaving:', err);
-      showToast('error', 'Chyba při odhlašování.');
+      if (err.code === 'NOT_JOINED') {
+        showToast('warning', 'Nejste přihlášen/a.');
+      } else {
+        console.error('Error leaving:', err);
+        showToast('error', 'Chyba při odhlašování.');
+      }
     }
   };
 

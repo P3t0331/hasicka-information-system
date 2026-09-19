@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayRemove } from 'firebase/firestore';
+import { collection, doc, onSnapshot, deleteDoc, addDoc } from 'firebase/firestore';
 import { logAction } from '../utils/logger';
-import { joinActivityTx } from '../utils/activityParticipants';
+import { joinActivityTx, leaveActivityTx } from '../utils/activityParticipants';
 import { getEffectiveRoles } from '../utils/roles';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -78,16 +78,18 @@ export default function useTrainings() {
         if (!myParticipation) return;
 
         try {
-            await updateDoc(doc(db, 'trainings', training.id), {
-                participants: arrayRemove(myParticipation)
-            });
+            await leaveActivityTx(db, 'trainings', training.id, currentUser.uid);
             logAction(db, currentUser.uid, `${userData.firstName} ${userData.lastName}`,
                 'LEFT_TRAINING', 'activities',
                 `Odhlásil se ze školení „${training.title}“ (${training.date})`);
             showToast('success', 'Odhlášeno.');
         } catch (err) {
-            console.error('Error leaving:', err);
-            showToast('error', 'Chyba při odhlašování.');
+            if (err.code === 'NOT_JOINED') {
+                showToast('warning', 'Nejste přihlášen/a.');
+            } else {
+                console.error('Error leaving:', err);
+                showToast('error', 'Chyba při odhlašování.');
+            }
         }
     };
 
