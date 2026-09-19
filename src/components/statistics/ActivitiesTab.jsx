@@ -2,6 +2,7 @@ import React from 'react';
 import { MONTHS_CZ } from '../../utils/constants';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChartBlock, ChartTooltip, PieLabel } from './ChartComponents';
+import { getParticipantHours } from '../../../shared/participantTimes.js';
 
 export default function ActivitiesTab({ eventsData, trainingsData }) {
     // Get all participants with stats
@@ -24,21 +25,6 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
         );
     }
 
-    const getActivityHours = (activity) => {
-        if (!activity.time || !activity.timeEnd) return 0;
-        const [startH, startM] = activity.time.split(':').map(Number);
-        const [endH, endM] = activity.timeEnd.split(':').map(Number);
-        if (isNaN(startH) || isNaN(endH)) return 0;
-        
-        const startMinutes = startH * 60 + (isNaN(startM) ? 0 : startM);
-        const endMinutes = endH * 60 + (isNaN(endM) ? 0 : endM);
-        let diffMins = endMinutes - startMinutes;
-        if (diffMins < 0) {
-            diffMins += 24 * 60; // spans midnight
-        }
-        return diffMins / 60;
-    };
-
     // Calculate statistics for each user
     const userStats = users.map(user => {
         const userEvents = eventsData.filter(e =>
@@ -49,8 +35,9 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
         );
         const total = userEvents.length + userTrainings.length;
 
-        const eventsHours = userEvents.reduce((sum, e) => sum + getActivityHours(e), 0);
-        const trainingsHours = userTrainings.reduce((sum, t) => sum + getActivityHours(t), 0);
+        const hoursFor = (a) => getParticipantHours(a, a.participants.find(p => p.uid === user.uid));
+        const eventsHours = userEvents.reduce((sum, e) => sum + hoursFor(e), 0);
+        const trainingsHours = userTrainings.reduce((sum, t) => sum + hoursFor(t), 0);
         const totalHours = eventsHours + trainingsHours;
 
         // Get latest activity
@@ -75,8 +62,8 @@ export default function ActivitiesTab({ eventsData, trainingsData }) {
     const totalTrainings = trainingsData.length;
     const totalActivities = totalEvents + totalTrainings;
 
-    const totalEventsHours = eventsData.reduce((sum, e) => sum + getActivityHours(e), 0);
-    const totalTrainingsHours = trainingsData.reduce((sum, t) => sum + getActivityHours(t), 0);
+    const totalEventsHours = eventsData.reduce((sum, e) => sum + getParticipantHours(e), 0);
+    const totalTrainingsHours = trainingsData.reduce((sum, t) => sum + getParticipantHours(t), 0);
     const totalActivitiesHours = totalEventsHours + totalTrainingsHours;
 
     const activeParticipants = users.length;
